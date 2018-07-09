@@ -1,0 +1,13 @@
+*.pro
+*.user
+*/*.pro
+*/*.user
+build/**/*
+Docs/
+Docs/**/*
+execution/
+execution/**/*
+vmonolayer-build/**/*
+vmonolayer-build/**/*
+/GUI/vmonolayer_GUI.pro.user
+/GUI/vmonolayer_GUI.pro
