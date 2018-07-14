@@ -204,7 +204,6 @@ type cycle_parameters_type
     ! Radiation damage/repair
     real(REAL_KIND) :: eta_PL, Kcp, eta_L(2)
     real(REAL_KIND) :: Krepair_base, Krepair_max, Kmisrepair	!(2)
-    real(REAL_KIND) :: Tcp(0:NTCP)
     real(REAL_KIND) :: eta_IRL, fraction_Ch1, mitosis_factor
     real(REAL_KIND) :: psurvive_Ch1, psurvive_Ch2		! prob of surviving mitosis
     real(REAL_KIND) :: aTCP, bTCP

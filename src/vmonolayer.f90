@@ -7,7 +7,7 @@ use winsock
 use colony
 use transfer
 use metabolism
-use Tcp_mod
+!use Tcp_mod
 
 IMPLICIT NONE
 
