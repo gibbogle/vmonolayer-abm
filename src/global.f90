@@ -31,7 +31,8 @@ integer, parameter :: DIVIDE_ALWAYS_PUSH  = 1
 integer, parameter :: DIVIDE_USE_CLEAR_SITE  = 2
 integer, parameter :: DIVIDE_USE_CLEAR_SITE_RANDOM  = 3
 
-integer, parameter :: nfin=10, nfout=11, nflog=12, nfres=13, nfrun=14, nfcell=15, nftreatment=16, nfFACS=17, nfpar=18, nfpestout=19
+integer, parameter :: nfin=10, nfout=11, nflog=12, nfres=13, nfrun=14, nfcell=15, nftreatment=16, nfFACS=17, &
+					  nfpar=18, nfpestout=19, nftcp=20
 integer, parameter :: neumann(3,6) = reshape((/ -1,0,0, 1,0,0, 0,-1,0, 0,1,0, 0,0,-1, 0,0,1 /), (/3,6/))
 
 integer, parameter :: CFSE = 0
@@ -64,7 +65,7 @@ integer, parameter :: DRUG_EVENT = 1
 integer, parameter :: RADIATION_EVENT = 2
 integer, parameter :: MEDIUM_EVENT = 3
 
-integer, parameter :: NTCP = 200
+integer, parameter :: NTCP = 1000
 
 integer, parameter :: DIST_NV = 20
 
@@ -206,6 +207,7 @@ type cycle_parameters_type
     real(REAL_KIND) :: Tcp(0:NTCP)
     real(REAL_KIND) :: eta_IRL, fraction_Ch1, mitosis_factor
     real(REAL_KIND) :: psurvive_Ch1, psurvive_Ch2		! prob of surviving mitosis
+    real(REAL_KIND) :: aTCP, bTCP
 end type
 
 type drug_type
@@ -359,7 +361,7 @@ logical :: celltype_display(MAX_CELLTYPES)
 real(REAL_KIND) :: MM_THRESHOLD, anoxia_threshold, t_anoxia_limit, anoxia_death_delay, Vdivide0, dVdivide
 real(REAL_KIND) :: aglucosia_threshold, t_aglucosia_limit, aglucosia_death_delay, max_growthrate(MAX_CELLTYPES)
 real(REAL_KIND) :: divide_time_median(MAX_CELLTYPES), divide_time_shape(MAX_CELLTYPES), divide_time_mean(MAX_CELLTYPES)
-real(REAL_KIND) :: t_simulation, execute_t1, apoptosis_rate
+real(REAL_KIND) :: t_simulation, execute_t1
 real(REAL_KIND) :: O2cutoff(3), hypoxia_threshold
 real(REAL_KIND) :: growthcutoff(3)
 real(REAL_KIND) :: spcrad_value

@@ -2886,7 +2886,7 @@ padding: 8px
               <x>490</x>
               <y>190</y>
               <width>361</width>
-              <height>321</height>
+              <height>341</height>
              </rect>
             </property>
             <property name="title">
@@ -2898,7 +2898,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>341</width>
-               <height>301</height>
+               <height>321</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
@@ -3055,7 +3055,7 @@ padding: 8px
                </widget>
               </item>
               <item row="11" column="1">
-               <widget class="QLineEdit" name="line_RMR_KCP_1">
+               <widget class="QLineEdit" name="line_RMR_ATCP_1">
                 <property name="maximumSize">
                  <size>
                   <width>51</width>
@@ -3068,7 +3068,7 @@ padding: 8px
                </widget>
               </item>
               <item row="11" column="2">
-               <widget class="QLineEdit" name="line_RMR_KCP_2">
+               <widget class="QLineEdit" name="line_RMR_ATCP_2">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -3084,9 +3084,9 @@ padding: 8px
                </widget>
               </item>
               <item row="11" column="0">
-               <widget class="QMyLabel" name="label_RMR_KCP_1">
+               <widget class="QMyLabel" name="label_RMR_ATCP_1">
                 <property name="text">
-                 <string>Kcp</string>
+                 <string>Tcp Hill a</string>
                 </property>
                </widget>
               </item>
@@ -3275,6 +3275,42 @@ padding: 8px
               </item>
               <item row="7" column="2">
                <widget class="QLineEdit" name="line_RMR_F_MITOSIS_2">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>51</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="1">
+               <widget class="QLineEdit" name="line_RMR_BTCP_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>51</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="0">
+               <widget class="QMyLabel" name="label_RMR_BTCP_1">
+                <property name="text">
+                 <string>Tcp Hill b</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="2">
+               <widget class="QLineEdit" name="line_RMR_BTCP_2">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>

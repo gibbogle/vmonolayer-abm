@@ -170,15 +170,14 @@ kcell_dbug = 0
 write(logmsg,'(a,i6)') 'Startup procedures have been executed: initial T cell count: ',Ncells0
 call logger(logmsg)
 call averages
-if (is_radiation) then
-	ccp => cc_parameters(selected_celltype)
-	call logger('makeTCPradiation')
-	call makeTCPradiation(selected_celltype,NTCP) ! set checkpoint repair time limits 
-	call logger('did makeTCPradiation')
-else
-	ccp%tcp = 0
-endif
-call logger('b')
+!if (is_radiation) then
+!	ccp => cc_parameters(selected_celltype)
+!	call logger('makeTCPradiation')
+!	call makeTCPradiation(selected_celltype,NTCP) ! set checkpoint repair time limits 
+!	call logger('did makeTCPradiation')
+!else
+!	ccp%tcp = 0
+!endif
 end subroutine
 
 !----------------------------------------------------------------------------------------- 
@@ -706,7 +705,7 @@ write(nflog,'(a,a)') 'DLL version: ',dll_run_version
 write(nflog,*)
 
 if (.not.use_PEST) then
-	open(nfres,file='monolayer_ts.out',status='replace')
+	open(nfres,file='vmonolayer_ts.out',status='replace')
 else
 	open(nfres,file=PEST_outputfile,status='replace')
 endif
@@ -783,7 +782,9 @@ read(nf,*) ccp%mitosis_factor
 read(nf,*) ccp%fraction_Ch1
 read(nf,*) ccp%psurvive_Ch1
 read(nf,*) ccp%psurvive_Ch2
-read(nf,*) ccp%Kcp
+read(nf,*) ccp%aTCP
+read(nf,*) ccp%bTCP
+!read(nf,*) ccp%Kcp
 
 total = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
 write(nflog,'(a,7f8.2)') 'T_G1,T_S,T_G2,T_M,G1_delay,G2_delay, total: ',ccp%T_G1,ccp%T_S,ccp%T_G2,ccp%T_M, &
@@ -2134,7 +2135,7 @@ inquire(unit=nflog,OPENED=isopen)
 if (isopen) then
 	close(nflog)
 endif
-open(nflog,file='monolayer.log',status='replace')
+open(nflog,file='vmonolayer.log',status='replace')
 
 #ifdef GFORTRAN
     write(logmsg,'(a)') 'Built with GFORTRAN'

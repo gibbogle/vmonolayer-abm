@@ -17,8 +17,6 @@ integer, parameter :: dividing    = 7
 logical :: use_volume_based_transition = .false.
 real(REAL_KIND) :: starvation_arrest_threshold = 5
 real(REAL_KIND) :: max_arrest_time = 6*3600
-!integer, parameter :: NTCP = 200
-
 contains
 
 !--------------------------------------------------------------------------
@@ -68,7 +66,7 @@ if (phase == G1_phase) then
     if (switch) then
         cp%phase = Checkpoint1
         cp%G1_flag = .false.
-        cp%G1S_time = tnow + ccp%Tcp(nPL)
+        cp%G1S_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
     endif
 elseif (phase == Checkpoint1) then  ! this checkpoint combines the release from G1 delay and the G1S repair check
     if (.not.cp%G1_flag) then
@@ -118,7 +116,7 @@ elseif (phase == G2_phase) then
     if (switch) then
         cp%phase = Checkpoint2
         cp%G2_flag = .false.
-        cp%G2M_time = tnow + ccp%Tcp(nPL)
+        cp%G2M_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
         ! TESTING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !cp%G2M_time = cp%G2M_time + ccp%G2_mean_delay(1)
         !
@@ -405,6 +403,18 @@ endif
 cp%N_PL = nPL
 end subroutine
 
+!--------------------------------------------------------------------------
+! Hill function for max checkpoint delay TCP
+!--------------------------------------------------------------------------
+function f_TCP(ccp,n) result(TCP)
+integer :: n
+type(cycle_parameters_type), pointer :: ccp
+real(REAL_KIND) :: TCP
+
+TCP = ccp%bTCP*n/(ccp%aTCP + n)
+TCP = 3600*TCP	! hours -> seconds
+end function
+
 end module
 
 #if 0
@@ -565,9 +575,9 @@ do i = 1,10
 enddo
 stop
 
-write(*,*) 'makeTCP'
-call makeTCP(ccp%tcp,NTCP,ccp%epsilon_PL,ccp%epsilon_2PL,ccp%Kcp) ! set checkpoint repair time limits 
-write(*,*) 'did makeTCP'
+!write(*,*) 'makeTCP'
+!call makeTCP(ccp%tcp,NTCP,ccp%epsilon_PL,ccp%epsilon_2PL,ccp%Kcp) ! set checkpoint repair time limits 
+!write(*,*) 'did makeTCP'
 
 hours = 10*24
 Nsteps = hours/DELTA_T

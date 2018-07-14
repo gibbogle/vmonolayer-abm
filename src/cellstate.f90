@@ -570,7 +570,6 @@ do kcell = 1,nlist0
 	    endif
         if (cp%phase >= M_phase) then
             if (prev_phase == Checkpoint2) then		! this is mitosis entry
-!				write(*,*) 'mitosis_entry: kcell,istep: ',kcell,istep
                 if (.not.cp%radiation_tag .and. cp%N_PL > 0) then		! lesions still exist, no time for repair
 					cp%radiation_tag = .true.
 				    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
@@ -608,7 +607,7 @@ do kcell = 1,nlist0
 		    call growcell(cp,dt)
 		endif	
 	endif
-!	if (mitosis_entry) then
+	
 	if (in_mitosis) then
 		drugkilled = .false.
 		do idrug = 1,ndrugs_used

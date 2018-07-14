@@ -519,9 +519,17 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Ch2 prob of mitosis survival",
      "Probability that a cell with one Ch2 lesion survives mitosis: psurvive_Ch2"},
 
-     {"RMR_KCP_1", 0.13, 0, 0,
-     "Checkpoint time limit factor",
-     "Factor for computing maximum time spent in the checkpoint, as a function of # of L1 lesions: Kcp"},
+     {"RMR_ATCP_1", 50, 0, 0,
+     "TCP Hill a",
+     "TCP, the maximum time spent in the checkpoint, is a Hill function of # of L1 lesions, n. TCP(n) = b.n/(a + n)"},
+
+      {"RMR_BTCP_1", 50, 0, 0,
+      "TCP Hill b",
+      "TCP, the maximum time spent in the checkpoint, is a Hill function of # of L1 lesions, n. TCP(n) = b.n/(a + n)"},
+
+//     {"RMR_KCP_1", 0.13, 0, 0,
+//     "Checkpoint time limit factor",
+//     "Factor for computing maximum time spent in the checkpoint, as a function of # of L1 lesions: Kcp"},
 
       {"T_G1_2", 6, 0, 0,
       "G1 phase base time (h)",
@@ -590,9 +598,18 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Ch2 prob of mitosis survival",
       "Probability that a cell with one Ch2 lesion survives mitosis: psurvive_Ch2"},
 
-      {"RMR_KCP_2", 0.13, 0, 0,
-      "Checkpoint time limit factor",
-      "Factor for computing maximum time spent in the checkpoint, as a function of # of L1 lesions: Kcp"},
+       {"RMR_ATCP_2", 50, 0, 0,
+       "TCP Hill a",
+       "TCP, the maximum time spent in the checkpoint, is a Hill function of # of L1 lesions, n. TCP(n) = b.n/(a + n)"},
+
+       {"RMR_BTCP_2", 50, 0, 0,
+       "TCP Hill b",
+       "TCP, the maximum time spent in the checkpoint, is a Hill function of # of L1 lesions, n. TCP(n) = b.n/(a + n)"},
+
+
+//      {"RMR_KCP_2", 0.13, 0, 0,
+//      "Checkpoint time limit factor",
+//      "Factor for computing maximum time spent in the checkpoint, as a function of # of L1 lesions: Kcp"},
 
 // Metabolism parameters
 

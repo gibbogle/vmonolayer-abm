@@ -31,12 +31,25 @@ subroutine makeTCPradiation(ityp, np)
 integer :: ityp, np
 real(REAL_KIND) :: epsilon_PL, epsilon_2PL
 real(REAL_KIND) :: n0, T1, auc, epsilon_ratio
-integer :: k, i, nb
+integer :: k, i, j, nb, npdata
 type(cycle_parameters_type), pointer :: ccp
-logical :: linear = .false.
 real(REAL_KIND) :: Tb, alpha
+real(REAL_KIND) :: tcp(0:NTCP)
+character*(16) :: datafile = 'TCP.data'
+logical :: create_datafile = .false.
+logical :: read_datafile = .false.
+logical :: linear = .false.
+#include 'TCP.data'
 
 ccp => cc_parameters(ityp)
+if (read_datafile) then	
+	ccp%tcp(0:NTCP) = tcp(0:NTCP)
+	return
+endif
+if (create_datafile) then
+	open(nftcp,file=datafile,status='replace')
+	write(nftcp,'(a)') 'DATA (tcp(i),i=0,NTCP)) / 0, &'
+endif
 ePL = (ccp%Krepair_base+ccp%Krepair_max)/2
 e = ePL/ccp%Kmisrepair
 Kcp = ccp%Kcp
@@ -70,10 +83,24 @@ if (linear) then
 		ccp%Tcp(i) = alpha*Tb
 	enddo
 endif
-!do i = 1,np
-!    write(*,'(a,i4,f6.2)') 'n0, Tcp: ',i,Tcp(i)
-!enddo
+do i = 0,np
+    write(nflog,'(i4,f8.1)') i,ccp%Tcp(i)
+enddo
 ccp%Tcp = 3600*ccp%Tcp  ! hours -> seconds
+
+if (create_datafile) then
+	do i = 1,np
+		if (i /= np) then
+			write(nftcp,'(2x,f8.0,a,$)') ccp%Tcp(i),','
+		else
+			write(nftcp,'(2x,f8.0,a)') ccp%Tcp(i),' /'
+		endif
+		if (i /= np .and. mod(i,10) == 0) then
+			write(nftcp,'(a)') ' &'
+		endif
+	enddo
+	close(nftcp)
+endif
 
 end subroutine
 
