@@ -7,12 +7,9 @@
 #include "mainwindow.h"
 #include "log.h"
 #include "params.h"
-#include "graphs.h"
 #include "misc.h"
 #include "plot.h"
-//#include "myvtk.h"
 #include "field.h"
-//#include "transfer.h"
 #include <QDebug>
 
 #include "dialog.h"
@@ -118,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent)
     setupGraphSelector();
     setGraphsActive();
 
-    for(int i=0; i<16; i++)
+    for(int i=0; i<maxGraphs; i++)
         pGraph[i] = NULL;
     LOG_QMSG("did Graphs");
 

@@ -144,14 +144,16 @@ enddo
 call UpdateChemomap
 !call AdjustMM
 call SetInitialGrowthRate
+NATP_tag = 0
 Nradiation_tag = 0
 Ndrug_tag = 0
-Nanoxia_tag = 0
-Naglucosia_tag = 0
+Ndrug_tag = 0
 Nradiation_dead = 0
 Ndrug_dead = 0
-Nanoxia_dead = 0
-Naglucosia_dead = 0
+NATP_dead = 0
+ndivided = 0
+Ndying = 0
+Ndead = 0
 
 ndoublings = 0
 doubling_time_sum = 0
@@ -638,7 +640,7 @@ if (.not.chemo(GLUCOSE)%used) then
     chemo(GLUCOSE)%controls_death = .false.
 endif
 
-!mitosis_duration = ccp%T_M  ! seconds
+!mitosis_duration = ccp%T_M  ! seconds 
 
 LQ(:)%growth_delay_factor = 60*60*LQ(:)%growth_delay_factor	! hours -> seconds
 divide_dist(1:2)%class = LOGNORMAL_DIST
@@ -666,6 +668,8 @@ aglucosia_death_delay = 60*60*aglucosia_death_hours	! hours -> seconds
 Vcell_cm3 = 1.0e-9*Vcell_pL							! nominal cell volume in cm3
 Vdivide0 = Vdivide0*Vcell_cm3
 total_volume = medium_volume0
+
+write(nflog,*) 'Vdivide0: ',Vdivide0
 
 !write(logmsg,'(a,3e12.4)') 'DELTA_X, cell_radius: ',DELTA_X,cell_radius
 !call logger(logmsg)
@@ -713,19 +717,18 @@ endif
 !write(nfres,'(a,a)') 'DLL version: ',dll_run_version
 !write(nfres,*)
 write(nfres,'(a)') 'date info GUI_version DLL_version &
-istep hour Ncells(1) Ncells(2) &
-Nanoxia_dead(1) Nanoxia_dead(2) Naglucosia_dead(1) Naglucosia_dead(2) NdrugA_dead(1) NdrugA_dead(2) &
-NdrugB_dead(1) NdrugB_dead(2) Nradiation_dead(1) Nradiation_dead(2) &
-Ntagged_anoxia(1) Ntagged_anoxia(2) Ntagged_aglucosia(1) Ntagged_aglucosia(2) Ntagged_drugA(1) Ntagged_drugA(2) &
-Ntagged_drugB(1) Ntagged_drugB(2) Ntagged_radiation(1) Ntagged_radiation(2) &
-f_hypox(1) f_hypox(2) f_hypox(3) &
-f_clonohypox(1) f_clonohypox(2) f_clonohypox(3) &
-f_growth(1) f_growth(2) f_growth(3) &
+istep hour Ncells(1) Ncells(2) Nviable Nnonviable &
+NATP_dead(1) NATP_dead(2) NdrugA_dead(1) NdrugA_dead(2) NdrugB_dead(1) NdrugB_dead(2) &
+Nradiation_dead(1) Nradiation_dead(2) Ntotal_dead &
+Ntagged_ATP(1) Ntagged_ATP(2) Ntagged_drugA(1) Ntagged_drugA(2) Ntagged_drugB(1) Ntagged_drugB(2) &
+Ntagged_radiation(1) Ntagged_radiation(2) &
+f_viable f_hypoxic f_clonohypoxic f_growth f_nogrow &
 plating_efficiency(1) plating_efficiency(2) &
 EC_oxygen EC_glucose EC_lactate EC_drugA EC_drugA_metab1 EC_drugA_metab2 EC_drugB EC_drugB_metab1 EC_drugB_metab2 &
 IC_oxygen IC_glucose IC_lactate IC_pyruvate IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
 medium_oxygen medium_glucose medium_lactate medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
-doubling_time glycolysis_rate pyruvate_oxidation_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction'
+doubling_time glycolysis_rate pyruvate_oxidation_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction &
+G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase'
 write(logmsg,*) 'Opened nfout: ',trim(outputfile)
 call logger(logmsg)
 
@@ -746,8 +749,6 @@ call logger(logmsg)
 if (.not.use_new_drugdata) then
 	call DetermineKd	! Kd is now set or computed in the GUI 
 endif
-ndivided = 0
-Ncells_dying = 0
 ok = .true.
 
 end subroutine
@@ -1289,16 +1290,17 @@ endif
 !cp%d_divide = (3*cp%divide_volume/PI)**(1./3.)
 !cp%mitosis = 0
 
+cp%ATP_tag = .false.
 cp%drug_tag = .false.
 cp%radiation_tag = .false.
-cp%anoxia_tag = .false.
-cp%aglucosia_tag = .false.
+!cp%anoxia_tag = .false.
+!cp%aglucosia_tag = .false.
 cp%growth_delay = .false.
 cp%G2_M = .false.
 cp%p_rad_death = 0
 
-cp%t_anoxia = 0
-cp%t_aglucosia = 0
+!cp%t_anoxia = 0
+!cp%t_aglucosia = 0
 
 call get_random_vector3(v)	! set initial axis direction
 !cp%d = 0.1*small_d
@@ -1312,7 +1314,7 @@ cp%Cin(GLUCOSE) = chemo(GLUCOSE)%bdry_conc
 cp%Cin(LACTATE) = chemo(LACTATE)%bdry_conc
 cp%CFSE = generate_CFSE(1.d0)
 
-cp%growth_rate_factor = get_growth_rate_factor()
+!cp%growth_rate_factor = get_growth_rate_factor()
 cp%ATP_rate_factor = get_ATP_rate_factor()
 !cp%ndt = ndt
 end subroutine
@@ -1482,8 +1484,9 @@ cell_list(k)%generation = 1
 !cell_list(k)%drugB_tag = .false.
 cell_list(k)%drug_tag = .false.
 cell_list(k)%radiation_tag = .false.
-cell_list(k)%anoxia_tag = .false.
-cell_list(k)%aglucosia_tag = .false.
+cell_list(k)%ATP_tag = .false.
+!cell_list(k)%anoxia_tag = .false.
+!cell_list(k)%aglucosia_tag = .false.
 !cell_list(k)%exists = .true.
 cell_list(k)%active = .true.
 cell_list(k)%growth_delay = .false.
@@ -1503,7 +1506,7 @@ else
 endif
 !write(nflog,'(a,i6,f6.2)') 'volume: ',k,cell_list(k)%V
 cell_list(k)%t_divide_last = 0		! used in colony growth
-cell_list(k)%t_anoxia = 0
+!cell_list(k)%t_anoxia = 0
 cell_list(k)%Cin = 0
 cell_list(k)%Cin(OXYGEN) = chemo(OXYGEN)%bdry_conc
 cell_list(k)%Cin(GLUCOSE) = chemo(GLUCOSE)%bdry_conc
@@ -1860,7 +1863,7 @@ integer(c_int) :: res
 integer :: kcell, site(3), hour, nthour, kpar=0
 real(REAL_KIND) :: r(3), rmax, tstart, dt, dts, radiation_dose, diam_um, framp, area, diam
 !integer, parameter :: NT_CONC = 6
-integer :: i, ic, ichemo, ndt, iz, idrug, ityp, idiv, ndiv, Nlivecells
+integer :: i, ic, ichemo, ndt, iz, idrug, ityp, idiv, ndiv, Nmetabolisingcells
 integer :: nvars, ns
 real(REAL_KIND) :: dxc, ex_conc(120*CYCLE_PHASE+1)		! just for testing
 real(REAL_KIND) :: DELTA_T_save, t_sim_0
@@ -1869,10 +1872,9 @@ type(metabolism_type), pointer :: mp
 logical :: ok = .true.
 logical :: dbug
 
-write(nflog,'(a,2i6)') 'simulate_step: kcell, phase: ',1,cell_list(1)%phase
-dbug = .false.
-Nlivecells = Ncells - (Ncells_dying(1) + Ncells_dying(2))
-!if (Nlivecells == 0) then
+dbug = (istep < 0)
+Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
+!if (Nmetabolisingcells == 0) then
 !	call logger('# of metabolising cells = 0')
 !    res = 0
 !    return
@@ -1939,13 +1941,14 @@ do idiv = 0,ndiv-1
 	call CheckDrugConcs
 	call CheckDrugPresence
 
+	if (dbug) write(nflog,*) 'GrowCells'
 	call GrowCells(DELTA_T,t_simulation,ok)
+	if (dbug) write(nflog,*) 'did GrowCells'
 	if (.not.ok) then
 		res = 3
 		return
 	endif
 enddo	! end idiv loop
-write(nflog,*) 'istep,tnow: ',istep,tnow	
 
 DELTA_T = DELTA_T_save
 medium_change_step = .false.
@@ -2014,7 +2017,7 @@ endif
 ! write(nflog,'(a,f8.3)') 'did simulate_step: time: ',wtime()-start_wtime
 
 istep = istep + 1
-call averages
+!call averages
 end subroutine
 
 !-----------------------------------------------------------------------------------------

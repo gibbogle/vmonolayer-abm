@@ -154,10 +154,10 @@ type cell_type
 	real(REAL_KIND) :: t_divide_last	! these two values are used for colony simulation
 	real(REAL_KIND) :: t_divide_next
 	real(REAL_KIND) :: birthtime
-	real(REAL_KIND) :: t_anoxia
-	real(REAL_KIND) :: t_anoxia_die
-	real(REAL_KIND) :: t_aglucosia
-	real(REAL_KIND) :: t_aglucosia_die
+!	real(REAL_KIND) :: t_anoxia
+!	real(REAL_KIND) :: t_anoxia_die
+!	real(REAL_KIND) :: t_aglucosia
+!	real(REAL_KIND) :: t_aglucosia_die
 	real(REAL_KIND) :: M
 	real(REAL_KIND) :: p_rad_death
 	real(REAL_KIND) :: p_drug_death(MAX_DRUGTYPES)
@@ -167,7 +167,7 @@ type cell_type
 	real(REAL_KIND) :: dt_delay
 	real(REAL_KIND) :: t_growth_delay_end			! this is for suppression of growth before first division
 	integer :: N_delayed_cycles_left		! decremented by 1 at each cell division
-	logical :: radiation_tag, anoxia_tag, aglucosia_tag
+	logical :: radiation_tag, ATP_tag
 	logical :: drug_tag(MAX_DRUGTYPES)
 	logical :: G2_M
 !	logical :: exists
@@ -326,13 +326,13 @@ character*(12) :: gui_version, gui_run_version
 integer :: initial_count
 
 integer :: nlist, Ncells, Ncells0, ncells_mphase, lastID, Ncelltypes
-integer :: Ncells_type(MAX_CELLTYPES), Ncells_dying(MAX_CELLTYPES), Nviable(MAX_CELLTYPES)
+integer :: Ncells_type(MAX_CELLTYPES), Ndying(MAX_CELLTYPES), Nviable(MAX_CELLTYPES), Ndead(MAX_CELLTYPES)
 logical :: limit_stop
 !integer :: nadd_sites, Nsites, Nreuse
 integer :: Ndrugs_used
-integer :: Nradiation_tag(MAX_CELLTYPES), Nanoxia_tag(MAX_CELLTYPES), Naglucosia_tag(MAX_CELLTYPES)
+integer :: Nradiation_tag(MAX_CELLTYPES), NATP_tag(MAX_CELLTYPES)
 integer :: Ndrug_tag(MAX_DRUGTYPES,MAX_CELLTYPES)
-integer :: Nradiation_dead(MAX_CELLTYPES), Nanoxia_dead(MAX_CELLTYPES), Naglucosia_dead(MAX_CELLTYPES)
+integer :: Nradiation_dead(MAX_CELLTYPES), NATP_dead(MAX_CELLTYPES)
 integer :: Ndrug_dead(MAX_DRUGTYPES,MAX_CELLTYPES)
 logical :: use_radiation_growth_delay_all = .true.
 

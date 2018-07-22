@@ -23,15 +23,12 @@ using namespace std;
 #include "qmycheckbox.h"
 #include "misc.h"
 #include "plot.h"
-//#include "myvtk.h"
 #include "field.h"
+#include "graphs.h"
 #include "result_set.h"
 #include "log.h"
-//#include "SimpleView3DUI.h"
-//#include "SimpleView2DUI.h"
 #include "qvideooutput.h"
 
-#include "mainwindow.h"
 #include <qwt_plot.h>
 #include <qwt_plot_grid.h>
 #include <qpainter.h>
@@ -194,6 +191,7 @@ public slots:
 
     void pushButton_clicked();
     void makeSFPlot(QString, double, double, QVector<double> *x, QVector<double> *y);
+    void makeTCPPlot(QString cellTypeStr, double a, double b, int maxNPL, QVector<double> *x, QVector<double> *y);
     void makeGlucosePlot(double *ndays, QVector<double> *x, QVector<double> *y);
     void makeDrugPlot1(QString drugTypeStr, QString cellTypeStr, double *maxdose, QString plotStr, QVector<double> *x, QVector<double> *y);
     void makeDrugPlot(int idrug, int kset, int ictyp, double *maxdose, QString plotStr, QVector<double> *x, QVector<double> *y);

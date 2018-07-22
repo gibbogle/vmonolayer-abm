@@ -17,6 +17,7 @@ integer, parameter :: dividing    = 7
 logical :: use_volume_based_transition = .false.
 real(REAL_KIND) :: starvation_arrest_threshold = 5
 real(REAL_KIND) :: max_arrest_time = 6*3600
+
 contains
 
 !--------------------------------------------------------------------------
@@ -42,21 +43,21 @@ endif
 !nPL = cp%NL1
 nPL = cp%N_PL
 ityp = cp%celltype
-if (.not.use_metabolism) then
-	if (.not.colony_simulation .and. (phase == Checkpoint1)) then    ! check for starvation arrest
-		cf_O2 = cp%Cin(OXYGEN)/anoxia_threshold
-		pcp_O2 = getPcp_release(cf_O2,dt)
-		cf_glucose = cp%Cin(GLUCOSE)/aglucosia_threshold
-		pcp_glucose = getPcp_release(cf_glucose,dt)
-		pcp_starvation = pcp_O2*pcp_glucose
-		if (pcp_starvation == 0) then
-			return
-		elseif (pcp_starvation < 1) then
-			R = par_uni(kpar)
-			if (R < pcp_starvation) return
-		endif
-	endif
-endif
+!if (.not.use_metabolism) then
+!	if (.not.colony_simulation .and. (phase == Checkpoint1)) then    ! check for starvation arrest
+!		cf_O2 = cp%Cin(OXYGEN)/anoxia_threshold
+!		pcp_O2 = getPcp_release(cf_O2,dt)
+!		cf_glucose = cp%Cin(GLUCOSE)/aglucosia_threshold
+!		pcp_glucose = getPcp_release(cf_glucose,dt)
+!		pcp_starvation = pcp_O2*pcp_glucose
+!		if (pcp_starvation == 0) then
+!			return
+!		elseif (pcp_starvation < 1) then
+!			R = par_uni(kpar)
+!			if (R < pcp_starvation) return
+!		endif
+!	endif
+!endif
 if (phase == G1_phase) then
     if (use_volume_based_transition) then
         switch = (cp%V > cp%G1_V)
@@ -235,7 +236,9 @@ if (do_repair) then
 		if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
 			fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
 		else
-			fraction = 1 - (cp%S_time - tnow)/ccp%T_S
+			fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
+			fraction = max(0.0, fraction)
+			fraction = min(1.0, fraction)
 		endif
 		Krepair = ccp%Krepair_base + fraction*(ccp%Krepair_max - ccp%Krepair_base)
 	endif
@@ -333,7 +336,9 @@ else
     if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
         fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
     else
-        fraction = 1 - (cp%S_time - tnow)/ccp%T_S
+        fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
+		fraction = max(0.0, fraction)
+		fraction = min(1.0, fraction)
     endif
     Krepair = ccp%Krepair_base + fraction*(ccp%Krepair_max - ccp%Krepair_base)
 endif
@@ -544,7 +549,7 @@ type(cycle_parameters_type), target :: cc_parameters
 type(cycle_parameters_type), pointer :: ccp
 logical :: all_divided
 
-ccp => cc_parameters
+ccp => cc_parameters(1)
 ccp%eta_L = 0.14                    ! /Gy
 ccp%eta_PL = 0.6                    ! /Gy
 ccp%T_G1 = 12                       ! h

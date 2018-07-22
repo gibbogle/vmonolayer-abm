@@ -134,8 +134,10 @@ type (cell_type), pointer :: cp
 
 !write(*,'(a,i6,2f12.0)') 'make_colony: ',kcell,tnow,tend
 ccell_list(1) = cell_list(kcell)
-ccell_list(1)%anoxia_tag = .false.
-ccell_list(1)%aglucosia_tag = .false.
+!ccell_list(1)%anoxia_tag = .false.
+!ccell_list(1)%aglucosia_tag = .false.
+ccell_list(1)%ATP_tag = .false.
+ccell_list(1)%radiation_tag = .false.
 ccell_list(1)%drug_tag = .false.
 dt = DELTA_T
 

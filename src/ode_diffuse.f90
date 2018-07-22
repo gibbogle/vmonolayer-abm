@@ -237,7 +237,7 @@ end subroutine
 subroutine f_rkc_drug(neqn,t,y,dydt,icase)
 integer :: neqn, icase
 real(REAL_KIND) :: t, y(neqn), dydt(neqn)
-integer :: k, kk, i, ichemo, idrug, iparent, im, ict, Nlivecells
+integer :: k, kk, i, ichemo, idrug, iparent, im, ict, Nmetabolisingcells
 real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex
 real(REAL_KIND) :: decay_rate, C, membrane_kin, membrane_kout, membrane_flux, area_factor, n_O2(0:2)
 logical :: metabolised(MAX_CELLTYPES,0:2)
@@ -258,7 +258,7 @@ if (use_average_volume) then
     vol_cm3 = Vcell_cm3*average_volume	  ! not accounting for cell volume change
     area_factor = (average_volume)**(2./3.)
 endif
-Nlivecells = Ncells - (Ncells_dying(1) + Ncells_dying(2))
+Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
 iparent = DRUG_A + 3*(idrug-1)
 dp => drug(idrug)
 metabolised(:,:) = (dp%Kmet0(:,:) > 0)
@@ -317,7 +317,7 @@ do im = 0,2
 	! Next process grid cell next to the cell layer - note that membrane _flux has already been computed
 	k = k+1
 	C = y(k)
-	dydt(k) = (-Nlivecells*membrane_flux - Kd*A*(C - y(k+1))/dX)/dV - C*decay_rate
+	dydt(k) = (-Nmetabolisingcells*membrane_flux - Kd*A*(C - y(k+1))/dX)/dV - C*decay_rate
 	
 	! Next compute diffusion and decay on the FD grid
 	KdAVX = Kd*A/(dV*dX)
@@ -338,7 +338,7 @@ end subroutine
 subroutine f_rkc_OGL(neqn,t,y,dydt,icase)
 integer :: neqn, icase
 real(REAL_KIND) :: t, y(neqn), dydt(neqn)
-integer :: k, kk, i, ichemo, ict, Nlivecells
+integer :: k, kk, i, ichemo, ict, Nmetabolisingcells
 real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(3)
 real(REAL_KIND) :: C, membrane_kin, membrane_kout, membrane_flux, area_factor, Cbnd
 real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX
@@ -355,7 +355,7 @@ if (use_average_volume) then
     vol_cm3 = Vcell_cm3*average_volume	  ! not accounting for cell volume change
     area_factor = (average_volume)**(2./3.)
 endif
-Nlivecells = Ncells - (Ncells_dying(1) + Ncells_dying(2))
+Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
 Cin(1) = y(1)
 Cin(2) = y(N1D+2)
 Cin(3) = y(2*N1D+3)
@@ -391,7 +391,7 @@ do ichemo = 1,3
 	! Next process grid cell next to the cell layer - note that membrane _flux has already been computed
 	k = k+1
 	C = y(k)
-	dydt(k) = (-Nlivecells*membrane_flux - Kd*A*(C - y(k+1))/dX)/dV
+	dydt(k) = (-Nmetabolisingcells*membrane_flux - Kd*A*(C - y(k+1))/dX)/dV
 	
 	! Next compute diffusion and decay on the FD grid
 	! Need special treatment for oxygen at air boundary

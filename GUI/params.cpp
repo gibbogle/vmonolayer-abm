@@ -511,7 +511,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Ch1 fraction of misrepair",
      "Fraction of misrepaired lesions that are Ch1: fraction_Ch1"},
 
-     {"RMR_PSURVIVE1_1", 0.95, 0, 0,
+     {"RMR_PSURVIVE1_1", 0.45, 0, 0,
      "Ch1 prob of mitosis survival",
      "Probability that a cell with one Ch1 lesion survives mitosis: psurvive_Ch1"},
 
@@ -523,7 +523,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "TCP Hill a",
      "TCP, the maximum time spent in the checkpoint, is a Hill function of # of L1 lesions, n. TCP(n) = b.n/(a + n)"},
 
-      {"RMR_BTCP_1", 50, 0, 0,
+      {"RMR_BTCP_1", 25, 0, 0,
       "TCP Hill b",
       "TCP, the maximum time spent in the checkpoint, is a Hill function of # of L1 lesions, n. TCP(n) = b.n/(a + n)"},
 
@@ -590,7 +590,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Ch1 fraction of misrepair",
       "Fraction of misrepaired lesions that are Ch1: fraction_Ch1"},
 
-      {"RMR_PSURVIVE1_2", 0.95, 0, 0,
+      {"RMR_PSURVIVE1_2", 0.45, 0, 0,
       "Ch1 prob of mitosis survival",
       "Probability that a cell with one Ch1 lesion survives mitosis: psurvive_Ch1"},
 
@@ -602,7 +602,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "TCP Hill a",
        "TCP, the maximum time spent in the checkpoint, is a Hill function of # of L1 lesions, n. TCP(n) = b.n/(a + n)"},
 
-       {"RMR_BTCP_2", 50, 0, 0,
+       {"RMR_BTCP_2", 25, 0, 0,
        "TCP Hill b",
        "TCP, the maximum time spent in the checkpoint, is a Hill function of # of L1 lesions, n. TCP(n) = b.n/(a + n)"},
 
@@ -675,7 +675,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "ATP production threshold for survival (fraction of peak)",
       "Cell death occurs when the ATP production rate falls below the fraction ATP_S of the maximum (no nutrient constraints) production rate"},
 
-      {"ATP_G_1", 0.75, 0, 0,
+      {"ATP_G_1", 0.5, 0, 0,
        "ATP production threshold for growth (fraction of peak)",
        "Cell growth stops when the ATP production rate falls below the fraction ATP_G of the maximum (no nutrient constraints) production rate.\n\
         Intermediates production from glycolysis and pyruvate ramps down when ATP rate is below ATPramp*ATP_G, to 0 when ATP rate = ATP_G."},
@@ -698,96 +698,6 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        {"PYRUVATE_MM_KM_1", 20, 0, 0,
        "Pyruvate Michaelis-Menten Km (uM)",
        "Pyruvate Michaelis-Menten Km (uM). fMM = C_P/(Km + C_P) is a multiple of pyruvate oxidation rate, ensuring that the rate -> 0 as C_P -> 0"},
-
-//       {"N_GA_2", 2, 0, 0,
-//       "ATP moles produced per glucose mole",
-//       "Number of ATP moles produced by the glycolysis of one glucose mole"},
-
-//       {"N_PA_2", 14, 0, 0,
-//       "ATP moles produced per pyruvate mole",
-//       "Number of ATP moles produced by the oxidation of one pyruvate mole"},
-
-//       {"N_GI_2", 0.6, 0, 0,
-//       "Intermediate moles produced per glucose mole",
-//       "Number of moles of anabolic intermediates produced the glycolysis of one glucose mole"},
-
-//       {"N_PI_2", 0.6, 0, 0,
-//       "Intermediate moles produced per pyruvate mole",
-//       "Number of moles of anabolic intermediates produced the oxidation of one pyruvate mole"},
-
-//       {"N_PO_2", 3, 0, 0,
-//       "Oxygen moles consumed per pyruvate mole",
-//       "Number of moles of oxygen consumed the oxidation of one pyruvate mole"},
-
-//       {"K_H1_2", 140, 0, 0,
-//       "K_H1",
-//       "The rate of change of HIF-1 level H is given by: dH/dt = K_H2*(1 - H*exp(K_H1*C_O)), where C_O = oxygen concentration"},
-
-//       {"K_H2_2", 0.001, 0, 0,
-//       "K_H2",
-//        "The rate of change of HIF-1 level H is given by: dH/dt = K_H2*(1 - H*exp(K_H1*C_O)), where C_O = oxygen concentration"},
-
-//       {"K_HB_2", 0.2, 0, 0,
-//       "K_HB",
-//        "Glycolysis rate = K_HA*(1 + K_HB*H)*C_G^N/(C_G^N + Km^N)\n\
-//         where: H = HIF-1 level, C_G = glucose concentration, K_HA is maximum glucose consumption rate when H=0, Km and N are the glucose consumption Hill function parameters"},
-
-//       {"K_PDK_2", 4.63e-5, 0, 0,
-//       "K_PDK",
-//       "Representing PDK1 factor level by y in the range (0,1), the rate of change of y is: dy/dt = -K_PDK*(y - 1 + H) where H = HIF-1 level"},
-
-//        {"PDKMIN_2", 0.3, 0, 0,
-//        "PDKmin",
-//        "Minimum value of the PDK1 factor"},
-
-//        {"C_O2_NORM_2", 0.05, 0, 0,
-//        "Nominal normal IC O2 concentration",
-//        "Nominal normal IC O2 concentration, used to set normal metabolic rates for unconstrained growth"},
-
-//        {"C_G_NORM_2", 2.5, 0, 0,
-//        "Nominal normal IC glucose concentration",
-//        "Nominal normal IC glucose concentration, used to set normal metabolic rates for unconstrained growth"},
-
-//        {"C_L_NORM_2", 0.0, 0, 0,
-//        "Nominal normal IC lactate concentration",
-//        "Nominal normal IC lactate concentration, used to set normal metabolic rates for unconstrained growth"},
-
-////        {"CO_H_2", 0.005, 0, 0,
-////         "Oxygen H threshold for Ofactor",
-////         "When C_O2 < CO_H both f_G and f_P are reduced by Ofactor, which ranges from 0 to 1 when CO_L < C_O2 < CO_H.  CO_L = 0.8*CO_H"},
-
-////        {"CG_H_2", 0.05, 0, 0,
-////         "Glucose H threshold for Gfactor",
-////         "When C_G < CG_H f_G is reduced by Gfactor, which ranges from 0 to 1 when CG_L < C_G < CG_H.  CG_L = 0.8*CG_H"},
-
-//       {"ATP_S_2", 0.3, 0, 0,
-//       "ATP production threshold for survival (fraction of peak)",
-//        "Cell death occurs when the ATP production rate falls below the fraction ATP_S of the maximum (no nutrient constraints) production rate"},
-
-//        {"ATP_G_2", 0.55, 0, 0,
-//        "ATP production threshold for growth (fraction of peak)",
-//        "Cell growth stops when the ATP production rate falls below the fraction ATP_G of the maximum (no nutrient constraints) production rate"},
-
-//        {"ATP_RAMP_2", 1.5, 0, 0,
-//          "Ramp factor for reducing r_G, r_P based on ATP",
-//         "Fractional rates of production of intermediates from glycolysis (r_G) and pyruvate (r_P) are reduced as ATP production rate falls.\n\
-//          If the normal ATP rate is r_An, and the current rate is r_A, then the fractional production rate f_A = r_A/r_An.\n\
-//          A multiplying factor on both r_G and r_P, f, is calculated as a ramp from 0 - 1 as f_A varies from ATP_G - ATPramp*ATP_G\n\
-//          i.e. the reduction starts when f_A = ATPramp*ATP_G (f = 1), and when f_A = ATP_G, f = 0.  f_G = f*f_Gn, f_P = f*f_Pn"},
-
-//       {"K_PL_2", 0.001, 0, 0,
-//       "Pyruvate -> lactate rate constant",
-//       "The forward rate constant of the pyruvate-lactate reaction, i.e. the rate constant for conversion of pyruvate to lactate"},
-
-//       {"K_LP_2", 0.001, 0, 0,
-//       "Lactate -> pyruvate rate constant",
-//        "The reverse rate constant of the pyruvate-lactate reaction, i.e. the rate constant for conversion of lactate to pyruvate"},
-
-//        {"PYRUVATE_MM_KM_2", 20, 0, 0,
-//        "Pyruvate Michaelis-Menten Km",
-//        "Pyruvate Michaelis-Menten Km (uM). fMM = C_P/(Km + C_P) is a multiple of pyruvate oxidation rate, ensuring that the rate -> 0 as C_P -> 0"},
-
-
 
 {"HYPOXIA_1", 0.1, 0, 0,
 "Hypoxia threshold 1",
@@ -850,70 +760,6 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
   "Number of times to save FACS data"},
 
 
-//{"USE_EXTRA", 0, 0, 1,
-//"Use extra conc",
-//"Use extracellular O2 and glucose concentrations to determine cell death"},
-
-//{"USE_RELAX", 1, 0, 1,
-//"Use O2 relaxation solver",
-//"Use over- and under-relaxation to solve reaction-diffusion for oxygen"},
-
-//{"USE_PAR_RELAX", 1, 0, 1,
-//"Use parallel O2 relaxation solver",
-//"Use over- and under-relaxation to solve reaction-diffusion for oxygen, with parallelized over-relaxation"},
-
-//{"FD_SOLVER_1", 1, 0, 1,
-//"Use FD solver?",
-//"Use the FD solver in the far field"},
-
-//{"USE_DROP", 0, 0, 1,
-//"Account for drop deformation",
-//"Account for drop deformation when it is released to sit at the bottom of the well"},
-
-//{"NDROP", 1000, 0, 0,
-//"Dropping cell count",
-//"Number of cells in the spheroid when it is dropped."},
-
-//{"DROP_ALPHA", 0.4, 0, 0,
-//"Contact_diameter/diameter",
-//"Drop parameter alpha = initial (surface contact diameter)/(blob diameter).  Must be < 1."},
-
-//{"DROP_BETA", 0.6, 0, 0,
-//"Height/diameter",
-//"Drop parameter beta = initial (blob height)/(blob diameter).  Must be < 1."},
-
-//    {"SAVE_PROFILE_DATA",0,0,1,
-//     "Save profile data",
-//     "Save data for profile plots at a specified interval"},
-
-//    {"SAVE_PROFILE_DATA_FILE_NAME",0,0,0,
-//     "profile_data",
-//     "Base file name for saving profile data"},
-
-//    {"SAVE_PROFILE_DATA_INTERVAL",0,0,0,
-//     "Interval",
-//     "Time interval for saving profile data"},
-
-//    {"SAVE_PROFILE_DATA_NUMBER",1,0,0,
-//     "Number",
-//     "Number of times to save profile data"},
-
-//    {"SAVE_SLICE_DATA",0,0,1,
-//     "Save slice data",
-//     "Save data for z-slices at a specified interval"},
-
-//    {"SAVE_SLICE_DATA_FILE_NAME",0,0,0,
-//     "slice_data",
-//     "Base file name for saving slice data"},
-
-//    {"SAVE_SLICE_DATA_INTERVAL",0,0,0,
-//     "Interval",
-//     "Time interval for saving slice data"},
-
-//    {"SAVE_SLICE_DATA_NUMBER",1,0,0,
-//     "Number",
-//     "Number of times to save slice data"},
-
 // This is the end of the parameters that are actually read by the DLL
 // Entries after this point are QMyLabel dummies, to enable display of explanatory info  - no input data is transmitted,
 // followed by the list of time-series and profile plots selected for this run.
@@ -928,20 +774,22 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 
 // Time-series plots
     {"nlive",                     1, 0,1,"","Number of live cells"},
-    {"nviable",                   0, 0,1,"","Number of viable cells"},
-    {"nanoxiadead",               0, 0,1,"","Total number of cells that have been killed by anoxia"},
-    {"naglucosiadead",            0, 0,1,"","Total number of cells that have been killed by aglucosia"},
+    {"nviable",                   1, 0,1,"","Number of viable cells"},
+    {"nonviable",                 1, 0,1,"","Total number of non-viable cells"},
+    {"nATPdead",                  1, 0,1,"","Total number of cells that have been killed by low ATP"},
     {"ndrugAdead",                0, 0,1,"","Total number of cells that have been killed by drugA"},
     {"ndrugBdead",                0, 0,1,"","Total number of cells that have been killed by drugB"},
     {"nradiationdead",            0, 0,1,"","Total number of cells that have been killed by radiation"},
-    {"nanoxiatagged",             0, 0,1,"","Current number of cells tagged to die by anoxia"},
-    {"naglucosiatagged",          0, 0,1,"","Current number of cells tagged to die by aglucosia"},
+    {"ndead",                     1, 0,1,"","Total number of cellls that have died"},
+    {"nATPtagged",                1, 0,1,"","Current number of cells tagged to die by lowATP"},
     {"ndrugAtagged",              0, 0,1,"","Current number of cells tagged to die by drugA"},
     {"ndrugBtagged",              0, 0,1,"","Current number of cells tagged to die by drugB"},
     {"nradiationtagged",          0, 0,1,"","Current number of cells tagged to die by radiation"},
-    {"hypoxicfraction",           0, 0,1,"","Fraction of cells with oxygen level below the specified threshold for hypoxia"},
+    {"viablefraction",            1, 0,1,"","Fraction of cells that are viable"},
+    {"hypoxicfraction",           1, 0,1,"","Fraction of cells with oxygen level below the specified threshold for hypoxia"},
     {"clonohypoxicfraction",      0, 0,1,"","Fraction of clonogenic cells with oxygen level below the specified threshold for hypoxia"},
     {"growthfraction",            0, 0,1,"","Percentage of cells that are growing at a rate less than the specified fraction of the mean growth rate with no nutrient limits"},
+    {"nogrowfraction",            1, 0,1,"","Percentage of cells that are not growing (insufficient ATP rate for growth)"},
     {"platingefficiency",         1, 0,1,"","Percentage of live cells that are viable"},
     {"ECoxygen",                  1, 0,1,"","EC concentration of oxygen in the medium (bottom)"},
     {"ECglucose",                 1, 0,1,"","EC concentration of glucose in the medium (bottom)"},
@@ -973,7 +821,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"MeddrugBmet2",              0, 0,1,"","Average medium concentration of drug B metabolite 2"},
     {"doublingtime",              0, 0,1,"","Average doubling time"},
     {"Grate",                     1, 0,1,"","Normalised glycolysis rate"},
-    {"Prate",                     1, 0,1,"","Normalised pyruvate utilisation rate"},
+    {"Prate",                     0, 0,1,"","Normalised pyruvate utilisation rate"},
     {"Arate",                     1, 0,1,"","Normalised ATP production rate"},
     {"Irate",                     1, 0,1,"","Normalised rate of production of anabolic intermediates"},
     {"f_G",                       0, 0,1,"","f_G"},
@@ -981,6 +829,12 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"HIF-1",                     1, 0,1,"","HIF-1"},
     {"PDK1",                      1, 0,1,"","PDK1"},
     {"dividerate",                0, 0,1,"","# divided/hour"},
+    {"G1_phase",                  0, 0,1,"","G1_phase"},
+    {"G1_cp",                     0, 0,1,"","G1_cp"},
+    {"S_phase",                   0, 0,1,"","S_phase"},
+    {"G2_phase",                  0, 0,1,"","G2_phase"},
+    {"G2_cp",                     0, 0,1,"","G2_cp"},
+    {"M_phase",                   0, 0,1,"","M_phase"},
 
 
 // Profile plots

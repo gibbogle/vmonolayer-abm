@@ -2886,7 +2886,7 @@ padding: 8px
               <x>490</x>
               <y>190</y>
               <width>361</width>
-              <height>341</height>
+              <height>371</height>
              </rect>
             </property>
             <property name="title">
@@ -2898,7 +2898,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>341</width>
-               <height>321</height>
+               <height>351</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
@@ -3322,6 +3322,38 @@ padding: 8px
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="13" column="1">
+               <widget class="QPushButton" name="pushButton_TCP_1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Plot</string>
+                </property>
+               </widget>
+              </item>
+              <item row="13" column="2">
+               <widget class="QPushButton" name="pushButton_TCP_2">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Plot</string>
                 </property>
                </widget>
               </item>

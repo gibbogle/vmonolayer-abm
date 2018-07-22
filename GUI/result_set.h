@@ -5,8 +5,8 @@ struct result_set {
 	int nsteps;
     double *tnow;      // simulation time (hours)
     double max_time;
-	double *pData[16];
-	double maxValue[16];
+    double *pData[maxGraphs];      // was 16, should be maxGraphs?
+    double maxValue[maxGraphs];
 };
 typedef result_set RESULT_SET;
 #endif
