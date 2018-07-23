@@ -316,13 +316,13 @@ GRAPH_SET tsGraphSet[] = {
     51, false, 0, 0.001, 0, TS_TYPE},
 
     {"f_G",
-    "Glycolysis intermediates production factor",
+    "Glycolysis int prodn factor",
     "",
     "Fraction of glucolysis rate going to production of anabolic intermediates",
     52, false, 0, 0.001, 0, TS_TYPE},
 
     {"f_P",
-    "Pyruvate intermediates production factor",
+    "Pyruvate int prodn factor",
     "",
     "Fraction of pyruvate utilisation rate going to production of anabolic intermediates",
     53, false, 0, 0.001, 0, TS_TYPE},
@@ -414,13 +414,13 @@ GRAPH_SET tsGraphSet[] = {
     DRUG_A_PARENT, false, 0, 1, 0, PROF_TYPE},
 
     {"Drug_A_metab1",
-    "Drug A Metabolite 1 Concentration",
+    "Drug A Metabolite 1 Conc",
     "",
     "Drug_A_metab1 description",
     DRUG_A_METAB_1, false, 0, 1, 0, PROF_TYPE},
 
     {"Drug_A_metab2",
-    "Drug A Metabolite 2 Concentration",
+    "Drug A Metabolite 2 Conc",
     "",
     "Drug_A_metab2 description",
     DRUG_A_METAB_2, false, 0, 1, 0, PROF_TYPE},
@@ -432,13 +432,13 @@ GRAPH_SET tsGraphSet[] = {
     DRUG_B_PARENT, false, 0, 1, 0, PROF_TYPE},
 
     {"Drug_B_metab1",
-    "Drug B Metabolite 1 Concentration",
+    "Drug B Metabolite 1 Conc",
     "",
     "Drug_B_metab1 description",
     DRUG_B_METAB_1, false, 0, 1, 0, PROF_TYPE},
 
     {"Drug_B_metab2",
-    "Drug B Metabolite 2 Concentration",
+    "Drug B Metabolite 2 Conc",
     "",
     "Drug_B_metab2 description",
     DRUG_B_METAB_2, false, 0, 1, 0, PROF_TYPE},
