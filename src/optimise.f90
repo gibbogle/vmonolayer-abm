@@ -139,7 +139,8 @@ type(metabolism_type), pointer :: mp
 mp => met
 V = Vcell_cm3
 ityp = 1
-met = metabolic
+!met = metabolic
+met = phase_metabolic(1)
 HIF1 = 0.5
 C_O2 = 0.1
 C_G = 0.0045

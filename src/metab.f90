@@ -90,6 +90,9 @@ integer :: ityp, it, N_P, N_O2
 real(REAL_KIND) :: f_Gn, f_Pn, f_PO, f_PA, MM_O2, MM_P, V, K1, K2, Km_P, C_P, C_L, r_Gn, r_Pn, r_Ln, r_An, r_In
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: Km_O2_factor = 1
+type(metabolism_type), pointer :: metabolic
+	
+metabolic => phase_metabolic(1)
 
 write(nflog,*) 'SetupMetabolism'
 ok = .true.
@@ -108,7 +111,8 @@ O2_maxrate = chemo(OXYGEN)%max_cell_rate
 G_maxrate = chemo(GLUCOSE)%max_cell_rate
 
 MM_O2 = f_MM(C_O2_norm,Hill_Km_O2,N_O2)
-mp => metabolic
+!mp => metabolic
+mp => phase_metabolic(1)
 K1 = K_PL
 K2 = K_LP
 N_P = 1

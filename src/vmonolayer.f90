@@ -1233,7 +1233,9 @@ integer :: ityp, k, kpar = 0
 real(REAL_KIND) :: v(3), c(3), R1, R2, V0, Tdiv, Vdiv, p(3), R, gfactor
 type(cell_type), pointer :: cp
 type(cycle_parameters_type),pointer :: ccp
+type(metabolism_type), pointer :: metabolic
 	
+metabolic => phase_metabolic(1)
 cp => cell_list(kcell)
 cp%ID = kcell
 cp%state = ALIVE
@@ -1871,6 +1873,9 @@ real(REAL_KIND) :: HIF1, PDK1
 type(metabolism_type), pointer :: mp
 logical :: ok = .true.
 logical :: dbug
+type(metabolism_type), pointer :: metabolic
+	
+metabolic => phase_metabolic(1)
 
 dbug = (istep < 0)
 Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
@@ -2001,7 +2006,8 @@ if (saveFACS%active) then
 endif
 
 if (dbug .or. mod(istep,nthour) == 0) then
-	mp => metabolic
+!	mp => metabolic
+	mp => phase_metabolic(1)
 	write(logmsg,'(a,i6,i4,a,i8,a,i8)') 'did istep, hour: ',istep,istep/nthour,' Nlive: ',Ncells,'   Nviable: ',sum(Nviable)
 	call logger(logmsg)
 !	write(logmsg,'(a,4e12.3)') 'G_rate, A_rate, PO_rate, O_rate: ',mp%G_rate,mp%A_rate,mp%P_rate,mp%O_rate

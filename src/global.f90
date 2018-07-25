@@ -382,7 +382,7 @@ real(REAL_KIND) :: ATPs		! threshold ATP production rates for cell survival
 real(REAL_KIND) :: CO_H		! threshold O2 for Ofactor
 real(REAL_KIND) :: CG_H		! threshold glucose for Gfactor
 ! By cell
-type(metabolism_type), target :: metabolic
+type(metabolism_type), target :: phase_metabolic(3)
 
 type(drug_type), allocatable, target :: drug(:)
 
@@ -659,6 +659,9 @@ type(cell_type), pointer :: cp
 real(REAL_KIND) :: I2div
 integer :: ityp
 type(cycle_parameters_type), pointer :: ccp
+type(metabolism_type), pointer :: metabolic
+	
+metabolic => phase_metabolic(1)
 
 ityp = cp%celltype
 ccp => cc_parameters(ityp)

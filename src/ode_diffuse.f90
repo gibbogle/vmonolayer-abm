@@ -125,7 +125,8 @@ enddo
 !write(*,'(a,8e12.3)') 'Cmedium: ',Cmedium(1:ncvars)
 ict = icase
 if (use_metabolism) then
-	mp => metabolic
+!	mp => metabolic
+	mp => phase_metabolic(1)
 	call get_metab_rates(mp,Cin)
 endif
 !write(*,*) 'icase, neqn: ',icase,neqn
@@ -334,6 +335,7 @@ enddo
 end subroutine
 
 !----------------------------------------------------------------------------------
+! This version assumes a single metabolism solution for all cells (all phases)
 !----------------------------------------------------------------------------------
 subroutine f_rkc_OGL(neqn,t,y,dydt,icase)
 integer :: neqn, icase
@@ -359,7 +361,8 @@ Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
 Cin(1) = y(1)
 Cin(2) = y(N1D+2)
 Cin(3) = y(2*N1D+3)
-mp => metabolic
+!mp => metabolic
+mp => phase_metabolic(1)
 call get_metab_rates(mp,Cin)
 
 k = 0
@@ -392,6 +395,111 @@ do ichemo = 1,3
 	k = k+1
 	C = y(k)
 	dydt(k) = (-Nmetabolisingcells*membrane_flux - Kd*A*(C - y(k+1))/dX)/dV
+	
+	! Next compute diffusion and decay on the FD grid
+	! Need special treatment for oxygen at air boundary
+	KdAVX = Kd*A/(dV*dX)
+	do i = 2,N1D
+		k = k+1
+		C = y(k)
+		if (i < N1D) then
+			dydt(k) = KdAVX*(y(k+1) - 2*C + y(k-1))
+		else
+			if (ichemo == OXYGEN) then
+				Cbnd = chemo(OXYGEN)%bdry_conc
+				dydt(k) = KdAVX*(Cbnd - 2*C + y(k-1))
+			else
+				dydt(k) = KdAVX*(-C + y(k-1))
+			endif
+		endif
+	enddo
+enddo
+end subroutine
+
+!----------------------------------------------------------------------------------
+! If there are separate metabolism solutions for the different phases, in each time step
+! we need to solve for each and base the total flux across the cell layer - medium
+! boundary equal to a weighted sum of them based on numbers of cells in each phase.
+! Now instead of:
+!	IC oxygen  =  Cin(1) = y(1),       we have Cin(1) = y(iphase)
+!	IC glucose =  Cin(2) = y(N1D+2),   we have Cin(2) = y(N1D+6+iphase)
+!	IC lactate =  Cin(3) = y(2*N1D+3), we have Cin(3) = y(2*N1D+2*6+iphase)
+!----------------------------------------------------------------------------------
+subroutine f_rkc_OGL_phased(neqn,t,y,dydt,icase)
+integer :: neqn, icase
+real(REAL_KIND) :: t, y(neqn), dydt(neqn)
+integer :: k, kk, i, ichemo, ict, Nmetabolisingcells
+real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(3)
+real(REAL_KIND) :: C, membrane_kin, membrane_kout, membrane_flux, area_factor, Cbnd
+real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX
+type(metabolism_type), pointer :: mp
+real(REAL_KIND) :: average_volume = 1.2
+logical :: use_average_volume = .true.
+integer :: iphase, Nphases, NcellsPerPhase(6)
+real(REAL_KIND) :: total_flux
+
+ict = icase
+A = well_area
+d = total_volume/A
+dX = d/N1D
+dV = A*dX
+if (use_average_volume) then
+    vol_cm3 = Vcell_cm3*average_volume	  ! not accounting for cell volume change
+    area_factor = (average_volume)**(2./3.)
+endif
+!Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
+!Cin(1) = y(1)
+!Cin(2) = y(N1D+2)
+!Cin(3) = y(2*N1D+3)
+!mp => metabolic
+!call get_metab_rates(mp,Cin)
+
+! Testing
+Nphases = 1
+NcellsPerPhase(1) = Ncells - (Ndying(1) + Ndying(2))
+
+k = 0
+do ichemo = 1,3
+	! First process IC reactions for each phase
+	total_flux = 0
+	do iphase = 1,Nphases
+		Cin(1) = y(iphase)
+		Cin(2) = y(N1D+Nphases+iphase)
+		Cin(3) = y(2*(N1D+Nphases)+iphase)
+		mp => phase_metabolic(iphase)
+		call get_metab_rates(mp,Cin)
+!		k = k+1
+		k = (ichemo-1)*(N1D + Nphases) + iphase
+		C = y(k)
+		Cex = y(k+1)
+		Kd = chemo(ichemo)%medium_diff_coef
+		membrane_kin = chemo(ichemo)%membrane_diff_in
+		membrane_kout = chemo(ichemo)%membrane_diff_out
+		membrane_flux = area_factor*(membrane_kin*Cex - membrane_kout*C)
+		if (ichemo == OXYGEN) then
+			dCreact = (-mp%O_rate + membrane_flux)/vol_cm3		! O_rate is rate of consumption
+		elseif (ichemo == GLUCOSE) then	! 
+			dCreact = (-mp%G_rate + membrane_flux)/vol_cm3		! G_rate is rate of consumption
+		elseif (ichemo == LACTATE) then
+			dCreact = (mp%L_rate + membrane_flux)/vol_cm3		! L_rate is rate of production
+	!		dCreact = dCreact*f_MM(C,chemo(LACTATE)%MM_C0, int(chemo(LACTATE)%Hill_N))
+		endif
+		dydt(k) = dCreact
+	!	write(nflog,'(a,i4,e12.3)') 'dydt: ',im,dydt(k)
+		if (isnan(dydt(k))) then
+			write(nflog,*) 'f_rkc_OGL: dydt isnan: ',ichemo,dydt(k)
+			write(*,*) 'f_rkc_drug: dydt isnan: ',ichemo,dydt(k)
+			stop
+		endif
+		total_flux = total_flux + NcellsPerPhase(iphase)*membrane_flux
+	enddo
+	
+	
+	! Next process grid cell next to the cell layer - note that membrane _flux has already been computed
+	k = k+1
+	C = y(k)
+!	dydt(k) = (-Nmetabolisingcells*membrane_flux - Kd*A*(C - y(k+1))/dX)/dV
+	dydt(k) = (-total_flux - Kd*A*(C - y(k+1))/dX)/dV
 	
 	! Next compute diffusion and decay on the FD grid
 	! Need special treatment for oxygen at air boundary
@@ -748,7 +856,8 @@ logical :: use_explicit = .false.		! The explicit approach is hopelessly unstabl
 
 !write(nflog,*) 'OGLSolver: ',istep
 ict = selected_celltype ! for now just a single cell type 
-mp => metabolic
+!mp => metabolic
+mp => phase_metabolic(1)
 
 k = 0
 do ichemo = 1,3
@@ -782,7 +891,8 @@ if (.not.use_explicit) then		! RKC solver
 	idid = 0
 	t = tstart
 	tend = t + dt
-	call rkc(comm_rkc(1),neqn,f_rkc_OGL,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
+!	call rkc(comm_rkc(1),neqn,f_rkc_OGL,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
+	call rkc(comm_rkc(1),neqn,f_rkc_OGL_phased,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
 	if (idid /= 1) then
 		write(logmsg,*) 'Solver: Failed at t = ',t,' with idid = ',idid
 		call logger(logmsg)
@@ -836,11 +946,8 @@ do kcell = 1,nlist
 	cp => cell_list(kcell)
     if (cp%state == DEAD .or. cp%state == DYING) cycle
 ! First back up cell metabolism parameters that we need to preserve
-!	Itotal = cp%metab%Itotal
-!	I2Divide = cp%metab%I2Divide
-    cp%metab = metabolic
-!    cp%metab%Itotal = Itotal
-!    cp%metab%I2Divide = I2Divide
+!    cp%metab = metabolic
+	cp%metab = phase_metabolic(1)
     cp%metab%A_rate = cp%ATP_rate_factor*cp%metab%A_rate
 enddo
 

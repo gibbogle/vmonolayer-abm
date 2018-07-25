@@ -627,7 +627,7 @@ do kcell = 1,nlist0
 				
 				! For cells with Ch1 or Ch2, check for death
 				if (cp%N_Ch1 > 0 .and. .not.cp%radiation_tag) then
-					pdeath = (1 - ccp%psurvive_Ch1)**cp%N_Ch1
+					pdeath = 1 - ccp%psurvive_Ch1**cp%N_Ch1
 					R = par_uni(kpar)
 					if (R < pdeath) then				
 						cp%radiation_tag = .true.
@@ -637,7 +637,7 @@ do kcell = 1,nlist0
 					endif
 				endif
 				if (cp%N_Ch2 > 0 .and. .not.cp%radiation_tag) then
-					pdeath = (1 - ccp%psurvive_Ch2)**cp%N_Ch2
+					pdeath = 1 - ccp%psurvive_Ch2**cp%N_Ch2
 					R = par_uni(kpar)
 					if (R < pdeath) then				
 						cp%radiation_tag = .true.
