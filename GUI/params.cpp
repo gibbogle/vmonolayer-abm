@@ -452,6 +452,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Cell cycle parameters determine the time spent in each phase.\n\
      In the case of G1 and G2, an exponentially distributed random delay is added"},
 
+     {"USE_SYNCHRONISE", 0,0,1,
+     "Synchronise cell cycles?",
+     "Synchronise initial cell phases to start of M phase"},
+
      {"T_G1_1", 6, 0, 0,
      "G1 phase base time (h)",
      "Deterministic component of time spent in phase G1"},
@@ -835,6 +839,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"G2_phase",                  0, 0,1,"","G2_phase"},
     {"G2_cp",                     0, 0,1,"","G2_cp"},
     {"M_phase",                   0, 0,1,"","M_phase"},
+    {"nmutations",                0, 0,1,"","nmutations"},
 
 
 // Profile plots

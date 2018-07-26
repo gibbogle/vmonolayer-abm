@@ -82,7 +82,7 @@ padding: 8px
            <enum>QTabWidget::West</enum>
           </property>
           <property name="currentIndex">
-           <number>5</number>
+           <number>0</number>
           </property>
           <property name="elideMode">
            <enum>Qt::ElideNone</enum>
@@ -846,6 +846,22 @@ padding: 8px
             </property>
             <property name="checked">
              <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QMyCheckBox" name="cbox_USE_SYNCHRONISE">
+            <property name="geometry">
+             <rect>
+              <x>340</x>
+              <y>350</y>
+              <width>141</width>
+              <height>17</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Synchronise cell cycles?</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </widget>
@@ -1846,7 +1862,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>401</width>
-               <height>501</height>
+               <height>509</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -9826,7 +9842,7 @@ padding: 8px
      <x>0</x>
      <y>0</y>
      <width>1671</width>
-     <height>21</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

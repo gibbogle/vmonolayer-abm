@@ -414,6 +414,7 @@ logical :: use_cell_cycle
 logical :: use_constant_growthrate = .false. 
 logical :: use_new_drugdata = .true.
 logical :: randomise_initial_volume = .true.
+logical :: synchronise
 logical :: is_radiation
 !logical :: use_FD = .true.
 logical :: use_gaplist = .true.

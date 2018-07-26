@@ -180,12 +180,12 @@ subroutine get_summary(summaryData,i_hypoxia_cutoff,i_growth_cutoff) BIND(C)
 use, intrinsic :: iso_c_binding
 real(c_double) :: summaryData(*)
 integer(c_int) :: i_hypoxia_cutoff,i_growth_cutoff
-integer :: nhypoxic(3), nclonohypoxic(3), ngrowth(3), nogrow(MAX_CELLTYPES), nphase(6)
+integer :: nhypoxic(3), nclonohypoxic(3), ngrowth(3), nogrow(MAX_CELLTYPES), nphase(6), nmutations
 integer :: TNradiation_dead, TNdrug_dead(2),  TNdead, TNviable, TNnonviable, TNATP_dead, TNnogrow, &
            Ntagged_ATP(MAX_CELLTYPES), Ntagged_radiation(MAX_CELLTYPES), Ntagged_drug(2,MAX_CELLTYPES), &
            TNtagged_ATP, TNtagged_radiation, TNtagged_drug(2)
 integer :: ityp, i, im, idrug
-real(REAL_KIND) :: hour, plate_eff(MAX_CELLTYPES), divide_fraction, P_utilisation, doubling_time, viable_fraction
+real(REAL_KIND) :: hour, plate_eff(MAX_CELLTYPES), divide_fraction, P_utilisation, doubling_time, viable_fraction, rmutations
 real(REAL_KIND) :: hypoxic_fraction, clonohypoxic_fraction(3), growth_fraction, nogrow_fraction, phase_fraction(6), Tplate_eff
 real(REAL_KIND) :: medium_oxygen, medium_glucose, medium_lactate, medium_drug(2,0:2)
 real(REAL_KIND) :: IC_oxygen, IC_glucose, IC_lactate, IC_pyruvate, IC_drug(2,0:2)
@@ -223,11 +223,12 @@ if (TNviable > 0) then
 else
 	clonohypoxic_fraction = 0
 endif		
-call getGrowthCount(ngrowth,nogrow,nphase)
+call getGrowthCount(ngrowth,nogrow,nphase,nmutations)
 TNnogrow = sum(nogrow(:))
 nogrow_fraction = TNnogrow/real(TNviable)
 growth_fraction = ngrowth(i_growth_cutoff)/real(Ncells)
 phase_fraction = nphase/real(Ncells)
+rmutations = (nmutations*1000000.)/Ncells
 do ityp = 1,Ncelltypes
 	if (Ncells_type(ityp) > 0) then
 		plate_eff(ityp) = real(Nviable(ityp))/Ncells_type(ityp)
@@ -266,7 +267,7 @@ if (ndoublings > 0) then
 else
     doubling_time = 0
 endif
-summaryData(1:63) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
+summaryData(1:64) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
 	rint(TNATP_dead), rint(TNdrug_dead(1)), rint(TNdrug_dead(2)), rint(TNradiation_dead), rint(TNdead), &
     rint(TNtagged_ATP), rint(TNtagged_drug(1)), rint(TNtagged_drug(2)), rint(TNtagged_radiation), &
 	100*viable_fraction, 100*hypoxic_fraction, 100*clonohypoxic_fraction(i_hypoxia_cutoff), 100*growth_fraction, 100*nogrow_fraction, &
@@ -275,8 +276,8 @@ summaryData(1:63) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviabl
 	caverage(OXYGEN), caverage(GLUCOSE), caverage(LACTATE), mp%C_P, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 	cmedium(OXYGEN), cmedium(GLUCOSE), cmedium(LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	doubling_time, r_G, r_P, r_A, r_I, mp%f_G, mp%f_P, mp%HIF1, mp%PDK1, rint(ndivided), &
-	100*phase_fraction(1:6)]
-write(nfres,'(a,a,2a12,i8,e12.4,21i7,48e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
+	100*phase_fraction(1:6), rmutations]
+write(nfres,'(a,a,2a12,i8,e12.4,21i7,49e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
 	istep, hour, Ncells_type(1:2), TNviable, TNnonviable, &
     NATP_dead(1:2), Ndrug_dead(1,1:2), Ndrug_dead(2,1:2), Nradiation_dead(1:2), TNdead, &
     Ntagged_ATP(1:2), Ntagged_drug(1,1:2), Ntagged_drug(2,1:2), Ntagged_radiation(1:2), &
@@ -286,7 +287,7 @@ write(nfres,'(a,a,2a12,i8,e12.4,21i7,48e13.5)') trim(header),' ',gui_run_version
 	caverage(OXYGEN), caverage(GLUCOSE), caverage(LACTATE), mp%C_P, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 	cmedium(OXYGEN), cmedium(GLUCOSE), cmedium(LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	doubling_time, r_G, r_P, r_A, r_I, ndivided, P_utilisation, &
-	phase_fraction(1:6)
+	phase_fraction(1:6), rmutations
 	
 !call sum_dMdt(GLUCOSE)
 ndoublings = 0
@@ -343,8 +344,8 @@ end subroutine
 ! Should ngrowth(i) include cells at checkpoints?
 ! nogrow is the count of viable cells that are not growing
 !--------------------------------------------------------------------------------
-subroutine getGrowthCount(ngrowth, nogrow, nphase)
-integer :: ngrowth(3), nogrow(:), nphase(:)
+subroutine getGrowthCount(ngrowth, nogrow, nphase,nmutations)
+integer :: ngrowth(3), nogrow(:), nphase(:), nmutations
 integer :: kcell, i, ityp, iphase
 real(REAL_KIND) :: r_mean(2)
 type(cell_type), pointer :: cp
@@ -357,6 +358,7 @@ endif
 ngrowth = 0
 nogrow = 0
 nphase = 0
+nmutations = 0
 do kcell = 1,nlist
 	cp => cell_list(kcell)
 	ityp = cp%celltype
@@ -372,6 +374,7 @@ do kcell = 1,nlist
 	enddo
 	iphase = min(cp%phase,M_phase)
 	nphase(iphase) = nphase(iphase) + 1
+	nmutations = nmutations + cp%N_Ch1 + cp%N_Ch2
 enddo
 end subroutine
 

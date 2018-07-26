@@ -381,6 +381,12 @@ GRAPH_SET tsGraphSet[] = {
     "% of cells in M phase",
     62, false, 0, 0.001, 0, TS_TYPE},
 
+    {"nmutations",
+    "mutations",
+    "#/million",
+    "Total number of Ch1 and Ch2 mutations per million cells",
+    63, false, 0, 0.001, 0, TS_TYPE},
+
 // Medium z-profiles
 
     {"MULTI",

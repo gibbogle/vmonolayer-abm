@@ -127,9 +127,6 @@ elseif (phase == Checkpoint2) then ! this checkpoint combines the release from G
         R = par_uni(kpar)
         cp%G2_flag = (R < ccp%Pk_G2*dt)
     endif
-    ! TESTING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    !cp%G2_flag = (tnow > cp%G2M_time)
-    !
     cp%G2M_flag = (nPL == 0 .or. tnow > cp%G2M_time)
     if (use_metabolism) then
 		cp%G2M_flag = cp%G2M_flag .and. (cp%metab%A_rate > ATPg)

@@ -355,7 +355,7 @@ integer :: i, idrug, imetab, nmetab, im, itestcase, Nmm3, ichemo, itreatment, iu
 integer :: iuse_oxygen, iuse_glucose, iuse_lactate, iuse_tracer, iuse_drug, iuse_metab, iV_depend, iV_random, iuse_gd_all, iuse_divide_dist
 !integer ::  idrug_decay, imetab_decay
 integer :: ictype, idisplay, isconstant, ioxygengrowth, iglucosegrowth, ilactategrowth, ioxygendeath, iglucosedeath
-integer :: iuse_drop, iconstant, isaveprofiledata, isaveslicedata, iusecellcycle, iusemetabolism, ifullymixed
+integer :: iuse_drop, iconstant, isaveprofiledata, isaveslicedata, iusecellcycle, iusemetabolism, ifullymixed, isynchronise
 logical :: use_metabolites
 integer :: isaveFACSdata
 real(REAL_KIND) :: days, bdry_conc, percent, d_n_limit
@@ -514,6 +514,8 @@ read(nfcell,*) iuse_gd_all
 use_radiation_growth_delay_all = (iuse_gd_all == 1)
 read(nfcell,*) iusecellcycle
 use_cell_cycle = (iusecellcycle == 1)
+read(nfcell,*) isynchronise
+synchronise = (isynchronise == 1)
 call ReadCellCycleParameters(nfcell)
 read(nfcell,*) iusemetabolism
 !use_metabolism = (iusemetabolism == 1)
@@ -728,7 +730,7 @@ EC_oxygen EC_glucose EC_lactate EC_drugA EC_drugA_metab1 EC_drugA_metab2 EC_drug
 IC_oxygen IC_glucose IC_lactate IC_pyruvate IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
 medium_oxygen medium_glucose medium_lactate medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
 doubling_time glycolysis_rate pyruvate_oxidation_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction &
-G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase'
+G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase Nmutations'
 write(logmsg,*) 'Opened nfout: ',trim(outputfile)
 call logger(logmsg)
 
@@ -1342,7 +1344,7 @@ end subroutine
 ! for all phases:
 !	%V
 !	%t_divide_last
-! Note: no cells start in mitosis - set all phase=6 cells at the end of G2 checkpoint
+! Note: no cells start in mitosis - set all phase=6 cells at the end of G2 checkpoint 
 !--------------------------------------------------------------------------------
 subroutine SetInitialCellCycleStatus(cp)
 type(cell_type), pointer :: cp
@@ -1370,6 +1372,15 @@ phase_time(5) = ccp%G2_mean_delay
 phase_time(6) = ccp%T_M
 phase_fraction = phase_time/Tdiv
 ! These fractions must sum to 1 because of get_divide_volume (check)
+
+if (synchronise) then	! all cells are starting M phase
+	cp%V = V0 + (phase_time(1) + phase_time(3) + phase_time(4))*rVmax 
+	cp%phase = Checkpoint2
+	cp%G2M_time = 0
+	cp%G2_flag = .true.
+	cp%t_divide_last = -(phase_time(1) + phase_time(2) + phase_time(3) + phase_time(4) + phase_time(5))
+	return
+endif
 fsum = 0
 do iphase = 1,6
 	if (fsum + phase_fraction(iphase) > x) then	! this is the phase
