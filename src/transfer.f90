@@ -426,12 +426,6 @@ do kcell = 1,nlist
 	if (cp%state == DEAD) cycle
     ityp = cp%celltype
     Nlive(ityp) = Nlive(ityp) + 1
-!	if (cp%anoxia_tag .or. cp%aglucosia_tag .or. cp%radiation_tag .or. cp%state == DYING) cycle
-!    tag = .false.
-!    do idrug = 1,ndrugs_used
-!		if (cell_list(kcell)%drug_tag(idrug)) tag = .true.
-!	enddo
-!	if (tag) cycle
 	if (cp%state == DYING) cycle
 	Nviable(ityp) = Nviable(ityp) + 1
 enddo
@@ -1110,7 +1104,7 @@ TNradiation_dead = sum(Nradiation_dead(1:Ncelltypes))
 TNdrug_dead(1) = sum(Ndrug_dead(1,1:Ncelltypes))
 TNdrug_dead(2) = sum(Ndrug_dead(2,1:Ncelltypes))
 
-!call getNviable(Nviable, Nlive)
+call getNviable
 Nlive = Ncells_type
 TNviable = sum(Nviable(1:Ncelltypes))
 
