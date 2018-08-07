@@ -152,7 +152,7 @@ else
 			    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
 !				write(nflog,*) 'Tagged with IRL: ',istep,cp%N_IRL,Nradiation_tag(ityp),kcell,cp%phase
 			endif	
-			if (cp%phase == S_phase .or. cp%phase == M_phase) then	! kill immediately, otherwise dies at mitosis
+			if (cp%phase == S_phase .or. cp%phase == M_phase) then	! set to DYING immediately, otherwise at mitosis
 				call CellDies(kcell,.false.)
 !				Nradiation_dead(ityp) = Nradiation_dead(ityp) + 1
 !				write(nflog,*) 'S-phase - killed'
@@ -610,7 +610,7 @@ do kcell = 1,nlist0
 	    endif
         if (cp%phase >= M_phase) then
             if (prev_phase == Checkpoint2) then		! this is mitosis entry
-				if (cp%radiation_tag .and. cp%irrepairable) then	! cell was tagged bit not DYING
+				if (cp%radiation_tag .and. cp%irrepairable) then	! cell was tagged but possibly not DYING
 					call CellDies(kcell,.false.)
 				endif
                 if (.not.cp%radiation_tag .and. cp%N_PL > 0) then		! lesions still exist, no time for repair
