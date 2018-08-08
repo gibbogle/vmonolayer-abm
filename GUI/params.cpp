@@ -794,6 +794,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"clonohypoxicfraction",      0, 0,1,"","Fraction of clonogenic cells with oxygen level below the specified threshold for hypoxia"},
     {"growthfraction",            0, 0,1,"","Percentage of cells that are growing at a rate less than the specified fraction of the mean growth rate with no nutrient limits"},
     {"nogrowfraction",            1, 0,1,"","Percentage of cells that are not growing (insufficient ATP rate for growth)"},
+    {"clonofraction",             0, 0,1,"","Percentage of cells that are clonogenic (will give a colony >= 50)"},
     {"platingefficiency",         1, 0,1,"","Percentage of live cells that are viable"},
     {"ECoxygen",                  1, 0,1,"","EC concentration of oxygen in the medium (bottom)"},
     {"ECglucose",                 1, 0,1,"","EC concentration of glucose in the medium (bottom)"},
