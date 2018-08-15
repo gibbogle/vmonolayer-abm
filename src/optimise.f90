@@ -97,7 +97,8 @@ enddo
 endif
 
 mp%A_rate = r_GA + r_PA				! production
-mp%I_rate = f_G*r_G + f_P*r_P		! production
+!mp%I_rate = f_G*r_G + f_P*r_P		! production
+mp%I_rate = f_G*r_G*N_GI + f_P*r_P*N_PI		! production
 mp%P_rate = r_P						! utilisation
 mp%O_rate = f_PO*r_P*(1-f_P)		! consumption
 mp%L_rate = V*(K1*C_P - K2*C_L)		! production
@@ -116,6 +117,7 @@ end subroutine
 ! f_G, f_P, C_P  -> r_P, r_A, r_I, r_L, r_O
 ! Time trials comparing optimiser with interpolator show that using
 ! lookup tables gives a speed improvement factor of only 9/8 - not worth it.
+! NOT CORRECTED
 !--------------------------------------------------------------------------
 subroutine run_optimiser
 real(REAL_KIND) :: HIF1, fPDK, f_PO, f_PA, V, K1, K2, Km_O2, C_O2, C_G, r_G_max, C_L_max, r_Pm_base, r_Pm_max

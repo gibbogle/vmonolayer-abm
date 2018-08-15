@@ -369,6 +369,8 @@ real(REAL_KIND) :: total_dMdt
 real(REAL_KIND) :: start_wtime
 
 ! Metabolism parameters
+real(REAL_KIND) :: f_G_norm ! normal fraction of glycosis (r_G) going to make intermediates
+real(REAL_KIND) :: f_P_norm ! normal fraction of pyruvates (r_P) going to make intermediates
 real(REAL_KIND) :: N_GA		! number of ATP molecules generated per glucose molecule in glycosis
 real(REAL_KIND) :: N_GI		! number of intermediate molecules generated per glucose molecule in glycosis
 real(REAL_KIND) :: N_PA		! number of ATP molecules generated per pyruvate molecule in pyruvate oxidation
@@ -424,6 +426,7 @@ logical :: fully_mixed
 logical :: use_parallel
 logical :: colony_simulation
 logical :: use_metabolism
+logical :: noSS = .true.
 logical :: dbug = .false.
 logical :: bdry_debug
 

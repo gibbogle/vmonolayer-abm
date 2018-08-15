@@ -621,6 +621,14 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Use glucose metabolism",
        "If metabolism is turned on, cell cycle is used, and lactate is simulated.  If metabolism is turned off, lactate is not simulated"},
 
+       {"F_GNORM_1", 0.32, 0, 0,
+       "Normal fraction of glycolysis -> intermediates",
+       "Fraction of glycolysis (r_G) going to make intermediates under conditions of full nutrition"},
+
+       {"F_PNORM_1", 0.6, 0, 0,
+       "Normal fraction of pyruvate -> intermediates",
+        "Fraction of pyruvate (r_P) going to make intermediates under conditions of full nutrition"},
+
       {"N_GA_1", 2, 0, 0,
       "ATP moles produced per glucose mole",
       "Number of ATP moles produced by the glycolysis of one glucose mole"},
@@ -629,11 +637,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "ATP moles produced per pyruvate mole",
       "Number of ATP moles produced by the oxidation of one pyruvate mole"},
 
-      {"N_GI_1", 0.4, 0, 0,
+      {"N_GI_1", 1, 0, 0,
       "Intermediate moles produced per glucose mole",
       "Number of moles of anabolic intermediates produced the glycolysis of one glucose mole"},
 
-      {"N_PI_1", 0.4, 0, 0,
+      {"N_PI_1", 3, 0, 0,
       "Intermediate moles produced per pyruvate mole",
       "Number of moles of anabolic intermediates produced the oxidation of one pyruvate mole"},
 
@@ -649,7 +657,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "HIF-1 rate constant K_H",
       "The rate of change of HIF-1 level H is given by: dH/dt = K_H*(Hss - H), where C_O = oxygen concentration, Hss is steady-state level for C_O"},
 
-      {"K_HB_1", 0.2, 0, 0,
+      {"K_HB_1", 3, 0, 0,
       "K_HB",
       "Glycolysis rate = K_HA*(1 + K_HB*H)*C_G^N/(C_G^N + Km^N)\n\
         where: H = HIF-1 level, C_G = glucose concentration, K_HA is maximum glucose consumption rate when H=0, Km and N are the glucose consumption Hill function parameters"},

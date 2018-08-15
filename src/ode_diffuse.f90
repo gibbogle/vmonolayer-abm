@@ -341,9 +341,9 @@ subroutine f_rkc_OGL(neqn,t,y,dydt,icase)
 integer :: neqn, icase
 real(REAL_KIND) :: t, y(neqn), dydt(neqn)
 integer :: k, kk, i, ichemo, ict, Nmetabolisingcells
-real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(3)
+real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(4)
 real(REAL_KIND) :: C, membrane_kin, membrane_kout, membrane_flux, area_factor, Cbnd
-real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX
+real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX, K1, K2
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
@@ -361,6 +361,11 @@ Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
 Cin(1) = y(1)
 Cin(2) = y(N1D+2)
 Cin(3) = y(2*N1D+3)
+if (noSS) then
+    Cin(4) = y(3*N1D+4)
+    K1 = K_PL
+    K2 = K_LP
+endif
 !mp => metabolic
 mp => phase_metabolic(1)
 call get_metab_rates(mp,Cin)
@@ -414,6 +419,10 @@ do ichemo = 1,3
 		endif
 	enddo
 enddo
+if (noSS) then  ! add reaction for pyruvate C_P
+    k = k+1
+    dydt(k) = (2*(1-mp%f_G)*mp%G_rate - mp%P_rate)/vol_cm3 + K2*Cin(3) - K1*y(k)
+endif
 end subroutine
 
 !----------------------------------------------------------------------------------
@@ -429,7 +438,7 @@ subroutine f_rkc_OGL_phased(neqn,t,y,dydt,icase)
 integer :: neqn, icase
 real(REAL_KIND) :: t, y(neqn), dydt(neqn)
 integer :: k, kk, i, ichemo, ict, Nmetabolisingcells
-real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(3)
+real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(4)
 real(REAL_KIND) :: C, membrane_kin, membrane_kout, membrane_flux, area_factor, Cbnd
 real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX
 type(metabolism_type), pointer :: mp
@@ -462,7 +471,7 @@ k = 0
 do ichemo = 1,3
 	! First process IC reactions for each phase
 	total_flux = 0
-	do iphase = 1,Nphases
+	do iphase = 1,Nphases   ! is this really OK for multiple phases?  Maybe not completed!!!!!
 		Cin(1) = y(iphase)
 		Cin(2) = y(N1D+Nphases+iphase)
 		Cin(3) = y(2*(N1D+Nphases)+iphase)
@@ -842,7 +851,8 @@ real(REAL_KIND) :: tstart, dt
 logical :: ok
 integer :: ichemo, k, ict, neqn, i, kcell, it
 real(REAL_KIND) :: t, tend
-real(REAL_KIND) :: C(3*N1D+3), Cin(3), Csum, dCdt(63), dtt	!, Itotal, I2Divide
+!real(REAL_KIND) :: C(3*N1D+3), Cin(3), Csum, dCdt(3*N1D+3), dtt
+real(REAL_KIND) :: C(3*N1D+4), Cin(4), Csum, dCdt(3*N1D+4), C_P, dtt
 real(REAL_KIND) :: timer1, timer2
 ! Variables for RKC
 integer :: info(4), idid
@@ -850,9 +860,12 @@ real(REAL_KIND) :: rtol, atol(1)
 type(rkc_comm) :: comm_rkc(1)
 type(metabolism_type), pointer :: mp
 type(cell_type), pointer :: cp
-real(REAL_KIND) :: Cic,Cex,average_volume,area_factor,membrane_kin,membrane_kout,membrane_flux
+real(REAL_KIND) :: Cic,Cex,area_factor,membrane_kin,membrane_kout,membrane_flux
 integer :: nt = 1000
 logical :: use_explicit = .false.		! The explicit approach is hopelessly unstable, even with nt = 1000
+! Checking
+real(REAL_KIND) :: dC_Pdt, vol_cm3, K1, K2
+real(REAL_KIND) :: average_volume = 1.2
 
 !write(nflog,*) 'OGLSolver: ',istep
 ict = selected_celltype ! for now just a single cell type 
@@ -869,14 +882,22 @@ do ichemo = 1,3
 		C(k) = C_OGL(ichemo,i)	! EC
 	enddo
 enddo
-!write(nflog,'(a,3e12.3)') 'pre C O2: ',C(1),C(2),C(N1D+1)
+if (noSS) then
+    k = k+1
+    C_P = mp%C_P
+    C(k) = C_P
+endif
+
 neqn = k
 
-call Set_f_GP(mp,C)		! TRY removing this
-
+if (noSS) then
+    call Set_f_GP_noSS(mp,C,C_P)
+else
+    call Set_f_GP(mp,C)
+endif
 !mp%A_fract = f_MM(C(1),ATP_Km(ict),1)
 !write(nflog,'(a,3e12.3)') 'A_fract: ',mp%A_fract
-if (.not.use_explicit) then		! RKC solver
+!if (.not.use_explicit) then		! RKC solver
 	info(1) = 1
 	info(2) = 1		! = 1 => use spcrad() to estimate spectral radius, != 1 => let rkc do it
 	info(3) = 1
@@ -891,8 +912,8 @@ if (.not.use_explicit) then		! RKC solver
 	idid = 0
 	t = tstart
 	tend = t + dt
-!	call rkc(comm_rkc(1),neqn,f_rkc_OGL,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
-	call rkc(comm_rkc(1),neqn,f_rkc_OGL_phased,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
+	call rkc(comm_rkc(1),neqn,f_rkc_OGL,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
+!	call rkc(comm_rkc(1),neqn,f_rkc_OGL_phased,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
 	if (idid /= 1) then
 		write(logmsg,*) 'Solver: Failed at t = ',t,' with idid = ',idid
 		call logger(logmsg)
@@ -901,24 +922,24 @@ if (.not.use_explicit) then		! RKC solver
 	endif
 	!write(nflog,'(a,3e12.3)') 'IC: ',C(1),C(N1D+2),C(2*N1D+3)
 	!write(*,'(a,3e12.3)') 'IC: ',C(1),C(N1D+2),C(2*N1D+3) 
-else	! explicit solver UNSTABLE
-	t = 0
-	dtt = dt/nt
-	do it = 1,10	! nt
-		t = t + dtt
-		call f_rkc_OGL(neqn,t,C,dCdt,ict)
-		write(*,*) 'dCdt'
-		write(*,'(7e11.3)') dCdt(1:neqn)
-		do k = 1,neqn
-			C(k) = C(k) + dtt*dCdt(k)
-		enddo
-		write(*,*) 'C'
-		write(*,'(7e11.3)') C(1:neqn)
-	enddo
-endif
+!else	! explicit solver UNSTABLE
+!	t = 0
+!	dtt = dt/nt
+!	do it = 1,10	! nt
+!		t = t + dtt
+!		call f_rkc_OGL(neqn,t,C,dCdt,ict)
+!		write(*,*) 'dCdt'
+!		write(*,'(7e11.3)') dCdt(1:neqn)
+!		do k = 1,neqn
+!			C(k) = C(k) + dtt*dCdt(k)
+!		enddo
+!		write(*,*) 'C'
+!		write(*,'(7e11.3)') C(1:neqn)
+!	enddo
+!endif
 ! This determines average cell concentrations, assumed the same for all cells
 ! Now put the concentrations into the cells 
-
+mp%C_P = C(3*N1D+4)
 do ichemo = 1,3
 	if (.not.chemo(ichemo)%present) cycle
     k = (ichemo-1)*(N1D+1) + 1
@@ -937,10 +958,16 @@ do ichemo = 1,3
     Caverage(MAX_CHEMO + ichemo) = C(k+1)	! not really average, this is medium at the cell layer, i.e. EC
 !	write(nflog,'(a,i3,5e12.3)') 'Cdrug: im: ',im,Cdrug(im,1:5)
 enddo
+if (noSS) then
+    mp%C_P = C(3*N1D+4)
+endif
 !write(nflog,'(a,3e12.3)') 'post C O2: ',C(1),C(2),C(N1D+1)
 Cin(1) = C(1)
 Cin(2) = C(N1D+2)
 Cin(3) = C(2*N1D+3)
+if (noSS) then
+    Cin(4) = mp%C_P
+endif
 call get_metab_rates(mp,Cin)
 do kcell = 1,nlist
 	cp => cell_list(kcell)
@@ -956,7 +983,6 @@ enddo
 ichemo = LACTATE
 Cic = Caverage(LACTATE)
 Cex = Caverage(MAX_CHEMO + LACTATE)
-average_volume = 1.2
 area_factor = (average_volume)**(2./3.)
 membrane_kin = chemo(ichemo)%membrane_diff_in
 membrane_kout = chemo(ichemo)%membrane_diff_out
@@ -965,6 +991,13 @@ membrane_flux = area_factor*(membrane_kin*Cex - membrane_kout*Cic)
 !write(*,'(a,3e12.3)') 'Lactate flux: ',mp%L_rate,membrane_flux,2*(1-N_GI(1))*mp%G_rate-mp%P_rate
 ! Checks OK
 !if (istep > 1100) write(*,'(a,2e12.3)') 'f_G, f_P: ',mp%f_G,mp%f_P
+! Check that C_P is SS
+!vol_cm3 = Vcell_cm3*average_volume	  ! not accounting for cell volume change
+!K1 = K_PL
+!K2 = K_LP
+!dC_Pdt = (2*(1-mp%f_G)*mp%G_rate - mp%P_rate)/vol_cm3 + K2*Cin(3) - K1*mp%C_P
+!write(nflog,'(a,4e12.3)') 'r_G, r_P, C_L, C_P: ',mp%G_rate,mp%P_rate,Cin(3),mp%C_P
+!write(nflog,*) 'dC_P/dt: ',dC_Pdt
 
 end subroutine
 

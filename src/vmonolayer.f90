@@ -27,6 +27,7 @@ character*(64) :: msg
 integer :: ichemo, error, kcell, idrug, ityp
 real(REAL_KIND) :: tgrowth(MAX_CELLTYPES)
 type(cycle_parameters_type),pointer :: ccp
+type(metabolism_type), pointer :: mp
 
 ok = .true.
 initialized = .false.
@@ -120,9 +121,8 @@ enddo
 !bdrop = 1
 !cdrop = 0
 !zmin = 1
-!if (use_metabolism) then	! always call it to set up parameters for glucose_metab()
-	call SetupMetabolism(ok)
-!endif
+mp => phase_metabolic(1)
+call SetupMetabolism(mp,ok)
 call PlaceCells(ok)
 call setTestCell(kcell_test)
 !call show_volume_data
@@ -329,7 +329,7 @@ ok = .true.
 
 end subroutine
 
-!-----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------- 
 !-----------------------------------------------------------------------------------------
 subroutine RngInitialisation
 integer, allocatable :: zig_seed(:)
@@ -491,7 +491,6 @@ chemo(TRACER)%constant = (iconstant == 1)
 read(nfcell,*) chemo(TRACER)%max_cell_rate
 read(nfcell,*) chemo(TRACER)%MM_C0
 read(nfcell,*) chemo(TRACER)%Hill_N
-
 ! removed old read of TPZ and DNB drug data
 
 read(nfcell,*) LQ(1)%alpha_H
@@ -833,6 +832,8 @@ subroutine ReadMetabolismParameters(nf)
 integer :: nf
 integer :: ityp
 
+read(nf,*) f_G_norm
+read(nf,*) f_P_norm
 read(nf,*) N_GA
 read(nf,*) N_PA
 read(nf,*) N_GI
@@ -1888,6 +1889,7 @@ logical :: dbug
 type(metabolism_type), pointer :: metabolic
 	
 metabolic => phase_metabolic(1)
+!call testmetab2
 
 dbug = (istep < 0)
 Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
@@ -2074,7 +2076,7 @@ real(REAL_KIND) :: Cin(MAX_CHEMO)
 cp =>cell_list(kcell)
 mp => cp%metab
 Cin = Caverage(1:MAX_CHEMO)
-!write(*,'(a,3f8.4)') 'O2, glucose, lactate: ',Cin(1:3)
+!write(*,'(a,3f8.4)') 'O2, glucose, lactate: ',Cin(1:3) 
 call get_metab_rates(mp, Cin)
 return
 
