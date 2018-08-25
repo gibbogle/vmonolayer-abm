@@ -484,6 +484,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Apoptosis rate/hr",
      "The rate of passage from state = DYING to state = DEAD, probability/hour"},
 
+     {"ARREST_THRESHOLD_1", 0.1, 0, 0,
+     "Arrest threshold",
+     "Threshold level of fraction of maximum growth rate that causes arrest in S phase"},
+
 
      {"RMR_ETA_PL_1", 35, 0, 0,
      "PL lesion creation rate",
@@ -562,6 +566,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       {"APOPTOSIS_RATE_2", 0.1, 0, 0,
       "Apoptosis rate/hr",
       "The rate of passage from state = DYING to state = DEAD, probability/hour"},
+
+      {"ARREST_THRESHOLD_2", 0.1, 0, 0,
+      "Arrest threshold",
+      "Threshold level of fraction of maximum growth rate that causes arrest in S phase"},
 
 
       {"RMR_ETA_PL_2", 35, 0, 0,
@@ -848,6 +856,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"G2_phase",                  0, 0,1,"","G2_phase"},
     {"G2_cp",                     0, 0,1,"","G2_cp"},
     {"M_phase",                   0, 0,1,"","M_phase"},
+    {"S_phase_nonarrest",         0, 0,1,"","S_phase_nonarrest"},
     {"nmutations",                0, 0,1,"","nmutations"},
 
 

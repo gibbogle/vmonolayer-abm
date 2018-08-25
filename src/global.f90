@@ -177,12 +177,12 @@ type cell_type
 	! Cell cycle 
     integer :: phase
     logical :: G1_flag, G1S_flag, G2_flag, G2M_flag
-    real(REAL_KIND) :: G1_time, S_time, G2_time
+    real(REAL_KIND) :: G1_time, S_time, G2_time, S_duration
     real(REAL_KIND) :: G1_V, S_V, G2_V
     real(REAL_KIND) :: G1S_time, G2M_time, M_time
     real(REAL_KIND) :: doubling_time
-    logical :: starved
-    real(REAL_KIND) :: S_start_time	! for PI labelling
+    logical :: arrested ! for S-phase arrest
+    real(REAL_KIND) :: S_start_time	    ! for PI labelling
     integer :: NL1, NL2(2)
     
     integer :: N_PL, N_IRL, N_Ch1, N_Ch2
@@ -201,6 +201,7 @@ type cycle_parameters_type
     real(REAL_KIND) :: G1_mean_delay, G2_mean_delay
     real(REAL_KIND) :: Pk_G1, Pk_G2
     real(REAL_KIND) :: apoptosis_rate
+    real(REAL_KIND) :: arrest_threshold
     ! Radiation damage/repair
     real(REAL_KIND) :: eta_PL, Kcp, eta_L(2)
     real(REAL_KIND) :: Krepair_base, Krepair_max, Kmisrepair	!(2)
@@ -426,7 +427,7 @@ logical :: fully_mixed
 logical :: use_parallel
 logical :: colony_simulation
 logical :: use_metabolism
-logical :: noSS = .true.
+logical :: noSS = .false.   ! if true, SS solution is not used for C_P
 logical :: dbug = .false.
 logical :: bdry_debug
 

@@ -904,11 +904,7 @@ else
 	    endif
     endif
 endif
-!if (cp%dVdt == 0) then
-!    write(nflog,*) 'get_dVdt: = 0'
-!    write(*,*) 'get_dVdt: dVdt = 0'
-!    stop
-!endif
+dVdt = dVdt/cp%fg    ! scale by %fg here rather than in cycle
 end function
 
 
@@ -1000,7 +996,8 @@ cp1%G2_M = .false.
 !if (use_metabolism) then
 !    cp1%G1_time = tnow + (cp1%metab%I_rate_max/cp1%metab%I_rate)*cp1%fg*ccp%T_G1
 !endif
-cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*cp1%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
+!cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*cp1%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
+cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
 cp1%Iphase = .true.
 cp1%phase = G1_phase
 
@@ -1020,11 +1017,12 @@ cp2%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)
 cp2%divide_time = Tdiv
 cp2%fg = gfactor
 if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
-    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*cp2%fg*ccp%T_G1
-!	cp2%growth_rate_factor = get_growth_rate_factor()
+!    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*cp2%fg*ccp%T_G1
+    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*ccp%T_G1
 	cp2%ATP_rate_factor = get_ATP_rate_factor()
 else
-	cp2%G1_time = tnow + (max_growthrate(ityp)/cp2%dVdt)*cp2%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
+!	cp2%G1_time = tnow + (max_growthrate(ityp)/cp2%dVdt)*cp2%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
+	cp2%G1_time = tnow + (max_growthrate(ityp)/cp2%dVdt)*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
 endif
 cp2%CFSE = cfse2
 if (cp2%radiation_tag) then

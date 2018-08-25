@@ -1271,7 +1271,8 @@ do kcell = 1,nlist
 				elseif (cp%phase > S_phase) then
 					PI_factor = 2
 				else
-					PI_factor = 1 + (t - cp%S_start_time)/(cp%S_time - cp%S_start_time)
+!					PI_factor = 1 + (t - cp%S_start_time)/(cp%S_time - cp%S_start_time)
+                    PI_factor = 1 + cp%S_time/cp%S_duration
 				endif
 !				dCreact = dCreact*cp%dVdt/max_growthrate(ict)
 				dCreact = 0.1*PI_factor*dCreact

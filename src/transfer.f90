@@ -174,20 +174,21 @@ end function
 !-----------------------------------------------------------------------------------------
 ! Removing references to anoxia, aglucosia
 ! Adding non-viable, nogrow, ndead
+! Added phase_fraction(7) = fraction of non-arrested S-phase cells
 !-----------------------------------------------------------------------------------------
 subroutine get_summary(summaryData,i_hypoxia_cutoff,i_growth_cutoff) BIND(C)
 !DEC$ ATTRIBUTES DLLEXPORT :: get_summary
 use, intrinsic :: iso_c_binding
 real(c_double) :: summaryData(*)
 integer(c_int) :: i_hypoxia_cutoff,i_growth_cutoff
-integer :: nhypoxic(3), nclonohypoxic(3), ngrowth(3), nogrow(MAX_CELLTYPES), nphase(6), nmutations, nclono
+integer :: nhypoxic(3), nclonohypoxic(3), ngrowth(3), nogrow(MAX_CELLTYPES), nphase(6+1), nmutations, nclono
 integer :: TNradiation_dead, TNdrug_dead(2),  TNdead, TNviable, TNnonviable, TNATP_dead, TNnogrow, &
            Ntagged_ATP(MAX_CELLTYPES), Ntagged_radiation(MAX_CELLTYPES), Ntagged_drug(2,MAX_CELLTYPES), &
            TNtagged_ATP, TNtagged_radiation, TNtagged_drug(2)
 integer :: ityp, i, im, idrug
 real(REAL_KIND) :: hour, plate_eff(MAX_CELLTYPES), divide_fraction, P_utilisation, doubling_time, viable_fraction, rmutations
 real(REAL_KIND) :: hypoxic_fraction(3), clonohypoxic_fraction(3), growth_fraction(3), nogrow_fraction
-real(REAL_KIND) :: phase_fraction(6), clono_fraction, Tplate_eff
+real(REAL_KIND) :: phase_fraction(6+1), clono_fraction, Tplate_eff
 real(REAL_KIND) :: medium_oxygen, medium_glucose, medium_lactate, medium_drug(2,0:2)
 real(REAL_KIND) :: IC_oxygen, IC_glucose, IC_lactate, IC_pyruvate, IC_drug(2,0:2)
 real(REAL_KIND) :: EC(MAX_CHEMO), cmedium(MAX_CHEMO)
@@ -269,7 +270,7 @@ if (ndoublings > 0) then
 else
     doubling_time = 0
 endif
-summaryData(1:65) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
+summaryData(1:66) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
 	rint(TNATP_dead), rint(TNdrug_dead(1)), rint(TNdrug_dead(2)), rint(TNradiation_dead), rint(TNdead), &
     rint(TNtagged_ATP), rint(TNtagged_drug(1)), rint(TNtagged_drug(2)), rint(TNtagged_radiation), &
 	100*viable_fraction, 100*hypoxic_fraction(i_hypoxia_cutoff), 100*clonohypoxic_fraction(i_hypoxia_cutoff), &
@@ -278,8 +279,8 @@ summaryData(1:65) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviabl
 	caverage(OXYGEN), caverage(GLUCOSE), caverage(LACTATE), mp%C_P, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 	cmedium(OXYGEN), cmedium(GLUCOSE), cmedium(LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	doubling_time, r_G, r_P, r_A, r_I, mp%f_G, mp%f_P, mp%HIF1, mp%PDK1, rint(ndivided), &
-	100*phase_fraction(1:6), rmutations]
-write(nfres,'(a,a,2a12,i8,e12.4,21i7,56e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
+	100*phase_fraction(1:7), rmutations]
+write(nfres,'(a,a,2a12,i8,e12.4,21i7,57e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
 	istep, hour, Ncells_type(1:2), TNviable, TNnonviable, &
     NATP_dead(1:2), Ndrug_dead(1,1:2), Ndrug_dead(2,1:2), Nradiation_dead(1:2), TNdead, &
     Ntagged_ATP(1:2), Ntagged_drug(1,1:2), Ntagged_drug(2,1:2), Ntagged_radiation(1:2), &
@@ -288,7 +289,7 @@ write(nfres,'(a,a,2a12,i8,e12.4,21i7,56e13.5)') trim(header),' ',gui_run_version
 	EC(OXYGEN), EC(GLUCOSE), EC(LACTATE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
 	caverage(OXYGEN), caverage(GLUCOSE), caverage(LACTATE), mp%C_P, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 	cmedium(OXYGEN), cmedium(GLUCOSE), cmedium(LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
-	phase_fraction(1:6), rmutations, &	! note order change
+	phase_fraction(1:7), rmutations, &	! note order change
 	doubling_time, r_G, r_P, r_A, r_I, ndivided, P_utilisation
 	
 !call sum_dMdt(GLUCOSE)
@@ -379,6 +380,9 @@ do kcell = 1,nlist
 	enddo
 	iphase = min(cp%phase,M_phase)
 	nphase(iphase) = nphase(iphase) + 1
+	if (iphase == S_phase) then
+	    if (.not.cp%arrested) nphase(7) = nphase(7) + 1
+	endif
 	nmutations = nmutations + cp%N_Ch1 + cp%N_Ch2
 	ccp => cc_parameters(ityp)
 	if (.not.cp%state == DYING) then
@@ -1012,7 +1016,8 @@ do kcell = 1,nlist
 	if (cp%phase <= Checkpoint1) then
 		fluor = 1
 	elseif (cp%phase == S_phase) then
-		fluor = 1 + min((tnow - cp%G1S_time)/(cp%S_time - cp%G1S_time), 1.0)
+!		fluor = 1 + min((tnow - cp%G1S_time)/(cp%S_time - cp%G1S_time), 1.0)
+        fluor = 1 + min(cp%S_time/cp%S_duration, 1.0)
 	else
 		fluor = 2
 	endif
@@ -1053,7 +1058,8 @@ do kcell = 1,nlist
 	if (cp%phase <= Checkpoint1) then
 		fluor = 1
 	elseif (cp%phase == S_phase) then
-		fluor = 1 + min((tnow - cp%G1S_time)/(cp%S_time - cp%G1S_time), 1.0)
+!		fluor = 1 + min((tnow - cp%G1S_time)/(cp%S_time - cp%G1S_time), 1.0)
+        fluor = 1 + min(cp%S_time/cp%S_duration, 1.0)
 	else
 		fluor = 2
 	endif

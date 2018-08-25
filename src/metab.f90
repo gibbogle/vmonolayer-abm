@@ -630,12 +630,12 @@ real(REAL_KIND) :: C_O2, C_G, C_L, Ofactor, Gfactor, ATPfactor, x, fmin
 real(REAL_KIND) :: CO_L, CG_L, f_ATP_H, f_ATP_L, f, f_G_H, f_G_L
 real(REAL_KIND) :: f_G, f_P, r_P, r_G, r_GI, r_GA, r_PI, r_PA, Km, C1, C2, r_L, r_A
 integer :: N_O2, N_P, n
-real(REAL_KIND) :: Km_O2, Km_P, V, f_PO, f_PA, K1, K2, MM_O2, fPDK, r_Pm_base, r_Ag
-real(REAL_KIND) :: a1, b1, a2, b2, a3, b3, c3, d
-type(metabolism_type) :: metab_save
-type(metabolism_type), pointer :: mp_save
+real(REAL_KIND) :: Km_O2, Km_P, V, f_PO, f_PA, K1, K2, MM_O2, fPDK, r_Pm_base, r_Ag, f_P_min, r_A_thresh
+real(REAL_KIND) :: a1, b1, a2, b2, a3, b3, c3, d, fraction
+!type(metabolism_type) :: metab_save
+!type(metabolism_type), pointer :: mp_save
 real(REAL_KIND) :: alfa = 0.1
-logical :: f_P_first = .true.	! First f_P is determined, then f_G
+logical :: f_P_first = .true.	! First f_P is determined, then f_G (Note: f_P_first = .false. is not used)
 
 if (N1D == 0) then
 	! Cex for 3D case - vspheroid
@@ -663,6 +663,8 @@ r_G = get_glycosis_rate(mp%HIF1,C_G)
 fPDK = mp%PDK1
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
 r_Pm_base = fPDK*MM_O2*O2_maxrate/f_PO	! note that MM_P is not here, since it varies it is added as needed
+
+r_A_thresh = r_Ag + 0.5*(r_A_norm - r_Ag)    ! TESTING
 
 if (f_P_first) then
 	mp%f_G = f_G_norm
@@ -698,9 +700,7 @@ if (f_P_first) then
 	else
 		mp%f_P = f_P_norm
 		call f_metab(mp,C_O2,C_G,C_L)
-!		write(nflog,'(a,2e12.3)') '(3) A_rate, r_Ag: ',mp%A_rate, r_Ag
-		if (mp%A_rate < r_Ag) then
-!			write(nflog,*) 'Set f_G=f_Gn, find f_P'
+!		if (mp%A_rate < r_Ag) then
 			! Need to set f_G = f_G_norm, find level of f_P to maintain ATPg *** (2)
 			f_G = f_G_norm
 			r_GA = 2*(1 - f_G)*r_G
@@ -709,8 +709,14 @@ if (f_P_first) then
 			a2 = a1*((r_Ag - r_GA)/f_PA - r_Pm_base)
 			b2 = r_Pm_base*b1 - (Km_P + b1)*(r_Ag - r_GA)/f_PA
 			! z = 1/(1-f_P) = b2/a2, -> f_P = 1 - a2/b2
+			f_P_min = 1 - a2/b2     ! this is f_P needed to reach r_Ag
+		if (mp%A_rate < r_Ag) then
 			mp%f_G = f_G
-			mp%f_P = 1 - a2/b2
+			mp%f_P = f_P_min
+		elseif (mp%A_rate < r_A_thresh) then
+		    fraction = (mp%A_rate - r_Ag)/(r_A_thresh - r_Ag)
+		    mp%f_P = min(f_P_min + fraction*(f_P_norm - f_P_min),f_P_norm)
+			mp%f_G = f_G_norm
 		else
 !			write(nflog,*) 'Set f_G=f_Gn, f_P=f_Pn'
 			! Need to set f_P = f_P_norm, f_G = f_G_norm
@@ -718,6 +724,7 @@ if (f_P_first) then
 			mp%f_G = f_G_norm
 		endif
 	endif
+else    ! f_G first
 	mp%f_G = 0
 	mp%f_P = f_P_norm
 	call f_metab(mp,C_O2,C_G,C_L)
@@ -743,20 +750,7 @@ if (f_P_first) then
 			b2 = r_Pm_base*b1 - (Km_P + b1)*(r_Ag - r_GA)/f_PA
 			! z = 1/(1-f_P) = b2/a2, -> f_P = 1 - a2/b2
 			mp%f_G = f_G
-			mp%f_P = 1 - a2/b2
-			
-!			a1 = 2*r_G/(f_PA*(1-f_P))
-!			b1 = (r_Ag - 2*r_G)/(f_PA*(1-f_P))
-!			a2 = (-2*r_G - a1)/(V*K1)
-!			b2 = (2*r_G + V*K2*C_L - b1)/(V*K1)
-!			a3 = a1*a2
-!			b3 = (a1*(Km_P + b2) + a2*b1 - r_Pm_base*a2/(1 - f_P))
-!			c3 = b1*(Km_P + b2) - r_Pm_base*b2/(1 - f_P)
-!			! a3.y^2 + b3.y + c3 = 0 where y = f_G
-!			d = sqrt(b3*b3 - 4*a3*c3)
-!			mp%f_P = f_P
-!			mp%f_G = (-b3 + d)/(2*a3)
-			
+			mp%f_P = 1 - a2/b2		
 		endif
 	else
 		mp%f_G = f_G_norm
@@ -776,16 +770,7 @@ if (f_P_first) then
 			! a3.y^2 + b3.y + c3 = 0 where y = f_G
 			d = sqrt(b3*b3 - 4*a3*c3)
 			mp%f_P = f_P
-			mp%f_G = (-b3 + d)/(2*a3)
-			
-!			r_GA = 2*(1 - f_G)*r_G
-!			a1 = (r_GA - r_Ag)/(f_PA*V*K1)
-!			b1 = (r_GA + V*K2*C_L)/(V*K1)
-!			a2 = a1*((r_Ag - r_GA)/f_PA - r_Pm_base)
-!			b2 = r_Pm_base*b1 - (Km_P + b1)*(r_Ag - r_GA)/f_PA
-!			! z = 1/(1-f_P) = b2/a2, -> f_P = 1 - a2/b2
-!			mp%f_P = 1 - a2/b2
-
+			mp%f_G = (-b3 + d)/(2*a3)			
 		else
 !			write(nflog,*) 'Set f_G=f_Gn, f_P=f_Pn'
 			! Need to set f_P = f_P_norm, f_G = f_G_norm
@@ -799,7 +784,7 @@ if (f_P_first) then
 !    write(*,'(a,4e12.3)') 'f_G,f_P: ',mp%f_G,mp%f_P
 !    write(*,'(a,4e12.3)') 'A_rate,I_rate: ',2*(1-mp%f_G)*r_G, f_PA*(1-mp%f_P)*r_P,mp%f_G*r_G,mp%f_P*r_P
 endif
-!write(nflog,'(a,2e12.3)') 'f_P,f_G: ',mp%f_P,mp%f_G
+!write(nflog,'(a,2e12.3)') 'f_P,f_G: ',mp%f_P,mp%f_G 
 !write(nflog,*)
 return
 
@@ -973,6 +958,7 @@ if (f_P_first) then
 			mp%f_G = f_G_norm
 		endif
 	endif
+else    ! f_G first
 	mp%f_G = 0
 	mp%f_P = f_P_norm
 	call f_metab_noSS(mp,C_O2,C_G,C_L,C_P)

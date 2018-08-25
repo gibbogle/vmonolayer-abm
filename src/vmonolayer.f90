@@ -668,16 +668,15 @@ t_aglucosia_limit = 60*60*aglucosia_tag_hours		! hours -> seconds
 aglucosia_death_delay = 60*60*aglucosia_death_hours	! hours -> seconds
 Vcell_cm3 = 1.0e-9*Vcell_pL							! nominal cell volume in cm3
 Vdivide0 = Vdivide0*Vcell_cm3
-total_volume = medium_volume0
 
-write(nflog,*) 'Vdivide0: ',Vdivide0
+write(nflog,*) 'Vdivide0: ',Vdivide0, ' medium_volume0: ',medium_volume0
 
 !write(logmsg,'(a,3e12.4)') 'DELTA_X, cell_radius: ',DELTA_X,cell_radius
 !call logger(logmsg)
 !write(logmsg,'(a,4e12.4)') 'Volumes: site, extra, cell (average, base): ',Vsite_cm3, Vextra_cm3, Vsite_cm3-Vextra_cm3, Vcell_cm3
 !call logger(logmsg)
 
-!saveprofile%active = (isaveprofiledata == 1)
+!saveprofile%active = (isaveprofiledata == 1) 
 !saveprofile%it = 1
 !saveprofile%dt = 60*saveprofile%dt		! mins -> seconds
 !saveslice%active = (isaveslicedata == 1)
@@ -728,7 +727,7 @@ f_nogrow f_clonogenic plating_efficiency(1) plating_efficiency(2) &
 EC_oxygen EC_glucose EC_lactate EC_drugA EC_drugA_metab1 EC_drugA_metab2 EC_drugB EC_drugB_metab1 EC_drugB_metab2 &
 IC_oxygen IC_glucose IC_lactate IC_pyruvate IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
 medium_oxygen medium_glucose medium_lactate medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
-G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase Nmutations &
+G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase S_phase_nonarrest Nmutations &
 doubling_time glycolysis_rate pyruvate_oxidation_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction'
 write(logmsg,*) 'Opened nfout: ',trim(outputfile)
 ! Note order change
@@ -776,6 +775,7 @@ read(nf,*) ccp%T_M
 read(nf,*) ccp%G1_mean_delay
 read(nf,*) ccp%G2_mean_delay
 read(nf,*) ccp%Apoptosis_rate
+read(nf,*) ccp%arrest_threshold
 read(nf,*) ccp%eta_PL
 read(nf,*) ccp%eta_IRL
 read(nf,*) ccp%Krepair_base
@@ -792,7 +792,7 @@ read(nf,*) ccp%bTCP
 total = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
 write(nflog,'(a,7f8.2)') 'T_G1,T_S,T_G2,T_M,G1_delay,G2_delay, total: ',ccp%T_G1,ccp%T_S,ccp%T_G2,ccp%T_M, &
 						ccp%G1_mean_delay,ccp%G2_mean_delay,total
-						
+write(nflog,'(a,f8.2)') 'arrest_threshold: ',ccp%arrest_threshold						
 ccp%T_G1 = 3600*ccp%T_G1                    ! hours -> seconds
 ccp%T_S = 3600*ccp%T_S
 ccp%T_G2 = 3600*ccp%T_G2
@@ -954,6 +954,7 @@ type(event_type) :: E
 
 write(logmsg,*) 'ReadProtocol'
 call logger(logmsg)
+total_volume = medium_volume0
 chemo(TRACER+1:)%used = .false.
 do
 	read(nf,'(a)') line
@@ -1279,7 +1280,6 @@ else	! use cell cycle
     cp%irrepairable = .false.
     ! Need to assign phase, volume to complete phase, current volume
     call SetInitialCellCycleStatus(cp)
-    cp%starved = .false.
 endif
 if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
 !	cp%metab%I2Divide = get_I2Divide(cp)
@@ -1401,8 +1401,10 @@ do iphase = 1,6
 			cp%t_divide_last = -(phase_time(1) + y*phase_time(2))
 		elseif (iphase == S_phase) then
 			cp%phase = S_phase
-			cp%S_start_time = -y*phase_time(3)
-			cp%S_time = z*phase_time(3)
+!			cp%S_start_time = -y*phase_time(3)
+!			cp%S_time = z*phase_time(3)
+			cp%S_time = y*phase_time(3)     ! for S phase this is progress, not end time
+			cp%S_duration = phase_time(3)
 			cp%V = V0 + (phase_time(1) + y*phase_time(3))*rVmax 
 			cp%t_divide_last = -(phase_time(1) + phase_time(2) + y*phase_time(3))
 		elseif (iphase == G2_phase) then

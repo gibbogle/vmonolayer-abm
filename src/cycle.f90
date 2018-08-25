@@ -81,27 +81,26 @@ elseif (phase == Checkpoint1) then  ! this checkpoint combines the release from 
     if (cp%G1_flag .and. cp%G1S_flag) then
         cp%phase = S_phase
 ! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code 
-!        if (use_metabolism) then
-!	        cp%S_time = tnow + (cp%metab%I_rate_max/cp%metab%I_rate)*ccp%T_S
-!	    else
-			cp%S_start_time = tnow
-	        cp%S_time = tnow + (max_growthrate(ityp)/cp%dVdt)*cp%fg*ccp%T_S
+!	    cp%S_time = tnow + (max_growthrate(ityp)/cp%dVdt)*cp%fg*ccp%T_S
+!	    cp%S_time = tnow + (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
+	    cp%S_duration = (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
+	    cp%S_time = 0   ! this is now the amount of time progress through S phase: 0 -> %S_duration
 !	    endif
     endif
 elseif (phase == S_phase) then
-    if (use_volume_based_transition) then
-        switch = (cp%V > cp%S_V)
-    else
-        switch = (tnow > cp%S_time)
+    cp%arrested = (cp%dVdt/max_growthrate(ityp) < ccp%arrest_threshold)
+!    if (kcell_now == 1) then
+!        write(*,'(a,2e12.3,2x,L)') 'S_phase: dVdt, fraction, arrested: ',cp%dVdt,cp%dVdt/max_growthrate(ityp),cp%arrested
+!    endif
+    if (.not.cp%arrested) then
+        cp%S_time = cp%S_time + dt
     endif
+    switch = (cp%S_time >= cp%S_duration)
+!   switch = (tnow > cp%S_time)
     if (switch) then
         cp%phase = G2_phase
 ! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code
-!        if (use_metabolism) then
-!	        cp%G2_time = tnow + (cp%metab%I_rate_max/cp%metab%I_rate)*ccp%T_G2
-!	    else
-			cp%G2_time = tnow + (max_growthrate(ityp)/cp%dVdt)*cp%fg*ccp%T_G2
-!		endif
+		cp%G2_time = tnow + (max_growthrate(ityp)/cp%dVdt)*ccp%T_G2
     endif
 elseif (phase == G2_phase) then
     if (use_volume_based_transition) then
@@ -233,7 +232,8 @@ if (do_repair) then
 		if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
 			fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
 		else
-			fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
+!			fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
+            fraction = cp%S_time/cp%S_duration
 			fraction = max(0.0, fraction)
 			fraction = min(1.0, fraction)
 		endif
@@ -333,7 +333,8 @@ else
     if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
         fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
     else
-        fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
+!        fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
+        fraction = cp%S_time/cp%S_duration
 		fraction = max(0.0, fraction)
 		fraction = min(1.0, fraction)
     endif
@@ -462,7 +463,8 @@ else
     if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
         fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
     else
-        fraction = 1 - (cp%S_time - tnow)/ccp%T_S
+!        fraction = 1 - (cp%S_time - tnow)/ccp%T_S
+        fraction = 1 + min(cp%S_time/cp%S_duration, 1.0)
     endif
     Krepair = ccp%Krepair_base + fraction*(ccp%Krepair_max - ccp%Krepair_base)
 endif
@@ -511,7 +513,8 @@ else
     if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
         fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
     else
-        fraction = 1 - (cp%S_time - tnow)/ccp%T_S
+!        fraction = 1 - (cp%S_time - tnow)/ccp%T_S
+        fraction = 1 + min(cp%S_time/cp%S_duration, 1.0)
     endif
     Krepair = ccp%Krepair_base + fraction*(ccp%Krepair_max - ccp%Krepair_base)
 endif
