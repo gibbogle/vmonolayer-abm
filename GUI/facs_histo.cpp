@@ -629,7 +629,7 @@ void MainWindow::makeHistoPlot(int numValues, double xmin, double width,
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-void MainWindow::saveHistoImage()
+void MainWindow::saveHistoImage(bool save_data)
 {
     QwtPlot *qplot;
 
@@ -647,4 +647,59 @@ void MainWindow::saveHistoImage()
     QSizeF size(120,120);
     QwtPlotRenderer renderer;
     renderer.renderDocument(qplot,path,size,85);
+
+    if (save_data) {
+        QString data_path = QFileDialog::getSaveFileName(this, tr("Save Histo data as text"), "", tr("TXT file (*.txt)"));
+        if (data_path.isEmpty())
+            return;
+        saveHistoData(data_path);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------
+void MainWindow:: saveHistoData(QString dataFile)
+{
+    int ivar, k, k0, numValues;
+    QRadioButton *rb;
+    QString xlabel;
+    double width, xmin;
+    bool log_scale;
+
+    QFile file(dataFile);
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("Application"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(dataFile)
+                             .arg(file.errorString()));
+        LOG_MSG("File open failed");
+        return;
+    }
+    QTextStream out(&file);
+
+    log_scale = checkBox_histo_logscale->isChecked();
+    numValues = Global::nhisto_bins;
+    // Determine which button is checked:
+    for (ivar=0; ivar<Global::nvars_used; ivar++) {
+        rb = histo_rb_list[ivar];
+        if (rb->isChecked()) {
+            break;
+        }
+    }
+    xlabel = Global::var_string[ivar];
+    out << xlabel << "\n";
+    k0 = Global::histo_celltype*numValues*Global::nvars_used;
+    if (!Global::histo_data) {
+        LOG_MSG("No histo_data");
+        return;
+    }
+    xmin = Global::histo_vmin[ivar];
+    width = (Global::histo_vmax[ivar] - Global::histo_vmin[ivar])/numValues;
+    out << "width: " + QString::number(width) + "\n";
+    for (int i=0; i<numValues; i++) {
+        k = k0 + ivar*numValues + i;
+        sprintf(msg,"%f %f",xmin+(i+0.5)*width,Global::histo_data[k]);
+        out << msg << "\n";
+    }
+    file.close();
 }

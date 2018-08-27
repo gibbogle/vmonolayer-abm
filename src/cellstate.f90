@@ -968,7 +968,11 @@ cp1%mitosis = 0
 cfse0 = cp1%CFSE
 cp1%CFSE = generate_CFSE(cfse0/2)
 cfse2 = cfse0 - cp1%CFSE
+!
 ! Halve drug levels - OK for normal drugs?
+! Is this the right thing to do??  Concentration in each cell after mitosis should equal conc at mitosis!!
+! This raises the question: do IC concentrations reflect changing cell volume??
+!
 do ipdd = 0,1
 	if (chemo(DRUG_A + 3*ipdd)%used) then
 		if (drug(ipdd+1)%phase_dependent) then

@@ -582,14 +582,16 @@ end subroutine
 
 !-----------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------
-subroutine get_FACS(facs_data,vmin,vmax,vmin_log,vmax_log) BIND(C)
+subroutine get_FACS(facs_data,vmin,vmax,vmin_log,vmax_log, scale_drug_by_vol) BIND(C)
 !DEC$ ATTRIBUTES DLLEXPORT :: get_facs 
 use, intrinsic :: iso_c_binding
 real(c_double) :: facs_data(*)
 real(c_double) :: vmin(*), vmax(*)
 real(c_double) :: vmin_log(*), vmax_log(*)
+logical(c_bool),value :: scale_drug_by_vol
 integer :: k, kcell, iextra, ichemo, ivar, nvars, var_index(32)
 real(REAL_KIND) :: cfse_min, val, val_log
+type(cell_type), pointer :: cp
 
 call logger('get_FACS')
 nvars = 1	! CFSE
@@ -612,22 +614,26 @@ vmax(1:nvars) = -1.0e10
 cfse_min = 1.0e20
 k = 0
 do kcell = 1,nlist
-	if (cell_list(kcell)%state == DEAD) cycle
+    cp =>cell_list(kcell)
+	if (cp%state == DEAD) cycle
 	do ivar = 1,nvars
 		ichemo = var_index(ivar)
 		if (ichemo == 0) then
-			val = cell_list(kcell)%CFSE
+			val = cp%CFSE
 			cfse_min = min(val,cfse_min)
 		elseif (ichemo <= MAX_CHEMO) then
-			val = cell_list(kcell)%Cin(ichemo)
+			val = cp%Cin(ichemo)
+			if (scale_drug_by_vol) then
+			    val = val*cp%V/1.0e-9
+			endif
 		elseif (ichemo == GROWTH_RATE) then
-			val = cell_list(kcell)%dVdt/1.0e-9		! -> pL
+			val = cp%dVdt/1.0e-9		! -> pL
 		elseif (ichemo == CELL_VOLUME) then
-			val = cell_list(kcell)%V/1.0e-9
+			val = cp%V/1.0e-9
 		elseif (ichemo == O2_BY_VOL) then
-			val = cell_list(kcell)%V*cell_list(kcell)%Cin(OXYGEN)/1.0e-9
+			val = cp%V*cp%Cin(OXYGEN)/1.0e-9
 		elseif (ichemo == CYCLE_PHASE) then
-			val = cell_list(kcell)%phase
+			val = cp%phase
 		endif
 		k = k+1
 		facs_data(k) = val
@@ -655,12 +661,13 @@ end subroutine
 !                          3 = type 2
 ! Stack three cases in vmax() and histo_data()
 !-----------------------------------------------------------------------------------------
-subroutine get_histo(nhisto, histo_data, vmin, vmax, histo_data_log, vmin_log, vmax_log) BIND(C)
+subroutine get_histo(nhisto, histo_data, vmin, vmax, histo_data_log, vmin_log, vmax_log, scale_drug_by_vol) BIND(C)
 !DEC$ ATTRIBUTES DLLEXPORT :: get_histo
 use, intrinsic :: iso_c_binding
 integer(c_int),value :: nhisto
 real(c_double) :: vmin(*), vmax(*), histo_data(*)
 real(c_double) :: vmin_log(*), vmax_log(*), histo_data_log(*)
+logical(c_bool),value :: scale_drug_by_vol
 real(REAL_KIND) :: val, val_log
 integer :: n(3), i, ih, k, kcell, ict, ichemo, ivar, nvars, var_index(32)
 integer,allocatable :: cnt(:,:,:)
@@ -716,6 +723,9 @@ do kcell = 1,nlist
 			val = cp%CFSE
 		elseif (ichemo <= MAX_CHEMO) then
 			val = cp%Cin(ichemo)
+			if (scale_drug_by_vol .and. ichemo >= DRUG_A) then
+			    val = val*cp%V/1.0e-9
+			endif
 		elseif (ichemo == GROWTH_RATE) then
 			val = cp%dVdt/1.0e-9		! -> pL
 		elseif (ichemo == CELL_VOLUME) then
@@ -767,6 +777,9 @@ do kcell = 1,nlist
 			val = cp%CFSE
 		elseif (ichemo <= MAX_CHEMO) then
 			val = cp%Cin(ichemo)
+			if (scale_drug_by_vol .and. ichemo >= DRUG_A) then
+			    val = val*cp%V/1.0e-9
+			endif
 		elseif (ichemo == GROWTH_RATE) then
 			val = cp%dVdt/1.0e-9		! -> pL
 		elseif (ichemo == CELL_VOLUME) then

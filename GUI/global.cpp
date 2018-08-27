@@ -92,6 +92,6 @@ namespace Global
     double PI_max_fract;
     double PI_max_fluor;
 
-    int volume_scaling;
+    bool volume_scaling;
 
 } // namespace Global

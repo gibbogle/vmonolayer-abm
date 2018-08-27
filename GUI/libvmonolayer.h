@@ -14,8 +14,8 @@ void get_dimensions(int *, double *, int *, int *, int *, bool *);
 //void get_summary(int *, int *, int *);
 void get_summary(double *, int *, int *);
 void get_nfacs(int *);
-void get_facs(double *, double *, double *, double *, double *);
-void get_histo(int, double *, double *, double *, double *, double *, double *);
+void get_facs(double *, double *, double *, double *, double *, bool);
+void get_histo(int, double *, double *, double *, double *, double *, double *, bool);
 void get_constituents(int *, int *, int *, char *, int *);
 void make_colony_distribution(double *, double *, double *, int *);
 

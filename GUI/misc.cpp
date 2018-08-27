@@ -390,7 +390,7 @@ void ExecThread::getFACS()
     LOG_MSG("get_facs");
     QTime t;
     t.start();
-    get_facs(Global::FACS_data, Global::FACS_vmin, Global::FACS_vmax, Global::FACS_vmin_log, Global::FACS_vmax_log);
+    get_facs(Global::FACS_data, Global::FACS_vmin, Global::FACS_vmax, Global::FACS_vmin_log, Global::FACS_vmax_log, Global::volume_scaling);
     LOG_MSG("did get_facs");
     LOG_QMSG("get_facs time (ms): " + QString::number(t.elapsed()));
 
@@ -413,7 +413,7 @@ void ExecThread::getHisto()
     }
     LOG_MSG("get_histo");
     get_histo(Global::nhisto_bins, Global::histo_data, Global::histo_vmin, Global::histo_vmax,
-              Global::histo_data_log, Global::histo_vmin_log, Global::histo_vmax_log);
+              Global::histo_data_log, Global::histo_vmin_log, Global::histo_vmax_log, Global::volume_scaling);
     LOG_MSG("did get_histo");
 }
 

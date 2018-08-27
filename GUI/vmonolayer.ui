@@ -45,7 +45,7 @@ padding: 8px
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="page_input">
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -9800,7 +9800,7 @@ padding: 8px
        <widget class="QCheckBox" name="checkBox_volume_scaling">
         <property name="geometry">
          <rect>
-          <x>950</x>
+          <x>1100</x>
           <y>0</y>
           <width>111</width>
           <height>21</height>
@@ -9813,7 +9813,7 @@ padding: 8px
        <widget class="QPushButton" name="pushButton_update_FACS_Histo">
         <property name="geometry">
          <rect>
-          <x>840</x>
+          <x>780</x>
           <y>0</y>
           <width>75</width>
           <height>23</height>
@@ -9826,7 +9826,7 @@ padding: 8px
        <widget class="QLineEdit" name="lineEdit_dotsize">
         <property name="geometry">
          <rect>
-          <x>542</x>
+          <x>462</x>
           <y>0</y>
           <width>21</width>
           <height>20</height>
@@ -9842,7 +9842,7 @@ padding: 8px
        <widget class="QLabel" name="alabel_dotsize">
         <property name="geometry">
          <rect>
-          <x>570</x>
+          <x>490</x>
           <y>0</y>
           <width>91</width>
           <height>21</height>
@@ -9875,13 +9875,13 @@ padding: 8px
          </rect>
         </property>
         <property name="text">
-         <string>Save FACS image</string>
+         <string>FACS image</string>
         </property>
        </widget>
        <widget class="QPushButton" name="pushButton_saveHisto">
         <property name="geometry">
          <rect>
-          <x>1150</x>
+          <x>870</x>
           <y>0</y>
           <width>41</width>
           <height>23</height>
@@ -9894,14 +9894,27 @@ padding: 8px
        <widget class="QLabel" name="alabel_saveHisto">
         <property name="geometry">
          <rect>
-          <x>1200</x>
+          <x>920</x>
           <y>0</y>
-          <width>111</width>
+          <width>91</width>
           <height>21</height>
          </rect>
         </property>
         <property name="text">
-         <string>Save histogram image</string>
+         <string>Histogram image</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="checkBox_save_histo_data">
+        <property name="geometry">
+         <rect>
+          <x>1020</x>
+          <y>0</y>
+          <width>71</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Save data</string>
         </property>
        </widget>
       </widget>

@@ -1203,7 +1203,7 @@ type(cell_type), pointer :: cp
 type(drug_type), pointer :: dp
 integer :: ict, n_O2, kcell, it, k, i, n_S_phase, n
 real(REAL_KIND) :: dtt, decay_rate, membrane_kin, membrane_kout, membrane_flux, Cex, Cex0, vol_cm3, area_factor, R
-real(REAL_KIND) :: CO2, cellfluxsum, C, Clabel, KmetC, dCreact, totalflux, F(N1D+1), A, d, dX, dV, Kd, t, PI_factor
+real(REAL_KIND) :: CO2, C, Clabel, KmetC, dCreact, totalflux, F(N1D+1), A, d, dX, dV, Kd, t, PI_factor
 real(REAL_KIND) :: average_volume = 1.2
 real(REAL_KIND), dimension(:), pointer :: Cmedium
 logical :: use_average_volume = .false.
@@ -1234,89 +1234,84 @@ endif
 
 do it = 1,nt
 	t = tstart + (it-1)*dtt
-! Solve for each cell separately
-n_S_phase = 0
-totalflux = 0
-do kcell = 1,nlist
-   	cp => cell_list(kcell)
-!   	tagged = cp%anoxia_tag .or. cp%aglucosia_tag .or. (cp%state == DYING)
-	if (cp%state == DEAD) cycle
-	if (.not.use_average_volume) then
-		vol_cm3 = cp%V
-		area_factor = (vol_cm3/Vcell_cm3)**(2./3.)
-	endif
-	ict = cp%celltype
-	CO2 = cp%Cin(OXYGEN)
-	active = drug(idrug)%active_phase(cp%phase)
-	if (active) then	! .and. .not.tagged) then
-		n_S_phase = n_S_phase + 1
-	endif
-!	do it = 1,nt
-		cellfluxsum = 0
-		C = cp%Cin(ichemo)
-		Clabel = cp%Cin(ichemo+1)
-		membrane_flux = area_factor*(membrane_kin*Cex - membrane_kout*C)
-		if (active) then	! .and. .not.tagged) then
-			KmetC = dp%Kmet0(ict,0)*C
-			if (dp%Vmax(ict,0) > 0) then
-				KmetC = KmetC + dp%Vmax(ict,0)*C/(dp%Km(ict,0) + C)
-			endif
-			dCreact = -(1 - dp%C2(ict,0) + dp%C2(ict,0)*dp%KO2(ict,0)**n_O2/(dp%KO2(ict,0)**n_O2 + CO2**n_O2))*KmetC
-			if (trim(dp%name) == 'EDU') then
-				dCreact = dCreact*cp%dVdt/max_growthrate(ict)
-			endif
-			if (trim(dp%name) == 'PI') then
-				if (cp%phase < S_phase) then
-					PI_factor = 1
-				elseif (cp%phase > S_phase) then
-					PI_factor = 2
-				else
+    ! Solve for each cell separately
+    n_S_phase = 0
+    totalflux = 0
+    do kcell = 1,nlist
+   	    cp => cell_list(kcell)
+	    if (cp%state == DEAD) cycle
+	    if (.not.use_average_volume) then
+		    vol_cm3 = cp%V
+		    area_factor = (vol_cm3/Vcell_cm3)**(2./3.)
+	    endif
+	    ict = cp%celltype
+	    CO2 = cp%Cin(OXYGEN)
+	    active = drug(idrug)%active_phase(cp%phase)
+	    if (active) then	! .and. .not.tagged) then
+		    n_S_phase = n_S_phase + 1
+	    endif
+    !	do it = 1,nt
+!	    cellfluxsum = 0     ! Is this OK?????????
+	    C = cp%Cin(ichemo)
+	    Clabel = cp%Cin(ichemo+1)
+	    membrane_flux = area_factor*(membrane_kin*Cex - membrane_kout*C)
+	    if (active) then	! .and. .not.tagged) then
+		    KmetC = dp%Kmet0(ict,0)*C
+		    if (dp%Vmax(ict,0) > 0) then
+			    KmetC = KmetC + dp%Vmax(ict,0)*C/(dp%Km(ict,0) + C)
+		    endif
+		    dCreact = -(1 - dp%C2(ict,0) + dp%C2(ict,0)*dp%KO2(ict,0)**n_O2/(dp%KO2(ict,0)**n_O2 + CO2**n_O2))*KmetC
+		    if (trim(dp%name) == 'EDU') then
+			    dCreact = dCreact*cp%dVdt/max_growthrate(ict)
+		    endif
+		    if (trim(dp%name) == 'PI') then
+			    if (cp%phase < S_phase) then
+				    PI_factor = 1
+			    elseif (cp%phase > S_phase) then
+				    PI_factor = 2
+			    else
 !					PI_factor = 1 + (t - cp%S_start_time)/(cp%S_time - cp%S_start_time)
                     PI_factor = 1 + cp%S_time/cp%S_duration
-				endif
+			    endif
 !				dCreact = dCreact*cp%dVdt/max_growthrate(ict)
-				dCreact = 0.1*PI_factor*dCreact
-				if (kcell == 1) write(nflog,'(a,2i6,4e12.3)') 'dCreact: ',kcell,it,C,Cex,dCreact,membrane_flux/vol_cm3
-			endif
-			cp%dCdt(ichemo) = dCreact + membrane_flux/vol_cm3 - C*decay_rate
-			cp%dCdt(ichemo+1) = -dCreact
-!			cp%dCdt(ichemo+1) = PI_factor/3600	! test just recording time
-			Clabel = Clabel + dtt*cp%dCdt(ichemo+1)
-		else
-			cp%dCdt(ichemo) = membrane_flux/vol_cm3 - C*decay_rate	
-		endif
+			    dCreact = 0.1*PI_factor*dCreact
+		    endif
+		    cp%dCdt(ichemo) = dCreact + membrane_flux/vol_cm3 - C*decay_rate
+		    cp%dCdt(ichemo+1) = -dCreact
+		    Clabel = Clabel + dtt*cp%dCdt(ichemo+1)
+	    else
+		    cp%dCdt(ichemo) = membrane_flux/vol_cm3 - C*decay_rate	
+	    endif
 !		R = par_uni(kpar)
-		C = C + dtt*cp%dCdt(ichemo)	!*(1 + (R-0.5)*cov)
-		cellfluxsum = cellfluxsum + membrane_flux
-!	enddo
-!	if (kcell == 4) write(nflog,'(a,i6,4e12.3)') 'it: ',it,t,cp%S_start_time,cp%S_time,PI_factor
-	cp%Cin(ichemo) = C
-	cp%Cin(ichemo+1) = Clabel*(1 + (par_uni(kpar)-0.5)*cov)
-    cp%dMdt(ichemo) = -cellfluxsum/nt	! average flux of parent drug
-    totalflux = totalflux + cp%dMdt(ichemo)
-enddo
-!write(*,*) 'n_S_phase, totalflux: ',n_S_phase,totalflux
-	
-! Next solve for ID concentrations of parent in medium, %Cmedium(:)
-Kd = chemo(ichemo)%medium_diff_coef
-A = well_area
-d = total_volume/A
-dX = d/N1D
-dV = A*dX
-!Cex = Caverage(MAX_CHEMO + ichemo)
-do k = 1,ndt
-	F(1) = -totalflux
-	do i = 2,N1D
-		F(i) = Kd*A*(Cmedium(i-1) - Cmedium(i))/dX
-	enddo
-	F(N1D+1) = 0
-	do i = 1,N1D
-		Cmedium(i) = Cmedium(i)*(1 - decay_rate) + (F(i) - F(i+1))*(dt/ndt)/dV
-	enddo
-	Cex = Cmedium(1)
-enddo
-!write(*,*) 'istep,Cex: ',istep,Cex
-
+	    C = C + dtt*cp%dCdt(ichemo)	!*(1 + (R-0.5)*cov)
+!	    cellfluxsum = cellfluxsum + membrane_flux
+    !	enddo
+	    cp%Cin(ichemo) = C
+	    cp%Cin(ichemo+1) = Clabel*(1 + (par_uni(kpar)-0.5)*cov)
+!        cp%dMdt(ichemo) = -cellfluxsum/nt	! average flux of parent drug NOT USED ANYWHERE
+!        totalflux = totalflux + cp%dMdt(ichemo)
+        totalflux = totalflux + membrane_flux
+    enddo
+    	
+    ! Next solve for ID concentrations of parent in medium, %Cmedium(:)
+    Kd = chemo(ichemo)%medium_diff_coef
+    A = well_area
+    d = total_volume/A
+    dX = d/N1D
+    dV = A*dX
+    !Cex = Caverage(MAX_CHEMO + ichemo)
+    do k = 1,ndt
+	    F(1) = totalflux
+	    do i = 2,N1D
+		    F(i) = Kd*A*(Cmedium(i-1) - Cmedium(i))/dX
+	    enddo
+	    F(N1D+1) = 0
+	    do i = 1,N1D
+		    Cmedium(i) = Cmedium(i)*(1 - decay_rate) + (F(i) - F(i+1))*(dt/ndt)/dV
+	    enddo
+	    Cex = Cmedium(1)
+    enddo
+    !write(*,*) 'istep,Cex: ',istep,Cex
 enddo
 C = 0
 Clabel = 0
@@ -1325,8 +1320,8 @@ do kcell = 1,nlist
    	cp => cell_list(kcell)
 	if (cp%state == DEAD) cycle
 	n = n+1
-	C = C + cp%Cin(ichemo)
-	Clabel = Clabel + cp%Cin(ichemo+1)
+    C = C + cp%Cin(ichemo)
+    Clabel = Clabel + cp%Cin(ichemo+1)
 enddo
 Caverage(ichemo) = C/n
 Caverage(ichemo+1) = Clabel/n
