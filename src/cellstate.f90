@@ -752,7 +752,7 @@ subroutine growcell(cp, dt)
 type(cell_type), pointer :: cp
 real(REAL_KIND) :: dt
 real(REAL_KIND) :: Cin_0(NCONST), Cex_0(NCONST)		! at some point NCONST -> MAX_CHEMO
-real(REAL_KIND) :: dVdt,  Vin_0, dV,  metab_O2, metab_glucose, metab
+real(REAL_KIND) :: dVdt,  Vin_0, dV,  metab_O2, metab_glucose, metab, Cdrug(6)
 integer :: ityp
 logical :: oxygen_growth, glucose_growth, tagged
 
@@ -814,10 +814,12 @@ endif
 cp%dVdt = dVdt
 Vin_0 = cp%V
 dV = dVdt*dt
+Cdrug(:) = cp%Cin(DRUG_A:DRUG_B+2)
 if (use_cell_cycle .and. .not.(cp%phase == G1_phase .or. cp%phase == S_phase .or. cp%phase == G2_phase)) then
     dV = 0		! this should never happen, because growcell is called only for G1, S, G2
 endif
 cp%V = Vin_0 + dV
+cp%Cin(DRUG_A:DRUG_B+2) = Cdrug(:)*Vin_0/cp%V
 end subroutine
 
 !-----------------------------------------------------------------------------------------
