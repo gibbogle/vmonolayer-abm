@@ -150,12 +150,9 @@ else
 			if (.not.cp%radiation_tag) then
 				cp%radiation_tag = .true.	! tagged, but not DYING yet
 			    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
-!				write(nflog,*) 'Tagged with IRL: ',istep,cp%N_IRL,Nradiation_tag(ityp),kcell,cp%phase
 			endif	
 			if (cp%phase == S_phase .or. cp%phase == M_phase) then	! set to DYING immediately, otherwise at mitosis
 				call CellDies(kcell,.false.)
-!				Nradiation_dead(ityp) = Nradiation_dead(ityp) + 1
-!				write(nflog,*) 'S-phase - killed'
 			endif
 		endif
     enddo
@@ -312,8 +309,6 @@ do kcell = 1,nlist
 			NATP_tag(ityp) = NATP_tag(ityp) + 1
 			cp%dVdt = 0
 			call CellDies(kcell,.false.)
-!			cp%state = DYING
-!			Ndying(ityp) = Ndying(ityp) + 1
 			cycle
 		endif
 #if 0			
@@ -444,8 +439,12 @@ type(cell_type), pointer :: cp
 cp => cell_list(kcell)
 ityp = cp%celltype
 if (.not.now) then
-	cp%state = DYING
-	Ndying(ityp) = Ndying(ityp) + 1
+    if (cp%state == DYING) then
+        ! cell was already tagged to die
+    else
+    	cp%state = DYING
+	    Ndying(ityp) = Ndying(ityp) + 1
+	endif
 	return
 endif
 if (cp%state == DYING) then
@@ -568,8 +567,6 @@ do kcell = 1,nlist0
 	mitosis_entry = .false.
 	mitosis_duration = ccp%T_M
 	in_mitosis = .false.
-!	tagged = cp%anoxia_tag .or. cp%aglucosia_tag .or. (cp%state == DYING)
-!	if (tagged) then
 	if (use_volume_method) then
 !        if (colony_simulation) then
 !            write(*,'(a,i6,L2,2e12.3)') 'kcell: ',kcell,cp%Iphase,cp%V,cp%divide_volume
@@ -602,9 +599,6 @@ do kcell = 1,nlist0
 	    endif
 	else
 	    prev_phase = cp%phase
-!	    if (cp%dVdt == 0) then
-!			write(nflog,*) 'dVdt=0: kcell, phase: ',kcell,cp%phase 
-!		endif
 		if (cp%dVdt > 0) then
 	        call timestep(cp, ccp, dt)	        
 	    endif
@@ -617,7 +611,6 @@ do kcell = 1,nlist0
 					cp%radiation_tag = .true.
 				    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
 					call CellDies(kcell,.false.)
-!				    write(nflog,*) 'Tagged with N_PL: ',istep,cp%N_PL,Nradiation_tag(ityp)
 				endif
 				
 				cp%Iphase = .false.
@@ -633,7 +626,6 @@ do kcell = 1,nlist0
 						cp%radiation_tag = .true.
 						Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
 						call CellDies(kcell,.false.)
-!						write(nflog,*) 'Tagged with N_Ch1: ',cp%N_Ch1,Nradiation_tag(ityp)
 					endif
 				endif
 				if (cp%N_Ch2 > 0 .and. .not.cp%radiation_tag) then
@@ -643,7 +635,6 @@ do kcell = 1,nlist0
 						cp%radiation_tag = .true.
 						Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
 						call CellDies(kcell,.false.)
-!						write(nflog,*) 'Tagged with N_Ch2: ',cp%N_Ch2,Nradiation_tag(ityp)
 					endif
 				endif
             endif
@@ -659,27 +650,12 @@ do kcell = 1,nlist0
 		do idrug = 1,ndrugs_used
 			if (cp%drug_tag(idrug)) then
 				call CellDies(kcell,.false.)
-!				changed = .true.
-!				Ndrug_dead(idrug,ityp) = Ndrug_dead(idrug,ityp) + 1
 				drugkilled = .true.
 				exit
 			endif
 		enddo
 		if (drugkilled) cycle
-		cp%mitosis = (tnow - cp%t_start_mitosis)/mitosis_duration
-!		d_desired = max(cp%mitosis*cp%d_divide,small_d)
-!		rr = cp%centre(:,2) - cp%centre(:,1)
-!		cp%d = sqrt(dot_product(rr,rr))
-!		c = (cp%centre(:,1) + cp%centre(:,2))/2
-!		cp%site = c/DELTA_X + 1
-!		call cubic_solver(d_desired,cp%V,rad)
-!		cp%radius = rad
-!		if (cp%d > 2*rad) then	! completion of mitosis - note that this overrides cp%phase
-!			write(logmsg,'(a,i6,2e12.3,f7.3)') 'divides: d > 2*rad: ',kcell,cp%d,rad,cp%mitosis
-!			call logger(logmsg)
-!			divide = .true.
-!		endif
-			
+		cp%mitosis = (tnow - cp%t_start_mitosis)/mitosis_duration	
 		if (use_volume_method) then
 			if (cp%growth_delay) then
 				if (cp%G2_M) then
@@ -705,17 +681,9 @@ do kcell = 1,nlist0
 				endif
 			endif		
 		else
-		    ! Check for cell death by radiation lesions
-!		    if (cp%NL1 > 0 .or. cp%NL2(2) > 0) then
-			if (cp%radiation_tag) then
-!				call CellDies(kcell,.false.)
-!				changed = .true.
-!				Nradiation_dead(ityp) = Nradiation_dead(ityp) + 1
-				cycle
-			endif		        
+			if (cp%radiation_tag) cycle
 		endif
 		
-!		write(*,*) 'istep, kcell, mitosis: ',istep,kcell,cp%mitosis
         if (cp%mitosis >= 1) then
 			divide = .true.
 		endif
@@ -778,7 +746,8 @@ if (colony_simulation) then
 !		cp%metab%Itotal = cp%metab%Itotal + dt*cp%metab%I_rate
 !		dVdt = max_growthrate(ityp)*cp%metab%I_rate/cp%metab%I_rate_max	! ***** Convert %I_rate to %dVdt *****
 !		dVdt = cp%growth_rate_factor*dVdt
-		metab = cp%metab%I_rate/cp%metab%I_rate_max
+!		metab = cp%metab%I_rate/cp%metab%I_rate_max
+        metab = 1
 		dVdt = get_dVdt(cp,metab)
 	else
 		metab = 1
@@ -921,7 +890,6 @@ real(REAL_KIND) :: r(3), c(3), cfse0, cfse2, V0, Tdiv, gfactor
 type(cell_type), pointer :: cp1, cp2
 type(cycle_parameters_type), pointer :: ccp
 
-!write(*,*) 'divider:'
 !write(logmsg,*) 'divider: ',kcell1 
 !call logger(logmsg)
 ok = .true.
@@ -944,6 +912,7 @@ else
 	kcell2 = nlist
 endif
 ncells = ncells + 1
+!write(*,*) 'divider: ',kcell1,kcell2
 ityp = cp1%celltype
 ccp => cc_parameters(ityp)
 ncells_type(ityp) = ncells_type(ityp) + 1
@@ -1024,7 +993,8 @@ cp2%divide_time = Tdiv
 cp2%fg = gfactor
 if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
 !    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*cp2%fg*ccp%T_G1
-    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*ccp%T_G1
+!    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*ccp%T_G1
+    cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
 	cp2%ATP_rate_factor = get_ATP_rate_factor()
 else
 !	cp2%G1_time = tnow + (max_growthrate(ityp)/cp2%dVdt)*cp2%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt

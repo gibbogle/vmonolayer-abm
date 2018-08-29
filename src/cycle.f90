@@ -117,9 +117,6 @@ elseif (phase == G2_phase) then
         cp%phase = Checkpoint2
         cp%G2_flag = .false.
         cp%G2M_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
-        ! TESTING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        !cp%G2M_time = cp%G2M_time + ccp%G2_mean_delay(1)
-        !
     endif
 elseif (phase == Checkpoint2) then ! this checkpoint combines the release from G2 delay and the G2M repair check
     if (.not.cp%G2_flag) then

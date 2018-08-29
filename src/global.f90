@@ -321,6 +321,7 @@ type(treatment_type), allocatable :: protocol(:)
 type(event_type), allocatable :: event(:)
 !real(REAL_KIND), allocatable, target :: Cslice(:,:,:,:)
 type(cell_type), target, allocatable :: ccell_list(:)
+integer, allocatable :: perm_index(:)
 
 character*(12) :: dll_version, dll_run_version
 character*(12) :: gui_version, gui_run_version
@@ -420,6 +421,7 @@ logical :: randomise_initial_volume = .true.
 logical :: synchronise
 logical :: is_radiation
 !logical :: use_FD = .true.
+logical :: use_permute
 logical :: use_gaplist = .true.
 !logical :: relax
 logical :: medium_change_step
@@ -921,6 +923,28 @@ if (dbug) write(nflog,*) 'squeezed: ',n,nlist
 
 end subroutine
 
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+subroutine make_perm_index(ok)
+logical :: ok
+integer :: np, kcell, kpar=0
 
+np = 0
+do kcell = 1,nlist
+	if (cell_list(kcell)%state == DEAD) cycle
+	np = np + 1
+	perm_index(np) = kcell
+enddo
+if (np /= ncells) then
+	write(logmsg,*) 'Error: make_perm_index: np /= Ncells: ',np,ncells,nlist
+	call logger(logmsg)
+	ok = .false.
+	return
+endif
+if (use_permute) then
+	call permute(perm_index,np,kpar)
+endif
+ok = .true.
+end subroutine
 
 end module
