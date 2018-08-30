@@ -172,6 +172,7 @@ kcell_dbug = 0
 write(logmsg,'(a,i6)') 'Startup procedures have been executed: initial T cell count: ',Ncells0
 call logger(logmsg)
 call averages
+call GenerateSFlookup(1)
 use_permute = .true.
 !if (is_radiation) then
 !	ccp => cc_parameters(selected_celltype)

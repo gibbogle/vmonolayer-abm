@@ -28,7 +28,8 @@ type, bind(C) :: fielddata_type
     type(c_ptr) :: cell_ptr
 end type
 
-!type(celldata_type) :: cdata(4000)
+real(REAL_KIND), allocatable :: SFlookup(:)
+real(REAL_KIND) :: dp_survive
 
 contains
 
@@ -349,9 +350,9 @@ end subroutine
 !--------------------------------------------------------------------------------
 subroutine getGrowthCount(ngrowth, nogrow, nphase,nmutations, nclono)
 integer :: ngrowth(3), nogrow(:), nphase(:), nmutations, nclono
-integer :: kcell, i, ityp, iphase, nch1, nch2
-real(REAL_KIND) :: r_mean(2), ps1, ps2, ps, rclono
-real(REAL_KIND) :: N50 = 5.64	! number of divisions to get 50 cells
+integer :: kcell, i, ityp, iphase, nch1, nch2, ip
+real(REAL_KIND) :: r_mean(2), ps1, ps2, ps, SF, rclono, alfa
+real(REAL_KIND) :: N50 = 5.64	! number of divisions to get 50 cells NOT CORRECT
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 
@@ -401,12 +402,109 @@ do kcell = 1,nlist
 		ps = ps1*ps2
 		if (ps == 1) then
 			rclono = rclono + 1
-		else
-			rclono = rclono + ps**N50
+		elseif (ps > 0) then
+!			rclono = rclono + ps**N50
+!		    call clonogenic(ps,50,SF)
+            ip = ps/dp_survive
+            alfa = ps - ip*dp_survive
+            SF = (1-alfa)*SFlookup(ip) + alfa*SFlookup(ip+1)
+			rclono = rclono + SF
 		endif
 	endif
 enddo
 nclono = rclono + 0.5
+end subroutine
+
+!--------------------------------------------------------------------------------
+! From the probability of survival of division, estimate the probability of
+! growing a colony with more than Nlim cells.
+!--------------------------------------------------------------------------------
+subroutine clonogenic(ityp, p_survive, Nlim, SF)
+real(REAL_KIND) :: p_survive, SF
+integer :: ityp, Nlim
+real(REAL_KIND) :: R, p_d
+integer :: nc, irun, nruns, idiv, ndiv, n, ntemp, i, kpar = 0
+logical :: ended, dbug
+integer :: n_colony_days = 10
+
+p_d = 1 - p_survive
+dbug = .false.
+nruns = 10000
+ndiv = 24*3600*n_colony_days/divide_time_mean(ityp) + 1
+nc = 0
+do irun = 1,nruns
+	n = 1
+	ended = .false.
+	do idiv = 1,ndiv
+		ntemp = n
+		do i = 1,ntemp
+!			call random_number(R)
+            R = par_uni(kpar)
+			if (R < p_d) then
+				n = n - 1
+				if (n == 0) then
+					ended = .true.
+					exit
+				endif
+			else
+				n = n + 1
+			endif
+	        if (n >= Nlim) then
+	            nc = nc + 1
+	            ended = .true.
+	            exit
+	        endif
+		enddo
+	    if (dbug) then
+	        write(*,*) 'irun, n: ',irun,n
+	    endif
+		if (ended) exit
+	enddo
+!	if (n == 0) then
+!		kbox = 0
+!	else
+!		if (boxsize == 1) then
+!			kbox = n
+!		else
+!			kbox = n/boxsize + 1
+!		endif
+!	endif
+!	if (kbox > nboxes) then
+!		write(*,*) 'Error: irun, n, kbox, nboxes: ',irun, n, kbox, nboxes
+!		stop
+!	endif
+!	ncol(kbox) = ncol(kbox) + 1
+enddo
+SF = nc/real(nruns)
+end subroutine
+
+!--------------------------------------------------------------------------------
+! Generate and store a lookup table for SF as a function of p (division survival prob).
+!--------------------------------------------------------------------------------
+subroutine GenerateSFlookup(ityp)
+integer :: ityp
+integer :: np_survive
+integer :: Nlim = 50
+integer :: i
+real(REAL_KIND) :: p_survive
+
+write(nflog,*)
+write(nflog,*) 'GenerateSFlookup: ityp: ',ityp
+dp_survive = 0.01
+np_survive = 100
+if (allocated(SFlookup)) deallocate(SFlookup)
+allocate(SFlookup(0:np_survive))
+do i = 0,np_survive
+    p_survive = i*dp_survive
+    if (i == 0) then
+        SFlookup(i) = 0
+    elseif (i == np_survive) then
+        SFlookup(i) = 1
+    else
+        call clonogenic(ityp, p_survive, Nlim, SFlookup(i))
+    endif
+    write(nflog,'(i4,2f8.5)') i,p_survive,SFlookup(i)
+enddo
 end subroutine
 
 !--------------------------------------------------------------------------------
