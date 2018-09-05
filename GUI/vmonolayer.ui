@@ -45,7 +45,7 @@ padding: 8px
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>4</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_input">
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -82,7 +82,7 @@ padding: 8px
            <enum>QTabWidget::West</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="elideMode">
            <enum>Qt::ElideNone</enum>
@@ -1895,7 +1895,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>401</width>
-               <height>561</height>
+               <height>511</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">

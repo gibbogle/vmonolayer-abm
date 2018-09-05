@@ -143,7 +143,7 @@ else
     	endif
         SER_OER(1) = SER*(LQ(ityp)%OER_am*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_alpha NEEDS ATTENTION
         SER_OER(2) = SER*(LQ(ityp)%OER_bm*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_beta
-        SER_OER = 1
+!        SER_OER = 1
         call radiation_damage(cp, ccp, dose, SER_OER(1), tmin)
 	    if (cp%irrepairable) then	! irrepairable damage 
 			n = n+1

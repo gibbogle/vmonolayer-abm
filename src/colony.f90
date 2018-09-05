@@ -33,14 +33,15 @@ subroutine make_colony_distribution(n_colony_days,dist,ddist,ndist) bind(C)
 use, intrinsic :: iso_c_binding
 real(c_double) :: n_colony_days, dist(*), ddist
 integer(c_int) :: ndist
-real(REAL_KIND) :: V0, dVdt, dt, t, tend
+integer, parameter :: ddist50 = 50
+integer, parameter :: ndist50 = 1000/ddist50
+real(REAL_KIND) :: V0, dVdt, dt, t, tend, sum1, sum2, SD, SE, ave, dist50(ndist50), dmin
 real(REAL_KIND) :: tnow_save
-integer :: k, kk, kcell, ityp, n, idist, ncycmax, ntot, nlist_save, ntrials, ndays
+integer :: k, kk, kcell, ityp, n, idist, ncycmax, ntot, nlist_save, ntrials, ndays, nt, idist50, kmin
 type (cell_type), pointer :: cp
 logical :: ok
+integer :: dist_cutoff = 200
 
-write(logmsg,'(a,f8.1,i4)') 'make_colony_distribution: n_colony_days, ndist: ',n_colony_days,ndist
-call logger(logmsg)
 colony_simulation = .true.
 ndays = (Nsteps*DELTA_T)/(24.*60*60)
 nlist_save = nlist
@@ -63,28 +64,29 @@ if (.not.ok) then
     dist(1:ndist) = 0
     return
 endif
-write(logmsg,*) 'Number of trials: ',ntrials
-call logger(logmsg)
-!if (n_colony_days <= 4) then
-!    ddist = 1
-!elseif (n_colony_days <= 5) then
-!    ddist = 2
-!elseif (n_colony_days <= 6) then
-!    ddist = 5
-!elseif (n_colony_days <= 7) then
-!    ddist = 10
-!elseif (n_colony_days <= 8) then
-!    ddist = 20
-!else
-!    ddist = 50
-!endif
 ddist = nmax/ndist
+dmin = 1.0e10
+do k = 1,ndist
+    if (abs(k*100 - ddist) < dmin) then
+        dmin = abs(k*100 - ddist)
+        kmin = k
+    endif
+enddo
+ddist = kmin*100
+write(nfout,*)
+write(logmsg,'(a,f8.1,2i5)') 'make_colony_distribution: n_colony_days: ',n_colony_days
+call logger(logmsg)
+write(nfout,'(a,f8.1,2i5)') 'make_colony_distribution: n_colony_days: ',n_colony_days
+write(nfout,'(a,i5,f8.1,i5)') 'ndist,ddist,ntrials: ',ndist,ddist,ntrials
 dist(1:ndist) = 0
+dist50 = 0
 ntot = 0
+sum1 = 0
+sum2 = 0
 tend = tnow + n_colony_days*24*3600    ! plate for 10 days
-!do kcell = 1, nlist_save
 kk = 0
 k = 0
+nt = 0  ! count of runs giving colony size n > dist_threshold
 do while(k < ntrials)
     kk = kk+1
     kcell = perm_index(kk)
@@ -99,32 +101,54 @@ do while(k < ntrials)
 	! Now simulate colony growth from a single cell
 	tnow = tnow_save
 	call make_colony(kcell,tend,n)
-!	if (n < 50) then
-!	    write(*,*) 'small colony: ',kcell,n
-!	    stop
-!	endif
 	ntot = ntot + n
+	if (n > dist_cutoff) then
+	    nt = nt + 1
+	    sum1 = sum1 + n
+    	sum2 = sum2 + n*n
+    endif
 	idist = n/ddist + 1
 	dist(idist) = dist(idist) + 1
 	if (mod(k,100) == 0) then
 	    write(logmsg,'(a,3i8)') 'cell: n, idist: ',k,n,idist
 	    call logger(logmsg)
 	endif
-enddo 
-dist(1:ndist) = dist(1:ndist)/sum(dist(1:ndist))
+	idist50 = n/ddist50 + 1
+	if (idist50 <= ndist50) then
+	    dist50(idist50) = dist50(idist50) + 1
+	endif
+enddo
+
+ave = sum1/nt
+SD = sqrt((sum2 - nt*ave**2)/(nt-1))
+SE = SD/sqrt(real(nt))
+write(nfout,*)
+write(nfout,'(a,i4,a,i5)') 'With cutoff colony size: ',dist_cutoff, ' number of colonies: ',nt
+write(nfout,'(a,3f8.1)') 'average size, SD, SE: ',ave,SD,SE
+write(nfout,*)
+dist50(1:ndist50) = dist50(1:ndist50)/ntrials
+write(nfout,'(a,2i8,f8.1)') 'Colony size distribution < 1000:'
+do idist50 = 1,ndist50
+	write(nfout,'(i6,a,i6,f7.4)') int((idist50-1)*ddist50),'-',int(idist50*ddist50),dist50(idist50)
+enddo
+write(nfout,*)
+
+dist(1:ndist) = dist(1:ndist)/ntrials
 write(logmsg,'(a,2i8,f8.1)') 'Colony size distribution: ', nlist_save,ntot,real(ntot)/nlist_save
 call logger(logmsg)
-write(nfout,'(a,2i8,f8.1)') 'Colony size distribution: ', nlist_save,ntot,real(ntot)/nlist_save
+write(nfout,'(a,2i8,f8.1)') 'Colony size distribution:'
 do idist = 1,ndist
-	write(logmsg,'(i6,a,i6,f6.3)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
+	write(logmsg,'(i6,a,i6,f7.4)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
     call logger(logmsg)
-	write(nfout,'(i6,a,i6,f6.3)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
+	write(nfout,'(i6,a,i6,f7.4)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
 enddo
 deallocate(ccell_list)
 deallocate(perm_index)
+
 colony_simulation = .false.
 nlist = nlist_save
 tnow = tnow_save
+
 end subroutine
 
 !---------------------------------------------------------------------------------------------------
