@@ -374,7 +374,9 @@ do kcell = 1,nlist
 		nogrow(ityp) = nogrow(ityp) + 1
 	endif
 	do i = 1,3
-		if (cp%dVdt < growthcutoff(i)*r_mean(ityp) .or. cp%phase == Checkpoint1 .or. cp%phase == Checkpoint2) then
+!		if (cp%dVdt < growthcutoff(i)*r_mean(ityp) .or. cp%phase == Checkpoint1 .or. cp%phase == Checkpoint2) then
+		if (cp%dVdt < growthcutoff(i)*r_mean(ityp) .or. &
+		    cp%phase == G1_checkpoint .or. cp%phase == S_checkpoint .or. cp%phase == G2_checkpoint) then
 		    ngrowth(i) = ngrowth(i) + 1
 !		    write(*,'(a,3i6,3e12.3)') 'getGrowthCount: ',kcell,ityp,i,cell_list(kcell)%dVdt,growthcutoff(i),r_mean(ityp)
 		endif
@@ -1124,7 +1126,7 @@ do kcell = 1,nlist
 	facs_data(3) = cp%dVdt/max_growthrate(ict)
 	facs_data(4) = cp%V/Vcell_cm3
 	
-	if (cp%phase <= Checkpoint1) then
+	if (cp%phase <= G1_checkpoint) then
 		fluor = 1
 	elseif (cp%phase == S_phase) then
 !		fluor = 1 + min((tnow - cp%G1S_time)/(cp%S_time - cp%G1S_time), 1.0)
@@ -1166,7 +1168,7 @@ fract(1:nbins) = 0
 do kcell = 1,nlist
 	cp => cell_list(kcell)
 	if (cp%state == DEAD) cycle
-	if (cp%phase <= Checkpoint1) then
+	if (cp%phase <= G1_checkpoint) then
 		fluor = 1
 	elseif (cp%phase == S_phase) then
 !		fluor = 1 + min((tnow - cp%G1S_time)/(cp%S_time - cp%G1S_time), 1.0)

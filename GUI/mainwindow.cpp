@@ -128,7 +128,6 @@ MainWindow::MainWindow(QWidget *parent)
     LOG_QMSG("did createLists");
     createActions();
     LOG_QMSG("did createActions");
-    drawDistPlots();
     LOG_QMSG("did drawDistPlots");
 //    initFACSPlot();
 //    LOG_QMSG("did initFACSPlot");
@@ -137,6 +136,8 @@ MainWindow::MainWindow(QWidget *parent)
     loadParams();
     LOG_QMSG("Did loadparams");
     paramSaved = true;
+    first_plot = true;
+    drawDistPlots(0);
 
     SetupProtocol();
     LOG_MSG("did SetupProtocol");
@@ -262,6 +263,8 @@ void MainWindow::createActions()
 //    LOG_MSG("createActions 6c");
 //    connect(buttonGroup_farfield, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(radioButtonChanged(QAbstractButton*)));
     connect(buttonGroup_hypoxia, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(radioButtonChanged(QAbstractButton*)));
+    connect(pushButton_redraw_dist_plots, SIGNAL(clicked(bool)), this, SLOT(drawDistPlots(bool)));
+    connect(cbox_USE_LOGNORMAL_DIST, SIGNAL(toggled(bool)), this, SLOT(drawDistPlots(bool)));
 //    LOG_MSG("createActions 7");
     ConnectKillParameterSignals();
 }
@@ -304,7 +307,7 @@ void MainWindow::createLists()
         QString wname = w->objectName();
 		if (wname.startsWith("line_")) {
 			connect(w, SIGNAL(textChanged(QString)), this, SLOT(changeParam()));
-			connect(w, SIGNAL(textChanged(QString)), this, SLOT(redrawDistPlot()));
+//			connect(w, SIGNAL(textChanged(QString)), this, SLOT(redrawDistPlot()));
 		}
 		if (wname.startsWith("text_")) {
 			connect(w, SIGNAL(textChanged(QString)), this, SLOT(changeParam()));
@@ -458,70 +461,6 @@ void MainWindow:: stopRecorderField()
     Global::recordingField = false;
     LOG_QMSG("stopRecorderField");
 }
-
-//--------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------
-void MainWindow:: drawDistPlots()
-{
-	double *x, *prob;
-	x = new double[nDistPts];
-	prob = new double[nDistPts];
-	QwtPlot *qp;
-	string name_str;
-	QString median_qstr, shape_qstr;
-	double median, shape;
-
-    for (int j=0; j<ndistplots; j++) {
-		qp = distplot_list[j];
-        QString name = qp->objectName();
-        if (j == 0) {
-            qp->setTitle("Type 1 division time (hrs)");
-            median_qstr = line_DIVIDE_TIME_1_MEDIAN->text();
-            shape_qstr = line_DIVIDE_TIME_1_SHAPE->text();
-        } else if (j == 1) {
-            qp->setTitle("Type 2 division time (hrs)");
-            median_qstr = line_DIVIDE_TIME_2_MEDIAN->text();
-            shape_qstr = line_DIVIDE_TIME_2_SHAPE->text();
-        }
-        median = median_qstr.toDouble();
-		shape = shape_qstr.toDouble();
-        create_lognorm_dist(median,shape,nDistPts,x,prob);
-
-        int n = dist_limit(prob,nDistPts);
-        double xmax = x[n];
-		sprintf(msg,"%f %f %d",median,shape,n);
-		for (int i=0;i<40;i++) {
-			sprintf(msg,"%d %f %f",i,x[i],prob[i]);
-		}
-        qp->setAxisScale(QwtPlot::xBottom, 0.0, xmax, 0.0);
-        QwtPlotCurve *curve = new QwtPlotCurve("title");
-        curve->attach(qp);
-#ifdef QWT_VER5
-        curve->setData(x, prob, n);
-#else
-        curve->setSamples(x, prob, n);
-#endif
-        curve_list[j] = curve;
-		qp->replot();
-	}
-	delete [] x;
-	x = NULL;
-	delete [] prob;
-	prob = NULL;
-}
-
-//--------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------
-//void MainWindow:: initFACSPlot()
-//{
-//    qpFACS = (QwtPlot *)qFindChild<QObject *>(this, "qwtPlot_FACS");
-//    qpFACS->clear();
-//    qpFACS->setTitle("FACS");
-////    QwtSymbol symbol = QwtSymbol( QwtSymbol::Diamond, Qt::blue, Qt::NoPen, QSize( 3,3 ) );
-//    qpFACS->replot();
-//    connect((QObject *)groupBox_FACS,SIGNAL(groupBoxClicked(QString)),this,SLOT(processGroupBoxClick(QString)));
-//}
-
 
 //-------------------------------------------------------------
 // Loops through the workingParameterList and fills in the GUI.
@@ -2451,6 +2390,7 @@ void MainWindow::disableUseTracer()
     }
 }
 
+#if 0
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
 void MainWindow::redrawDistPlot()
@@ -2499,6 +2439,7 @@ void MainWindow::redrawDistPlot()
 		}
 	}
 }
+#endif
 
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
@@ -2583,6 +2524,7 @@ double MainWindow::plognorm(double x1, double x2, double mu, double sig)
     return e2 - e1;
 }
 
+#if 0
 //-----------------------------------------------------------------------------------------
 // Create the lognormal distribution with median = p1, shape = p2
 // at n points stored in x[], probability values stored in prob[].
@@ -2611,7 +2553,7 @@ void MainWindow::create_lognorm_dist(double p1, double p2,int n, double *x, doub
         prob[ix] = plognorm(x1,x2,mu_l,sig_l)/(x2-x1);
 	}
 }
-
+#endif
 
 //======================================================================================================
 //------------------------------------------------------------------------------------------------------

@@ -113,7 +113,7 @@ private slots:
     void pauseServer();
     void stopServer();
 	void changeParam();
-	void redrawDistPlot();
+//	void redrawDistPlot();
 	void showMore(QString);
 	void updateSliderBox();
 
@@ -210,6 +210,8 @@ public slots:
     void saveHistoImage(bool save_data);
     void saveHistoData(QString data_path);
 
+    void drawDistPlots(bool);
+
 signals:
     void facs_update();
     void histo_update();
@@ -217,7 +219,6 @@ signals:
 private:
     void createActions();
 	void createLists();
-	void drawDistPlots();
     void createFACSPage();
 //    void initFACSPlot();
 //    void initHistoPlot();
@@ -258,7 +259,8 @@ private:
     double pnorm(double x1, double x2, double mu, double sig);
     double plognorm(double x1, double x2, double mu, double sig);
     void create_lognorm_dist(double p1, double p2,int n, double *x, double *prob);
-	int dist_limit(double *p, int n);
+    void create_expon_dist(double tbase, double mean[], int n, double *x, double *prob);
+    int dist_limit(double *p, int n);
 	QString parse_rbutton(QString wtag, int *rbutton_case);
 	void setBdryRadioButton(QRadioButton *w_rb, int val);
 	void setLineEditVisibility(QString wname, int val);
@@ -345,7 +347,8 @@ private:
 	bool DCmotion;
 	bool done;
 	bool first;
-	bool started;
+    bool first_plot;
+    bool started;
 	bool firstVTK;
 	bool playingVTK;
 	int tickVTK;

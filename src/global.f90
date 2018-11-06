@@ -188,8 +188,11 @@ type cell_type
     integer :: N_PL, N_IRL, N_Ch1, N_Ch2
     logical :: irrepairable
     
-    ! Metabolism (HIF1, ATP_rate not needed here for monolayer)
-!    real(REAL_KIND) :: HIF1, ATP_rate, I_rate
+    ! exponential cycle time
+    real(REAL_KIND) :: G1ch_entry_time, G1ch_time, G1ch_max_delay
+    real(REAL_KIND) :: Sch_entry_time, Sch_time, Sch_max_delay
+    real(REAL_KIND) :: G2ch_entry_time, G2ch_time, G2ch_max_delay
+    
 	type(metabolism_type) :: metab
     
 	integer :: ndt
@@ -198,8 +201,8 @@ end type
 
 type cycle_parameters_type
     real(REAL_KIND) :: T_G1, T_S, T_G2, T_M
-    real(REAL_KIND) :: G1_mean_delay, G2_mean_delay
-    real(REAL_KIND) :: Pk_G1, Pk_G2
+    real(REAL_KIND) :: G1_mean_delay, S_mean_delay, G2_mean_delay
+    real(REAL_KIND) :: Pk_G1, Pk_S, Pk_G2
     real(REAL_KIND) :: apoptosis_rate
     real(REAL_KIND) :: arrest_threshold
     ! Radiation damage/repair
@@ -412,6 +415,7 @@ logical :: use_radiation, use_treatment
 logical :: use_extracellular_O2 = .false.
 logical :: use_V_dependence
 logical :: use_divide_time_distribution
+logical :: use_exponential_cycletime
 logical :: use_constant_divide_volume
 logical :: use_volume_method
 logical :: use_cell_cycle
@@ -629,6 +633,53 @@ d = dot_product(v,v)
 vnorm = v/sqrt(d)
 end subroutine
 
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+subroutine set_divide_volume(kcell,V0)
+integer :: kcell
+real(REAL_KIND) :: V0
+real(REAL_KIND) :: Tdiv, fg, Tfixed, Tgrowth0, Tgrowth, rVmax
+integer :: ityp, kpar=0
+type(cell_type), pointer :: cp
+type(cycle_parameters_type), pointer :: ccp
+
+cp => cell_list(kcell)
+ityp = cp%celltype
+ccp => cc_parameters(ityp)
+
+rVmax = max_growthrate(ityp)
+if (use_exponential_cycletime) then
+    if (ccp%Pk_G1 > 0) then
+        cp%G1ch_time = rv_exponential(ccp%Pk_G1,kpar)
+    else
+        cp%G1ch_time = 1.0e10
+    endif
+    if (ccp%Pk_S > 0) then
+        cp%Sch_time = rv_exponential(ccp%Pk_S,kpar)
+    else
+        cp%Sch_time = 1.0e10
+    endif
+    if (ccp%Pk_G2 > 0) then
+        cp%G2ch_time = rv_exponential(ccp%Pk_G2,kpar)
+    else
+        cp%G2ch_time = 1.0e10
+    endif
+    Tgrowth = ccp%T_G1 + ccp%T_S + ccp%T_G2
+    Tfixed = cp%G1ch_time + cp%Sch_time + cp%G2ch_time + ccp%T_M
+    Tdiv = Tgrowth + Tfixed
+    fg = 1
+else
+    Tgrowth0 = ccp%T_G1 + ccp%T_S + ccp%T_G2
+    Tfixed = ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
+	Tdiv = DivideTime(ityp)
+	Tgrowth = Tdiv - Tfixed
+	fg = Tgrowth/Tgrowth0
+endif
+cp%divide_volume = V0 + Tgrowth*rVmax
+cp%divide_time = Tdiv
+cp%fg = fg
+end subroutine	
+
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
 real(REAL_KIND) function DivideTime(ityp)
@@ -723,13 +774,13 @@ end function
 
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
-real(REAL_KIND) function rv_exponential(p1)
-real(REAL_KIND) :: p1
-real(REAL_KIND) :: r
-integer :: kpar = 0
+real(REAL_KIND) function rv_exponential(lambda,kpar)
+real(REAL_KIND) :: lambda
+integer :: kpar
+real(REAL_KIND) :: R
 
-r = par_rexp(kpar)
-rv_exponential = p1*r
+R = par_uni(kpar)
+rv_exponential = -log(1-R)/lambda
 end function
 
 !--------------------------------------------------------------------------------------

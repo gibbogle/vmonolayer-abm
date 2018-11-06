@@ -600,10 +600,14 @@ do kcell = 1,nlist0
 	else
 	    prev_phase = cp%phase
 		if (cp%dVdt > 0) then
-	        call timestep(cp, ccp, dt)	        
+	        if (use_exponential_cycletime) then
+    			call exp_timestep(cp, ccp, dt)
+    		else
+    	        call timestep(cp, ccp, dt)
+    	    endif
 	    endif
         if (cp%phase >= M_phase) then
-            if (prev_phase == Checkpoint2) then		! this is mitosis entry
+            if (prev_phase == G2_checkpoint) then		! this is mitosis entry
 				if (cp%radiation_tag .and. cp%irrepairable) then	! cell was tagged but possibly not DYING
 					call CellDies(kcell,.false.)
 				endif
@@ -640,7 +644,8 @@ do kcell = 1,nlist0
             endif
             in_mitosis = .true.
         endif
-		if (cp%phase < Checkpoint2 .and. cp%phase /= Checkpoint1) then
+!		if (cp%phase < Checkpoint2 .and. cp%phase /= Checkpoint1) then
+		if (cp%phase == G1_phase .or.cp%phase == S_phase .or. cp%phase == G2_phase) then
 		    call growcell(cp,dt)
 		endif	
 	endif
@@ -928,9 +933,10 @@ cp1%generation = cp1%generation + 1
 V0 = cp1%V/2
 cp1%V = V0
 cp1%birthtime = tnow
-cp1%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)
-cp1%divide_time = Tdiv
-cp1%fg = gfactor
+!cp1%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)
+!cp1%divide_time = Tdiv
+!cp1%fg = gfactor
+call set_divide_volume(kcell1, V0)
 !if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide NOT USED
 !	cp1%metab%I2Divide = get_I2Divide(cp1)
 !	cp1%metab%Itotal = 0
@@ -988,9 +994,10 @@ cp1%t_divide_last = tnow
 cp2 = cp1
 
 ! These are the variations from cp1
-cp2%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)
-cp2%divide_time = Tdiv
-cp2%fg = gfactor
+!cp2%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)
+!cp2%divide_time = Tdiv
+!cp2%fg = gfactor
+call set_divide_volume(kcell2, V0)
 if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
 !    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*cp2%fg*ccp%T_G1
 !    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*ccp%T_G1

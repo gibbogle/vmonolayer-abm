@@ -6,13 +6,14 @@ use global
 
 implicit none
 
-integer, parameter :: G1_phase    = 1
-integer, parameter :: Checkpoint1 = 2
-integer, parameter :: S_phase     = 3
-integer, parameter :: G2_phase    = 4
-integer, parameter :: Checkpoint2 = 5
-integer, parameter :: M_phase     = 6
-integer, parameter :: dividing    = 7
+integer, parameter :: G1_phase      = 1
+integer, parameter :: G1_checkpoint = 2
+integer, parameter :: S_phase       = 3
+integer, parameter :: S_checkpoint  = 4
+integer, parameter :: G2_phase      = 5
+integer, parameter :: G2_checkpoint = 6
+integer, parameter :: M_phase       = 7
+integer, parameter :: dividing      = 8
 
 logical :: use_volume_based_transition = .false.
 real(REAL_KIND) :: starvation_arrest_threshold = 5
@@ -65,11 +66,11 @@ if (phase == G1_phase) then
         switch = (tnow > cp%G1_time)
     endif
     if (switch) then
-        cp%phase = Checkpoint1
+        cp%phase = G1_checkpoint
         cp%G1_flag = .false.
         cp%G1S_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
     endif
-elseif (phase == Checkpoint1) then  ! this checkpoint combines the release from G1 delay and the G1S repair check
+elseif (phase == G1_checkpoint) then  ! this checkpoint combines the release from G1 delay and the G1S repair check
     if (.not.cp%G1_flag) then
         R = par_uni(kpar)
         cp%G1_flag = (R < ccp%Pk_G1*dt)
@@ -114,11 +115,11 @@ elseif (phase == G2_phase) then
 !		endif
     endif
     if (switch) then
-        cp%phase = Checkpoint2
+        cp%phase = G2_checkpoint
         cp%G2_flag = .false.
         cp%G2M_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
     endif
-elseif (phase == Checkpoint2) then ! this checkpoint combines the release from G2 delay and the G2M repair check
+elseif (phase == G2_checkpoint) then ! this checkpoint combines the release from G2 delay and the G2M repair check
     if (.not.cp%G2_flag) then
         R = par_uni(kpar)
         cp%G2_flag = (R < ccp%Pk_G2*dt)
@@ -141,6 +142,90 @@ if (nPL > 0 .and. .not.cp%irrepairable) then
     call radiation_repair(cp, ccp, dt)
 endif
 end subroutine
+
+!--------------------------------------------------------------------------
+! This uses exponentially distributed checkpoint times for G1, S, G2,
+! fixed (with growth scaling) G1, S, G2 times.
+!--------------------------------------------------------------------------
+subroutine exp_timestep(cp, ccp, dt)
+type(cell_type), pointer :: cp
+type(cycle_parameters_type), pointer :: ccp
+real(REAL_KIND) :: dt
+integer :: phase, ityp, nPL, kpar=0
+real(REAL_KIND) :: delay, duration
+logical :: switch
+
+phase = cp%phase
+if (cp%dVdt == 0) then
+!	if (phase == G1_phase .or. phase == S_phase .or. phase == G2_phase) then
+		write(nflog,*) 'dVdt=0, kcell, phase: ',kcell_now,phase
+		stop
+!	endif
+endif
+nPL = cp%N_PL
+ityp = cp%celltype
+
+if (phase == G1_phase) then
+    if (tnow > cp%G1_time) then
+        cp%phase = G1_checkpoint
+        cp%G1ch_entry_time = tnow
+        cp%G1ch_max_delay = max(cp%G1ch_time, f_TCP(ccp,nPL))
+    endif
+elseif (phase == G1_checkpoint) then  ! this checkpoint combines the release from G1 delay and the G1S repair check
+    if (nPL == 0) then
+        delay = cp%G1ch_time
+    else
+        delay = cp%G1ch_max_delay
+    endif
+    if (tnow > cp%G1ch_entry_time + delay) then
+        cp%phase = S_phase
+	    duration = (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
+        cp%S_time = tnow + duration
+    endif
+elseif (phase == S_phase) then
+    if (tnow > cp%S_time) then
+        cp%phase = S_checkpoint
+        cp%Sch_entry_time = tnow
+        cp%Sch_max_delay = max(cp%Sch_time, f_TCP(ccp,nPL))
+    endif
+elseif (phase == S_checkpoint) then
+    if (nPL == 0) then
+        delay = cp%Sch_time
+    else
+        delay = cp%Sch_max_delay
+    endif
+    if (tnow > cp%Sch_entry_time + delay) then
+        cp%phase = G2_phase
+	    duration = (max_growthrate(ityp)/cp%dVdt)*ccp%T_G2
+        cp%G2_time = tnow + duration
+    endif
+elseif (phase == G2_phase) then
+	switch = (tnow > cp%G2_time .and. cp%V > cp%divide_volume) ! try this to prevent volumes decreasing 
+    if (switch) then
+        cp%phase = G2_checkpoint
+        cp%G2ch_entry_time = tnow
+        cp%G2ch_max_delay = max(cp%G2ch_time, f_TCP(ccp,nPL))
+    endif
+elseif (phase == G2_checkpoint) then ! this checkpoint combines the release from G2 delay and the G2M repair check
+    if (nPL == 0) then
+        delay = cp%G2ch_time
+    else
+        delay = cp%G2ch_max_delay
+    endif
+    if (tnow > cp%G2ch_entry_time + delay) then
+        cp%phase = M_phase
+        cp%M_time = tnow + ccp%T_M   
+    endif
+elseif (phase == M_phase) then
+    if (tnow > cp%M_time) then
+        cp%phase = dividing
+    endif
+endif    
+if (nPL > 0 .and. .not.cp%irrepairable) then
+    call radiation_repair(cp, ccp, dt)
+endif
+end subroutine
+
 
 !--------------------------------------------------------------------------
 ! We want:
@@ -204,7 +289,7 @@ integer :: nt, it, nPL, nPL0, nIRL, ityp, kpar=0
 logical :: do_repair = .false.
 
 dose = dose0*SER_OER
-nt = dose*SER_OER*ccp%eta_PL/0.01
+nt = dose*ccp%eta_PL/0.01
 dtmin = tmin/nt
 !write(*,*) 'from dose: nt, dtmin: ',dose,nt,dtmin
 !dtmin = 0.0001
@@ -251,17 +336,19 @@ if (.not.do_repair) then
 	if (R < p_PL) then
 		nPL = nPL + 1
 	endif
-	cp%N_PL = nPL0 + nPL
 	nIRL = dose*ccp%eta_IRL
 	p_IRL = dose*ccp%eta_IRL - nIRL
 	R = par_uni(kpar)
 	if (R < p_IRL) then
 		nIRL = nIRL + 1
 	endif
+	
+	cp%N_PL = nPL0 + nPL
 	cp%N_IRL = nIRL
 	cp%irrepairable = (nIRL > 0)
 	return
 endif
+
 p_PL = ccp%eta_PL*dose/nt
 p_IRL = ccp%eta_IRL*dose/nt
 do it = 1,nt
@@ -362,10 +449,14 @@ Kmisrepair = misrepair_factor*ccp%Kmisrepair	! -> scalar
 !		if (nPL == 0) exit
 !	endif
 !enddo
+
+! First allow true repair to occur
 rnPL = nPL*exp(-Krepair*nt*dthour)
 nPL = rnPL
 R = par_uni(kpar)
 if (R < (rnPL - nPL)) nPL = nPL + 1
+
+! Then misrepair occurs on remaining nPL
 if (use_prob) then
 	do it = 1,nt
 		if (nPL == 0) exit
@@ -599,7 +690,11 @@ do istep = 1,Nsteps
         if (cp%phase == divided) cycle
         all_divided = .false.
         tnow = istep*DELTA_T
-        call timestep(cp, ccp, tnow, DELTA_T)
+        if (use_exponential_cycletime) then
+            call exp_timestep(cp, ccp, tnow, DELTA_T)
+        else
+            call timestep(cp, ccp, tnow, DELTA_T)
+        endif
     enddo
     if (all_divided) then
         write(*,*) 'All cells have divided'

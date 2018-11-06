@@ -60,9 +60,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "Initial number of tumour cells",
 "Initial number of tumour cells"},
 
-{"USE_DIVIDE_TIME_DIST", 1, 0, 1,
-"Use divide time distribution",
-"The divide time will be a random variate from a log-normal distribution."},
+{"USE_LOGNORMAL_DIST", 0, 0, 1,
+"Use lognormal distribution",
+"The divide time will be a random variate from a log-normal distribution. \n\
+ Otherwise checkpoint times are exponentially distributed and base phase times are fixed"},
 
 {"DIVIDE_TIME_1_MEDIAN", 18, 0, 0,
 "Median (h)",
@@ -476,6 +477,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "G1 mean delay (h)",
      "Mean of the random component of time spent in phase G1 (exponentially distributed)"},
 
+     {"S_MEAN_DELAY_1", 1.0, 0, 0,
+     "S mean delay (h)",
+     "Mean of the random component of time spent in phase S (exponentially distributed)"},
+
      {"G2_MEAN_DELAY_1", 1, 0, 0,
      "G2 mean delay (h)",
      "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
@@ -493,7 +498,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "PL lesion creation rate",
      "Coefficient of rate of creation of potentially lethal lesions: eta_PL"},
 
-     {"RMR_ETA_IRL_1", 0.01, 0, 0,
+     {"RMR_ETA_IRL_1", 0.003, 0, 0,
      "IRL creation rate",
      "Coefficient of rate of creation of irrepairable lesions: eta_IRL"},
 
@@ -507,7 +512,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Maximum coefficient of rate of repair of potentially lethal lesions: Krepair_max (Curtis's epsilon_PL)\n\
      The true repair rate varies linearly from Krepair_base to Krepair_max over the S phase"},
 
-     {"RMR_KMIS_1", 0.0001, 0, 0,
+     {"RMR_KMIS_1", 0.00003, 0, 0,
      "Lesion misrepair rate",
      "Coefficient of rate of misrepair of PL lesions to Ch1 and Ch2 lesions: Kmisrepair"},
 
@@ -559,6 +564,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "G1 mean delay (h)",
       "Mean of the random component of time spent in phase G1 (exponentially distributed)"},
 
+      {"S_MEAN_DELAY_2", 1.0, 0, 0,
+      "S mean delay (h)",
+      "Mean of the random component of time spent in phase S (exponentially distributed)"},
+
       {"G2_MEAN_DELAY_2", 1, 0, 0,
       "G2 mean delay (h)",
       "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
@@ -576,7 +585,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "PL lesion creation rate",
       "Coefficient of rate of creation of potentially lethal lesions: eta_PL"},
 
-      {"RMR_ETA_IRL_2", 0.01, 0, 0,
+      {"RMR_ETA_IRL_2", 0.003, 0, 0,
       "IRL creation rate",
       "Coefficient of rate of creation of irrepairable lesions: eta_IRL"},
 
@@ -590,7 +599,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Maximum coefficient of rate of repair of potentially lethal lesions: Krepair_max (Curtis's epsilon_PL)\n\
       The true repair rate varies linearly from Krepair_base to Krepair_max over the S phase"},
 
-      {"RMR_KMIS_2", 0.0001, 0, 0,
+      {"RMR_KMIS_2", 0.00003, 0, 0,
       "Lesion misrepair rate",
       "Coefficient of rate of misrepair of PL lesions to Ch1 and Ch2 lesions: Kmisrepair"},
 
