@@ -853,6 +853,10 @@ integer :: ityp
 real(REAL_KIND) :: r_mean, c_rate, mitosis_duration
 type(cycle_parameters_type), pointer :: ccp
 
+if (cp%state == DYING) then
+    dVdt = 0
+    return
+endif
 ityp = cp%celltype
 ccp => cc_parameters(ityp)
 mitosis_duration = ccp%T_M

@@ -357,7 +357,8 @@ if (use_average_volume) then
     vol_cm3 = Vcell_cm3*average_volume	  ! not accounting for cell volume change
     area_factor = (average_volume)**(2./3.)
 endif
-Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
+!Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
+Nmetabolisingcells = Ncells
 Cin(1) = y(1)
 Cin(2) = y(N1D+2)
 Cin(3) = y(2*N1D+3)
@@ -971,7 +972,8 @@ endif
 call get_metab_rates(mp,Cin)
 do kcell = 1,nlist
 	cp => cell_list(kcell)
-    if (cp%state == DEAD .or. cp%state == DYING) cycle
+!    if (cp%state == DEAD .or. cp%state == DYING) cycle
+    if (cp%state == DEAD) cycle
 ! First back up cell metabolism parameters that we need to preserve
 !    cp%metab = metabolic
 	cp%metab = phase_metabolic(1)
