@@ -740,8 +740,10 @@ write(nflog,*)
 
 if (.not.use_PEST) then
 	open(nfres,file='vmonolayer_ts.out',status='replace')
+	write(nflog,*) 'Opened vmonolayer_ts.out'
 else
 	open(nfres,file=PEST_outputfile,status='replace')
+	write(nflog,*) 'Opened PEST_outputfile: ',PEST_outputfile
 endif
 !write(nfres,'(a,a)') 'GUI version: ',gui_run_version
 !write(nfres,'(a,a)') 'DLL version: ',dll_run_version
@@ -1646,7 +1648,7 @@ if (cp%V == 0) then
     write(*,*) 'SetInitialCellCycleStatus: V = 0: ',kcell,cp%phase
     stop
 endif
-write(nflog,'(2i4,4f8.3,f8.0)') kcell,cp%phase,R,x,y,cp%V/V0,cp%t_divide_last
+!write(nflog,'(2i4,4f8.3,f8.0)') kcell,cp%phase,R,x,y,cp%V/V0,cp%t_divide_last
 !cp%metab = metabolic
 !write(*,*)
 !write(*,'(a,3f8.3)') 'Tdiv, Tmean, fg: ',Tdiv/3600,Tmean/3600,fg

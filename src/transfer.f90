@@ -505,7 +505,7 @@ do i = 0,np_survive
     else
         call clonogenic(ityp, p_survive, Nlim, SFlookup(i))
     endif
-    write(nflog,'(i4,2f8.5)') i,p_survive,SFlookup(i)
+!    write(nflog,'(i4,2f8.5)') i,p_survive,SFlookup(i)
 enddo
 end subroutine
 

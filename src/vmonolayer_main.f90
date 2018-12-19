@@ -18,18 +18,18 @@ logical :: simulate_colony
 integer :: idist, ndist = 40
 real(8) :: colony_days, dist(40), ddist = 50
 
-runfile = 'monolayer_main.out'
+runfile = 'vmonolayer_main.out'
 open(nfrun,file=runfile,status='replace')
 call disableTCP
 
-outfile = 'monolayer_main.res'
+outfile = 'vmonolayer_main.res'
 
 call get_command (b, nlen, status)
 if (status .ne. 0) then
     write (*,*) 'get_command failed with status = ', status
     stop
 end if
-!write (*,*) 'command line = ', b(1:len)
+write (nfrun,*) 'command line = ', b(1:nlen)
 call get_command_argument (0, c, nlen, status)
 if (status .ne. 0) then
     write (*,*) 'Getting command name failed with status = ', status
