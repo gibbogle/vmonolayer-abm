@@ -603,7 +603,7 @@ do kcell = 1,nlist0
 	        if (use_exponential_cycletime) then
     			call exp_timestep(cp, ccp, dt)
     		else
-    	        call timestep(cp, ccp, dt)
+    	        call log_timestep(cp, ccp, dt)
     	    endif
 	    endif
         if (cp%phase >= M_phase) then

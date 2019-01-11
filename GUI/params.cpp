@@ -284,11 +284,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-{"GLUCOSE_CONSUMPTION", 7.1e-17, 0, 0,
+{"GLUCOSE_CONSUMPTION", 1.84e-16, 0, 0,
  "Max consumption rate",
  "GLUCOSE consumption rate"},
 
-{"GLUCOSE_MM_KM", 220, 0, 0,
+{"GLUCOSE_MM_KM", 632, 0, 0,
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
@@ -638,11 +638,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Use glucose metabolism",
        "If metabolism is turned on, cell cycle is used, and lactate is simulated.  If metabolism is turned off, lactate is not simulated"},
 
-       {"F_GNORM_1", 0.32, 0, 0,
+       {"F_GNORM_1", 0.646, 0, 0,
        "Normal fraction of glycolysis -> intermediates",
        "Fraction of glycolysis (r_G) going to make intermediates under conditions of full nutrition"},
 
-       {"F_PNORM_1", 0.6, 0, 0,
+       {"F_PNORM_1", 0.3, 0, 0,
        "Normal fraction of pyruvate -> intermediates",
         "Fraction of pyruvate (r_P) going to make intermediates under conditions of full nutrition"},
 
@@ -716,7 +716,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         A multiplying factor on both r_G and r_P, f, is calculated as a ramp from 0 - 1 as f_A varies from ATP_G - ATPramp*ATP_G\n\
         i.e. the reduction starts when f_A = ATPramp*ATP_G (f = 1), and when f_A = ATP_G, f = 0.  f_G = f*f_Gn, f_P = f*f_Pn"},
 
-      {"K_PL_1", 0.001, 0, 0,
+      {"K_PL_1", 23.0, 0, 0,
       "Pyruvate -> lactate rate constant",
       "The forward rate constant K_PL of the pyruvate-lactate reaction, i.e. the rate constant for conversion of pyruvate to lactate"},
 

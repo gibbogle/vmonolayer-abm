@@ -82,7 +82,7 @@ padding: 8px
            <enum>QTabWidget::West</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="elideMode">
            <enum>Qt::ElideNone</enum>
@@ -1929,7 +1929,7 @@ padding: 8px
               <x>590</x>
               <y>10</y>
               <width>421</width>
-              <height>531</height>
+              <height>521</height>
              </rect>
             </property>
             <property name="title">
@@ -1941,7 +1941,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>401</width>
-               <height>561</height>
+               <height>501</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -1950,7 +1950,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1983,7 +1983,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1996,7 +1996,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2009,7 +2009,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2022,7 +2022,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2063,7 +2063,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2076,7 +2076,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2089,7 +2089,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2123,7 +2123,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2136,7 +2136,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2149,7 +2149,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2190,7 +2190,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2216,7 +2216,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2236,7 +2236,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2252,7 +2252,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2278,7 +2278,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2304,7 +2304,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2327,7 +2327,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2347,7 +2347,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2367,7 +2367,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2380,7 +2380,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
-                  <height>16777215</height>
+                  <height>18</height>
                  </size>
                 </property>
                 <property name="alignment">

@@ -25,8 +25,9 @@ contains
 ! Phase transitions are now based on cell volume, cp%V, to allow for delay
 ! when growth is slowed by starvation of oxygen and/or glucose.
 ! Note that the volumes required for the transitions (cp%G1_V,..)  never change.
+! Now treat G1, S, G2 in the same way regarding checkpoints
 !--------------------------------------------------------------------------
-subroutine timestep(cp, ccp, dt)
+subroutine log_timestep(cp, ccp, dt)
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dt
@@ -36,29 +37,11 @@ logical :: switch
 
 phase = cp%phase
 if (cp%dVdt == 0) then
-!	if (phase == G1_phase .or. phase == S_phase .or. phase == G2_phase) then
-		write(nflog,*) 'dVdt=0, kcell, phase: ',kcell_now,phase
-		stop
-!	endif
+	write(nflog,*) 'dVdt=0, kcell, phase: ',kcell_now,phase
+	stop
 endif
-!nPL = cp%NL1
 nPL = cp%N_PL
 ityp = cp%celltype
-!if (.not.use_metabolism) then
-!	if (.not.colony_simulation .and. (phase == Checkpoint1)) then    ! check for starvation arrest
-!		cf_O2 = cp%Cin(OXYGEN)/anoxia_threshold
-!		pcp_O2 = getPcp_release(cf_O2,dt)
-!		cf_glucose = cp%Cin(GLUCOSE)/aglucosia_threshold
-!		pcp_glucose = getPcp_release(cf_glucose,dt)
-!		pcp_starvation = pcp_O2*pcp_glucose
-!		if (pcp_starvation == 0) then
-!			return
-!		elseif (pcp_starvation < 1) then
-!			R = par_uni(kpar)
-!			if (R < pcp_starvation) return
-!		endif
-!	endif
-!endif
 if (phase == G1_phase) then
     if (use_volume_based_transition) then
         switch = (cp%V > cp%G1_V)
@@ -82,38 +65,45 @@ elseif (phase == G1_checkpoint) then  ! this checkpoint combines the release fro
     if (cp%G1_flag .and. cp%G1S_flag) then
         cp%phase = S_phase
 ! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code 
-!	    cp%S_time = tnow + (max_growthrate(ityp)/cp%dVdt)*cp%fg*ccp%T_S
-!	    cp%S_time = tnow + (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
 	    cp%S_duration = (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
 	    cp%S_time = 0   ! this is now the amount of time progress through S phase: 0 -> %S_duration
-!	    endif
     endif
 elseif (phase == S_phase) then
     cp%arrested = (cp%dVdt/max_growthrate(ityp) < ccp%arrest_threshold)
-!    if (kcell_now == 1) then
-!        write(*,'(a,2e12.3,2x,L)') 'S_phase: dVdt, fraction, arrested: ',cp%dVdt,cp%dVdt/max_growthrate(ityp),cp%arrested
-!    endif
     if (.not.cp%arrested) then
         cp%S_time = cp%S_time + dt
     endif
     switch = (cp%S_time >= cp%S_duration)
 !   switch = (tnow > cp%S_time)
     if (switch) then
+!        cp%phase = G2_phase
+        cp%phase = S_checkpoint
+        cp%S_flag = .false.
+        cp%SG2_time = tnow + f_TCP(ccp,nPL)
+    endif
+elseif (phase == S_checkpoint) then
+    if (.not.cp%S_flag) then
+        R = par_uni(kpar)
+        cp%S_flag = (R < ccp%Pk_S*dt)
+    endif
+    cp%SG2_flag = (nPL == 0 .or. tnow > cp%SG2_time)
+    if (use_metabolism) then
+		cp%SG2_flag = cp%SG2_flag .and. (cp%metab%A_rate > ATPg)
+	endif
+    if (cp%S_flag .and. cp%SG2_flag) then
         cp%phase = G2_phase
-! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code
+! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code 
+!	    cp%S_duration = (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
+!	    cp%S_time = 0   ! this is now the amount of time progress through S phase: 0 -> %S_duration
 		cp%G2_time = tnow + (max_growthrate(ityp)/cp%dVdt)*ccp%T_G2
     endif
+
 elseif (phase == G2_phase) then
-    if (use_volume_based_transition) then
-        switch = (cp%V > cp%G2_V)
-    else
-! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code
-!		if (use_metabolism) then
-!			switch = (tnow > cp%G2_time .and. cp%metab%Itotal > cp%metab%I2divide) ! try this to prevent volumes decreasing 
-!		else
-			switch = (tnow > cp%G2_time .and. cp%V > cp%divide_volume) ! try this to prevent volumes decreasing 
-!		endif
-    endif
+!    if (use_volume_based_transition) then
+!        switch = (cp%V > cp%G2_V)
+!    else
+		switch = (tnow > cp%G2_time .and. cp%V > cp%divide_volume) ! try this to prevent volumes decreasing 
+!    endif
     if (switch) then
         cp%phase = G2_checkpoint
         cp%G2_flag = .false.
@@ -509,6 +499,125 @@ end function
 end module
 
 #if 0
+
+!--------------------------------------------------------------------------
+subroutine old_timestep(cp, ccp, dt)
+type(cell_type), pointer :: cp
+type(cycle_parameters_type), pointer :: ccp
+real(REAL_KIND) :: dt
+integer :: phase, ityp, nPL, kpar=0
+real(REAL_KIND) :: cf_O2, cf_glucose, pcp_O2, pcp_glucose, pcp_starvation, R
+logical :: switch
+
+phase = cp%phase
+if (cp%dVdt == 0) then
+!	if (phase == G1_phase .or. phase == S_phase .or. phase == G2_phase) then
+		write(nflog,*) 'dVdt=0, kcell, phase: ',kcell_now,phase
+		stop
+!	endif
+endif
+!nPL = cp%NL1
+nPL = cp%N_PL
+ityp = cp%celltype
+!if (.not.use_metabolism) then
+!	if (.not.colony_simulation .and. (phase == Checkpoint1)) then    ! check for starvation arrest
+!		cf_O2 = cp%Cin(OXYGEN)/anoxia_threshold
+!		pcp_O2 = getPcp_release(cf_O2,dt)
+!		cf_glucose = cp%Cin(GLUCOSE)/aglucosia_threshold
+!		pcp_glucose = getPcp_release(cf_glucose,dt)
+!		pcp_starvation = pcp_O2*pcp_glucose
+!		if (pcp_starvation == 0) then
+!			return
+!		elseif (pcp_starvation < 1) then
+!			R = par_uni(kpar)
+!			if (R < pcp_starvation) return
+!		endif
+!	endif
+!endif
+if (phase == G1_phase) then
+    if (use_volume_based_transition) then
+        switch = (cp%V > cp%G1_V)
+    else
+        switch = (tnow > cp%G1_time)
+    endif
+    if (switch) then
+        cp%phase = G1_checkpoint
+        cp%G1_flag = .false.
+        cp%G1S_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
+    endif
+elseif (phase == G1_checkpoint) then  ! this checkpoint combines the release from G1 delay and the G1S repair check
+    if (.not.cp%G1_flag) then
+        R = par_uni(kpar)
+        cp%G1_flag = (R < ccp%Pk_G1*dt)
+    endif
+    cp%G1S_flag = (nPL == 0 .or. tnow > cp%G1S_time)
+    if (use_metabolism) then
+		cp%G1S_flag = cp%G1S_flag .and. (cp%metab%A_rate > ATPg)
+	endif
+    if (cp%G1_flag .and. cp%G1S_flag) then
+        cp%phase = S_phase
+! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code 
+!	    cp%S_time = tnow + (max_growthrate(ityp)/cp%dVdt)*cp%fg*ccp%T_S
+!	    cp%S_time = tnow + (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
+	    cp%S_duration = (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
+	    cp%S_time = 0   ! this is now the amount of time progress through S phase: 0 -> %S_duration
+!	    endif
+    endif
+elseif (phase == S_phase) then
+    cp%arrested = (cp%dVdt/max_growthrate(ityp) < ccp%arrest_threshold)
+!    if (kcell_now == 1) then
+!        write(*,'(a,2e12.3,2x,L)') 'S_phase: dVdt, fraction, arrested: ',cp%dVdt,cp%dVdt/max_growthrate(ityp),cp%arrested
+!    endif
+    if (.not.cp%arrested) then
+        cp%S_time = cp%S_time + dt
+    endif
+    switch = (cp%S_time >= cp%S_duration)
+!   switch = (tnow > cp%S_time)
+    if (switch) then
+        cp%phase = G2_phase
+! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code
+		cp%G2_time = tnow + (max_growthrate(ityp)/cp%dVdt)*ccp%T_G2
+    endif
+elseif (phase == G2_phase) then
+    if (use_volume_based_transition) then
+        switch = (cp%V > cp%G2_V)
+    else
+! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code
+!		if (use_metabolism) then
+!			switch = (tnow > cp%G2_time .and. cp%metab%Itotal > cp%metab%I2divide) ! try this to prevent volumes decreasing 
+!		else
+			switch = (tnow > cp%G2_time .and. cp%V > cp%divide_volume) ! try this to prevent volumes decreasing 
+!		endif
+    endif
+    if (switch) then
+        cp%phase = G2_checkpoint
+        cp%G2_flag = .false.
+        cp%G2M_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
+    endif
+elseif (phase == G2_checkpoint) then ! this checkpoint combines the release from G2 delay and the G2M repair check
+    if (.not.cp%G2_flag) then
+        R = par_uni(kpar)
+        cp%G2_flag = (R < ccp%Pk_G2*dt)
+    endif
+    cp%G2M_flag = (nPL == 0 .or. tnow > cp%G2M_time)
+    if (use_metabolism) then
+		cp%G2M_flag = cp%G2M_flag .and. (cp%metab%A_rate > ATPg)
+	endif
+    if (cp%G2_flag .and. cp%G2M_flag) then
+        cp%phase = M_phase
+        cp%M_time = tnow + ccp%T_M   
+    endif
+elseif (phase == M_phase) then
+    if (tnow > cp%M_time) then
+        cp%phase = dividing
+!        cp%doubling_time = tnow
+    endif
+endif    
+if (nPL > 0 .and. .not.cp%irrepairable) then
+    call radiation_repair(cp, ccp, dt)
+endif
+end subroutine
+
 !--------------------------------------------------------------------------
 ! Damage from radiation dose following Curtis1986
 ! dose is the Gy received, tmin is the duration (min) over which it is delivered.
@@ -693,7 +802,7 @@ do istep = 1,Nsteps
         if (use_exponential_cycletime) then
             call exp_timestep(cp, ccp, tnow, DELTA_T)
         else
-            call timestep(cp, ccp, tnow, DELTA_T)
+            call log_timestep(cp, ccp, tnow, DELTA_T)
         endif
     enddo
     if (all_divided) then

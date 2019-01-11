@@ -29,71 +29,51 @@ void MainWindow::LoadProtocol(QString fileName)
                              .arg(file.errorString()));
         return;
     }
-//    qDebug() << "Opened " << fileName;
     QTextStream in(&file);
     QString line;
     // Skip lines
     for (;;) {
         line = in.readLine();
-//        qDebug() << line;
         if (line.compare("PROTOCOL")==0) break;
         if (in.atEnd()) {
             QMessageBox::warning(this, "LoadProtocol", "No protocol lines in the input file");
             return;
         }
     }
-//    line = in.readLine();
-//    qDebug() << line;
     line = in.readLine();
-//    qDebug() << line;
     nTimes = line.toInt();
     for (int row=0; row<nTimes; row++) {
         QString mode = in.readLine();
-//        qDebug() << mode;
         if (mode.compare("DRUG") == 0) {
             QString drug = in.readLine();
-//            qDebug() << "LoadProtocol: DRUG: " + drug;
             setField(table, row, 1, drug);
             QString hour = in.readLine();
-//            qDebug() << hour;
             setField(table, row, 0, hour);
             QString duration = in.readLine();
-//            qDebug() << duration;
             setField(table, row, 2, duration);
             QString volume = in.readLine();
-//            qDebug() << volume;
             setField(table, row, 3, volume);
             QString O2conc = in.readLine();
-//            qDebug() << O2conc;
             setField(table, row, 4, O2conc);
             QString O2flush = in.readLine();
-//            qDebug() << O2flush;
             setField(table, row, 5, O2flush);
             QString conc = in.readLine();
-//            qDebug() << conc;
             setField(table, row, 6, conc);
         } else if (mode.compare("RADIATION") == 0) {
             QString hour = in.readLine();
-//            qDebug() << hour;
             setField(table, row, 0, hour);
             QString dose = in.readLine();
-//            qDebug() << dose;
             setField(table, row, 7, dose);
         } else if (mode.compare("MEDIUM") == 0) {
             QString hour = in.readLine();
-//            qDebug() << hour;
             setField(table, row, 0, hour);
             QString volume = in.readLine();
-//            qDebug() << volume;
             setField(table, row, 8, volume);
             QString full = in.readLine();
-//            qDebug() << full;
             setField(table, row, 9, full);
             QString O2level = in.readLine();
-//            qDebug() << O2level;
             setField(table, row, 10, O2level);
             QString glulevel = in.readLine();
-//            qDebug() << glulevel;
             setField(table, row, 11, glulevel);
         }
     }
@@ -114,18 +94,6 @@ void MainWindow::SaveProtocol(QTextStream *out, int ndrugs)
     int row = tableWidget->currentRow();
     int col = tableWidget->currentColumn();
     tableWidget->setCurrentCell(row+1,col);
-    /*
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text | QIODevice::Append)) {
-        QMessageBox::warning(this, tr("Application"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        qDebug() << "File open failed";
-        return;
-    }
-    QTextStream out(&file);
-    */
     *out << "PROTOCOL\n";
     nTimes = 0;
     if (ndrugs == 0) {
@@ -279,12 +247,9 @@ void MainWindow::SaveProtocol(QTextStream *out, int ndrugs)
                     }
                     continue;
                 }
-//                qDebug() << "No DRUG, RADIATION or MEDIUM data for event at hour: " << hour;
-//                return;
             }
         }
     }
-//    file.close();
 }
 
 bool MainWindow::ProtocolUsesDrug()
@@ -338,7 +303,7 @@ void MainWindow::ProtocolChanged(int row, int col)
             QMessageBox::warning(this, tr("Protocol"),
                                  tr("This drug has not been selected: %1\n %2")
                                  .arg(drugname)
-                                 .arg("Select on the Treatment screen."));
+                                 .arg("Select on the Treatment screen, then reload the input file."));
             item->setText("");
         }
     }

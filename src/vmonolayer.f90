@@ -845,17 +845,19 @@ type(cycle_parameters_type),pointer :: ccp
 do ityp = 1,2
 	ccp => cc_parameters(ityp)
 	tmean = divide_time_mean(ityp)
-	tsum = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
+	tsum = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%S_mean_delay + ccp%G2_mean_delay
 	tfactor = tmean/tsum
 	ccp%T_G1 = tfactor*ccp%T_G1
 	ccp%T_S = tfactor*ccp%T_S
 	ccp%T_G2 = tfactor*ccp%T_G2
 	ccp%T_M = tfactor*ccp%T_M
 	ccp%G1_mean_delay = tfactor*ccp%G1_mean_delay
+	ccp%S_mean_delay = tfactor*ccp%S_mean_delay
 	ccp%G2_mean_delay= tfactor*ccp%G2_mean_delay
-	ccp%Pk_G1 = 1./ccp%G1_mean_delay    ! /sec
-	ccp%Pk_G2 = 1./ccp%G2_mean_delay    ! /sec
-	write(nflog,'(a,4e12.3)') 'Pk_G1, Pk_G2: ',ccp%Pk_G1,ccp%Pk_G2
+!	ccp%Pk_G1 = 1./ccp%G1_mean_delay    ! /sec
+!	ccp%Pk_S = 1./ccp%S_mean_delay    ! /sec
+!	ccp%Pk_G2 = 1./ccp%G2_mean_delay    ! /sec
+!	write(nflog,'(a,4e12.3)') 'Pk_G1, Pk_G2: ',ccp%Pk_G1,ccp%Pk_G2
 enddo
 end subroutine
 

@@ -176,10 +176,10 @@ type cell_type
 
 	! Cell cycle 
     integer :: phase
-    logical :: G1_flag, G1S_flag, G2_flag, G2M_flag
+    logical :: G1_flag, G1S_flag, S_flag, SG2_flag, G2_flag, G2M_flag
     real(REAL_KIND) :: G1_time, S_time, G2_time, S_duration
     real(REAL_KIND) :: G1_V, S_V, G2_V
-    real(REAL_KIND) :: G1S_time, G2M_time, M_time
+    real(REAL_KIND) :: G1S_time, SG2_time, G2M_time, M_time
     real(REAL_KIND) :: doubling_time
     logical :: arrested ! for S-phase arrest
     real(REAL_KIND) :: S_start_time	    ! for PI labelling
