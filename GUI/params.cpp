@@ -79,7 +79,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "The time taken for tumour cell division has a lognormal distribution, described by the median and shape parameters. \n\
 [hours]"},
 
-{"DIVIDE_TIME_2_SHAPE", 1.2, 0, 0,
+{"DIVIDE_TIME_2_SHAPE", 1.1, 0, 0,
 "Division time shape parameter",
 "The time taken for tumour cell division has a lognormal distribution, described by the median and shape parameters."},
 

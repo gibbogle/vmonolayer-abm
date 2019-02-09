@@ -220,7 +220,6 @@ void MainWindow:: drawDistPlots(bool dummy)
     double *x, *prob;
     x = new double[nDistPts];
     prob = new double[nDistPts];
-    QwtPlot *qp;
     QString median_qstr, shape_qstr;
     double median, shape;
     double expMean[3];
@@ -229,7 +228,7 @@ void MainWindow:: drawDistPlots(bool dummy)
 
     groupBox_divisiondistributions->setEnabled(use_lognormal);
     for (int j=0; j<ndistplots; j++) {
-        qp = distplot_list[j];
+        QwtPlot *qp = distplot_list[j];
         if (j == 0) {
             qp->setTitle("Type 1 division time (hrs)");
             if (use_lognormal) {
@@ -263,22 +262,16 @@ void MainWindow:: drawDistPlots(bool dummy)
 
         int n = dist_limit(prob,nDistPts);
         double xmax = x[n];
-//		sprintf(msg,"%f %f %d",median,shape,n);
-//		for (int i=0;i<40;i++) {
-//			sprintf(msg,"%d %f %f",i,x[i],prob[i]);
-//		}
         qp->setAxisScale(QwtPlot::xBottom, 0.0, xmax, 0.0);
 
         if (first_plot) {
-            QwtPlotCurve *curve = new QwtPlotCurve("title");
-            curve->attach(qp);
-            curve->setSamples(x, prob, n);
-            curve_list[j] = curve;
+            curve_list[j] = new QwtPlotCurve("title");
+            curve_list[j]->setSamples(x, prob, n);
+            curve_list[j]->attach(qp);
         } else {
             curve_list[j]->setSamples(x, prob, n);
         }
         qp->replot();
-
     }
     delete [] x;
     x = NULL;

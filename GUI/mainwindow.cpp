@@ -128,16 +128,16 @@ MainWindow::MainWindow(QWidget *parent)
     LOG_QMSG("did createLists");
     createActions();
     LOG_QMSG("did createActions");
-    LOG_QMSG("did drawDistPlots");
 //    initFACSPlot();
 //    LOG_QMSG("did initFACSPlot");
 //    initHistoPlot();
 //    LOG_QMSG("did initHistoPlot");
+    first_plot = true;
     loadParams();
     LOG_QMSG("Did loadparams");
     paramSaved = true;
-    first_plot = true;
     drawDistPlots(0);
+    LOG_QMSG("did drawDistPlots");
 
     SetupProtocol();
     LOG_MSG("did SetupProtocol");
