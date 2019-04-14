@@ -765,12 +765,6 @@ write(logmsg,*) 'Opened nfout: ',trim(outputfile)
 ! Note order change
 call logger(logmsg)
 
-!if (use_PEST) then
-!	open(nfPESTout,file=PEST_outputfile,status='replace')
-!	write(logmsg,*) 'Opened PEST outputfile: ',trim(PEST_outputfile)
-!	call logger(logmsg)
-!endif
-
 Nsteps = days*24*60*60/DELTA_T		! DELTA_T in seconds
 NT_DISPLAY = 2						! This is the updating interval (calls to get_summary) in the GUI version.  Not used by command-line version.
 DT_DISPLAY = NT_DISPLAY*DELTA_T
@@ -2611,8 +2605,6 @@ if (isopen) then
 endif
 inquire(nfres,OPENED=isopen)
 if (isopen) close(nfres)
-!inquire(nfPESTout,OPENED=isopen)
-!if (isopen) close(nfPESTout)
 call logger('closed files')
 
 if (par_zig_init) then
