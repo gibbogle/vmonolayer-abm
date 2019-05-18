@@ -891,11 +891,11 @@ endif
 
 neqn = k
 
-if (noSS) then
-    call Set_f_GP_noSS(mp,C,C_P)
-else
+!if (noSS) then
+!    call Set_f_GP_noSS(mp,C,C_P)
+!else
     call Set_f_GP(mp,C)
-endif
+!endif
 !mp%A_fract = f_MM(C(1),ATP_Km(ict),1)
 !write(nflog,'(a,3e12.3)') 'A_fract: ',mp%A_fract
 !if (.not.use_explicit) then		! RKC solver
@@ -970,6 +970,10 @@ if (noSS) then
     Cin(4) = mp%C_P
 endif
 call get_metab_rates(mp,Cin)
+
+! Update C_A in phase_metabolic(1)
+call update_C_A(dt,mp)
+
 do kcell = 1,nlist
 	cp => cell_list(kcell)
 !    if (cp%state == DEAD .or. cp%state == DYING) cycle
@@ -978,6 +982,9 @@ do kcell = 1,nlist
 !    cp%metab = metabolic
 	cp%metab = phase_metabolic(1)
     cp%metab%A_rate = cp%ATP_rate_factor*cp%metab%A_rate
+! Update C_A in each cell, accounting for variation in A_rate
+!	mp => cp%metab
+!	call update_C_A(dt,mp)
 enddo
 
 !write(nflog,*) 'OGLSolver: Grate: ',cell_list(1)%metab%G_rate, Cmediumave(GLUCOSE)
@@ -1003,6 +1010,32 @@ membrane_flux = area_factor*(membrane_kin*Cex - membrane_kout*Cic)
 
 end subroutine
 
+!----------------------------------------------------------------------------------
+! This tends to move A (ATP conc) to the steady-state level at which the equation:
+! A_n = (rA - rAs)/(1 - rAs)
+! holds.  Here A_n, rA, rAs are all normalised.  
+! Note that C_A_norm has been specified arbitrarily, and we need the rate constant k.
+!----------------------------------------------------------------------------------
+subroutine update_C_A(dt,mp)
+real(REAL_KIND) :: dt
+type(metabolism_type), pointer :: mp
+real(REAL_KIND) :: A, A_n, rA, rAs, Atarget_n, dC_Adt, k
+
+k = 2000
+A = mp%C_A
+A_n = A/C_A_norm
+rA = mp%A_rate/r_A_norm				! normalise
+rA = min(rA,1.0)
+rAs = f_ATPs						! normalised
+Atarget_n = (rA - rAs)/(1 - rAs)	! normalised
+!Atarget = Atarget_n*C_A_norm
+!r = mp%A_rate*(1 + k*(A_n - Atarget_n))
+!mp%C_A = A + (mp%A_rate - r)*dt
+dC_Adt = mp%A_rate*k*(Atarget_n - A_n)
+mp%C_A = A + dC_Adt*dt
+mp%C_A = max(mp%C_A, 0.0)
+!write(nflog,'(a,6e12.3)') 'update_C_A: ',mp%A_rate, rA, A, A_n, Atarget_n, dC_Adt
+end subroutine
 
 !----------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------

@@ -122,7 +122,8 @@ type metabolism_type
 	real(REAL_KIND) :: f_G
 	real(REAL_KIND) :: f_P
 	real(REAL_KIND) :: C_P
-	real(REAL_KIND) :: A_fract
+	real(REAL_KIND) :: C_A
+!	real(REAL_KIND) :: A_fract
 end type
 
 type cell_type

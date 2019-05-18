@@ -908,6 +908,8 @@ if (colony_simulation) then
 else
 	cp1 => cell_list(kcell1)
 endif
+!write(nflog,'(a,i6,3f8.0)') 'First cell division: ',kcell1,tnow,cp1%divide_time,cp1%t_divide_last
+!stop
 if (ngaps > 0) then
     kcell2 = gaplist(ngaps)
     ngaps = ngaps - 1

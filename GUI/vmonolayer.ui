@@ -1929,7 +1929,7 @@ padding: 8px
               <x>590</x>
               <y>10</y>
               <width>421</width>
-              <height>521</height>
+              <height>541</height>
              </rect>
             </property>
             <property name="title">
@@ -1941,7 +1941,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>401</width>
-               <height>501</height>
+               <height>519</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -2404,6 +2404,35 @@ padding: 8px
               </item>
              </layout>
             </widget>
+           </widget>
+           <widget class="QLineEdit" name="line_F_GP_SOLVER">
+            <property name="geometry">
+             <rect>
+              <x>1020</x>
+              <y>22</y>
+              <width>21</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>1</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+           <widget class="QMyLabel" name="label_F_GP_SOLVER">
+            <property name="geometry">
+             <rect>
+              <x>1050</x>
+              <y>20</y>
+              <width>101</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>f_FP solver (1,2,3)</string>
+            </property>
            </widget>
           </widget>
           <widget class="QWidget" name="tab_treatment">
@@ -9974,7 +10003,7 @@ padding: 8px
      <x>0</x>
      <y>0</y>
      <width>1671</width>
-     <height>21</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

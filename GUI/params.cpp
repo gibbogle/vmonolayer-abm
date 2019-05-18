@@ -666,7 +666,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Oxygen moles consumed per pyruvate mole",
       "Number of moles of oxygen consumed the oxidation of one pyruvate mole"},
 
-      {"K_H1_1", 3, 0, 0,
+      {"K_H1_1", 8, 0, 0,
       "Exponent N_H in Hss equation",
       "With x = C_O/C_O_max, steady-state HIF-1 level is Hss = (1-x)^N_H, where C_O = oxygen concentration"},
 
@@ -688,7 +688,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Minimum value of the PDK1 factor.\n\
        Representing PDK1 factor level by y in the range (PDKmin,1), the rate of change of y is: dy/dt = -K_PDK*(y - 1 + cH) where H = HIF-1 level, and c = 1 - PDKmin"},
 
-       {"C_O2_NORM_1", 0.05, 0, 0,
+       {"C_O2_NORM_1", 0.1, 0, 0,
        "Nominal normal IC O2 concentration",
        "Nominal normal IC O2 concentration, used to set normal metabolic rates for unconstrained growth"},
 
@@ -727,6 +727,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        {"PYRUVATE_MM_KM_1", 20, 0, 0,
        "Pyruvate Michaelis-Menten Km (uM)",
        "Pyruvate Michaelis-Menten Km (uM). fMM = C_P/(Km + C_P) is a multiple of pyruvate oxidation rate, ensuring that the rate -> 0 as C_P -> 0"},
+
+       {"F_GP_SOLVER",1,0,0,
+        "f_GP solver (1,2,3)",
+        "Choices for f_GP solver: 1 = max ATP (tandem), 2 = max ATP (staged), 3 = survival (staged)"},
 
 {"HYPOXIA_1", 0.1, 0, 0,
 "Hypoxia threshold 1",
@@ -834,6 +838,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"ICglucose",                 1, 0,1,"","IC concentration of glucose"},
     {"IClactate",                 1, 0,1,"","IC concentration of lactate"},
     {"ICpyruvate",                1, 0,1,"","IC concentration of pyruvate"},
+    {"ICATP",                     1, 0,1,"","IC concentration of ATP"},
     {"ICdrugA",                   0, 0,1,"","IC concentration of drug A"},
     {"ICdrugAmet1",               0, 0,1,"","IC concentration of drug A metabolite 1"},
     {"ICdrugAmet2",               0, 0,1,"","IC concentration of drug A metabolite 2"},

@@ -698,6 +698,7 @@ t_aglucosia_limit = 60*60*aglucosia_tag_hours		! hours -> seconds
 aglucosia_death_delay = 60*60*aglucosia_death_hours	! hours -> seconds
 Vcell_cm3 = 1.0e-9*Vcell_pL							! nominal cell volume in cm3
 Vdivide0 = Vdivide0*Vcell_cm3
+dVdivide = dVdivide*Vcell_cm3
 
 write(nflog,*) 'Vdivide0: ',Vdivide0, ' medium_volume0: ',medium_volume0
 
@@ -757,7 +758,7 @@ Ntagged_radiation(1) Ntagged_radiation(2) &
 f_viable f_hypoxic(1) f_hypoxic(2) f_hypoxic(3) f_clonohypoxic(1) f_clonohypoxic(2) f_clonohypoxic(3) f_growth(1) f_growth(2) f_growth(3) &
 f_nogrow f_clonogenic plating_efficiency(1) plating_efficiency(2) &
 EC_oxygen EC_glucose EC_lactate EC_drugA EC_drugA_metab1 EC_drugA_metab2 EC_drugB EC_drugB_metab1 EC_drugB_metab2 &
-IC_oxygen IC_glucose IC_lactate IC_pyruvate IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
+IC_oxygen IC_glucose IC_lactate IC_pyruvate IC_ATP IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
 medium_oxygen medium_glucose medium_lactate medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
 G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase S_phase_nonarrest Nmutations &
 doubling_time glycolysis_rate pyruvate_oxidation_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction'
@@ -882,6 +883,7 @@ read(nf,*) f_ATPramp
 read(nf,*) K_PL
 read(nf,*) K_LP
 read(nf,*) Hill_Km_P
+read(nf,*) fgp_solver
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM
 !ATP_Km = ATP_Km/1000			! uM -> mM
@@ -1477,6 +1479,12 @@ end subroutine
 #endif
 
 !--------------------------------------------------------------------------------
+! Note that this does not allow for cells to be initially in M_phase.  At the latest
+! a cell can be at the end of the G2_checkpoint.  The reason for this is that
+! at the start of M_phase the separation of a cell into the "dumbell" shape is
+! initiated, and it would be tricky to account for this having already occurred
+! some time ago.
+!--------------------------------------------------------------------------------
 subroutine SetInitialCellCycleStatus(kcell,cp)
 integer :: kcell
 type(cell_type), pointer :: cp
@@ -1644,6 +1652,7 @@ if (cp%V == 0) then
     write(*,*) 'SetInitialCellCycleStatus: V = 0: ',kcell,cp%phase
     stop
 endif
+
 !write(nflog,'(2i4,4f8.3,f8.0)') kcell,cp%phase,R,x,y,cp%V/V0,cp%t_divide_last
 !cp%metab = metabolic
 !write(*,*)
@@ -2024,56 +2033,59 @@ end subroutine
 ! flux that corresponds to the area, Kdiff and concentration gradient (Cbnd - Cex)/depth.
 ! Kd.A.(Cbnd - Cex)/d = Ncells.(Kin.Cex - Kout.Cin)
 ! => Cex = (A.Kd.Cbnd/d + Ncells.Kout.Cin)/(A.Kd/d + Ncells.Kin) 
+!
+! NOTE: currently WRONG for O2
+!
 !-----------------------------------------------------------------------------------------
 subroutine SetConstLevels
 integer :: ichemo, k, kcell, idrug, iparent, im
-real(REAL_KIND) :: Kin, Kout, Kd, Cex, Cin, Cbnd, A, d, flux, Cin_prev, alpha
+real(REAL_KIND) :: Kin, Kout, Kd, Cex, Cin, Cbnd, A, d, flux, Cin_prev, alpha, dC
 real(REAL_KIND) :: tol = 1.0e-6
 
 !ichemo = OXYGEN
 
 do ichemo = 1,3
-if (chemo(ichemo)%constant .or. fully_mixed) then
-    Cex = chemo(ichemo)%bdry_conc
-    Cin = getCin(ichemo,Cex)
-else
-    Kin = chemo(ichemo)%membrane_diff_in
-    Kout = chemo(ichemo)%membrane_diff_out
-    Cex = Caverage(MAX_CHEMO+ichemo)
-    Cin = Caverage(ichemo)
-    Cbnd = chemo(ichemo)%bdry_conc
-    Kd = chemo(ichemo)%medium_diff_coef
-    A = well_area
-    d = total_volume/A
-	if (ichemo == OXYGEN) then
-		do k = 1,100
-			Cin_prev = Cin
-			Cex = (A*Kd*Cbnd/d + Ncells*Kout*Cin)/(A*Kd/d + Ncells*Kin)
-			Cin = getCin(ichemo,Cex)
-		!    write(*,'(a,i4,2e15.6)') 'SetMediumOxygen: ',k,Cin,Cex
-			if (abs(Cin-Cin_prev)/Cin_prev < tol) exit
-		enddo
-    endif
-endif
-Caverage(ichemo) = Cin
-Caverage(MAX_CHEMO+ichemo) = Cex
-do k = 1,N1D
-	alpha = real(k-1)/(N1D-1)
-	chemo(ichemo)%Cmedium(k) = alpha*chemo(ichemo)%bdry_conc + (1-alpha)*Cex
-enddo
-do kcell = 1,nlist
-    if (cell_list(kcell)%state == DEAD) cycle
-    cell_list(kcell)%Cin(ichemo) = Cin
-!	do idrug = 1,2
-!		iparent = DRUG_A + 3*(idrug-1)
-!		do im = 0,2
-!			ichemo = iparent + im
-!			if (.not.chemo(ichemo)%present) cycle
-!			cell_list(kcell)%Cin(ichemo) = chemo(ichemo)%Cmedium(1)		! set IC conc to initial medium conc 
-!		enddo
-!	enddo
-enddo
-write(nflog,'(a,i4,2e12.3)') 'SetConstLevels: Cex, Cin: ',ichemo,Cex,Cin
+	if (chemo(ichemo)%constant .or. fully_mixed) then
+		Cex = chemo(ichemo)%bdry_conc
+		Cin = getCin(ichemo,Cex)
+	else
+		Kin = chemo(ichemo)%membrane_diff_in
+		Kout = chemo(ichemo)%membrane_diff_out
+		Cex = Caverage(MAX_CHEMO+ichemo)	! initial guess
+		Cin = Caverage(ichemo)				! initial guess
+		Cbnd = chemo(ichemo)%bdry_conc
+		Kd = chemo(ichemo)%medium_diff_coef
+		A = well_area
+		d = total_volume/A
+!		if (ichemo == OXYGEN) then
+!			do k = 1,100
+!				Cin_prev = Cin
+!				Cex = (A*Kd*Cbnd/d + Ncells*Kout*Cin)/(A*Kd/d + Ncells*Kin)
+!				Cin = getCin(ichemo,Cex)
+!			    write(nflog,'(a,i4,3e15.6)') 'SetMediumOxygen: ',k,Cin,Cex,Cex-Cin
+!				if (abs(Cin-Cin_prev)/Cin_prev < tol) exit
+!			enddo
+!		endif
+	endif
+	Caverage(ichemo) = Cin
+	Caverage(MAX_CHEMO+ichemo) = Cex
+	do k = 1,N1D
+		alpha = real(k-1)/(N1D-1)
+		chemo(ichemo)%Cmedium(k) = alpha*chemo(ichemo)%bdry_conc + (1-alpha)*Cex
+	enddo
+	do kcell = 1,nlist
+		if (cell_list(kcell)%state == DEAD) cycle
+		cell_list(kcell)%Cin(ichemo) = Cin
+	!	do idrug = 1,2
+	!		iparent = DRUG_A + 3*(idrug-1)
+	!		do im = 0,2
+	!			ichemo = iparent + im
+	!			if (.not.chemo(ichemo)%present) cycle
+	!			cell_list(kcell)%Cin(ichemo) = chemo(ichemo)%Cmedium(1)		! set IC conc to initial medium conc 
+	!		enddo
+	!	enddo
+	enddo
+	write(nflog,'(a,i4,2e12.3)') 'SetConstLevels: Cex, Cin: ',ichemo,Cex,Cin
 enddo
 end subroutine
 
@@ -2185,7 +2197,6 @@ enddo	! end idiv loop
 DELTA_T = DELTA_T_save
 medium_change_step = .false.
 
-!istep = istep + 1
 t_simulation = (istep-1)*DELTA_T	! seconds
 
 !!write(nflog,*) 'GrowCells'
@@ -2250,6 +2261,20 @@ endif
 ! write(nflog,'(a,f8.3)') 'did simulate_step: time: ',wtime()-start_wtime
 
 istep = istep + 1
+#if 0
+! Checking against metab.xls
+if (istep == 1) then
+	write(nflog,*) 'nthour: ',nthour
+	write(nflog,'(8a12)') 'step','Cglucose','Coxygen','f_G','f_P','Grate','Irate','Cpyruvate'
+endif
+mp => phase_metabolic(1)
+write(nflog,'(a,i4,7e12.3)') 'step:   ',istep,cell_list(1)%Cin(GLUCOSE),cell_list(1)%Cin(OXYGEN),mp%f_G,mp%f_P, &
+			mp%G_rate,mp%I_rate,mp%C_P
+#endif
+!if (cell_list(1)%Cin(OXYGEN) < 0.1) then
+!	write(nflog,*) 'low O2: ',istep,cell_list(1)%Cin(OXYGEN)
+!	stop
+!endif
 !call averages
 end subroutine
 
