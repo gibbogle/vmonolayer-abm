@@ -1021,7 +1021,7 @@ real(REAL_KIND) :: dt
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: A, A_n, rA, rAs, Atarget_n, dC_Adt, k
 
-k = 2000
+k = 2.0e7
 A = mp%C_A
 A_n = A/C_A_norm
 rA = mp%A_rate/r_A_norm				! normalise

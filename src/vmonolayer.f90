@@ -657,6 +657,8 @@ if (use_exponential_cycletime) then
             + ccp%T_G2 + ccp%G2_mean_delay + ccp%T_M
     enddo
 else
+	write(nflog,*) 'divide_time_median: ',divide_time_median
+	write(nflog,*) 'divide_time_shape: ',divide_time_shape
     divide_dist(1:2)%class = LOGNORMAL_DIST
     divide_time_median(1:2) = 60*60*divide_time_median(1:2)		! hours -> seconds
     sigma(1:2) = log(divide_time_shape(1:2))
@@ -667,6 +669,7 @@ else
     call logger(logmsg)
     write(logmsg,'(a,4e12.4)') 'Median, mean divide time: ',divide_time_median(1:2)/3600,divide_time_mean(1:2)/3600
     call logger(logmsg)
+    ccp => cc_parameters(1)
     call AdjustCycleTimes
 endif
 do ityp = 1,2
@@ -1649,7 +1652,7 @@ else
     enddo
 endif
 if (cp%V == 0) then
-    write(*,*) 'SetInitialCellCycleStatus: V = 0: ',kcell,cp%phase
+    write(*,*) 'SetInitialCellCycleStatus: V = 0: ',kcell,cp%phase,V0
     stop
 endif
 
