@@ -115,16 +115,16 @@ write(nflog,*) 'SetupChemo'
 chemo(OXYGEN)%name = 'Oxygen'
 chemo(GLUCOSE)%name = 'Glucose'
 chemo(LACTATE)%name = 'Lactate'
-chemo(TRACER)%name = 'Tracer'
+chemo(GLUTAMINE)%name = 'Glutamine'
 chemo(OXYGEN)%decay_rate = 0
 chemo(GLUCOSE)%decay_rate = 0
 chemo(LACTATE)%decay_rate = 0
-chemo(TRACER)%decay_rate = 0
+chemo(GLUTAMINE)%decay_rate = 0
 
 do ichemo = 1,MAX_CHEMO
 	chemo(ichemo)%present = .false.
 	if (chemo(ichemo)%used) then
-		if (ichemo == OXYGEN .or. ichemo == GLUCOSE .or. ichemo == LACTATE .or. ichemo == TRACER) then
+		if (ichemo == OXYGEN .or. ichemo == GLUCOSE .or. ichemo == LACTATE .or. ichemo == GLUTAMINE) then
 			chemo(ichemo)%present = .true.
 		endif
 	endif

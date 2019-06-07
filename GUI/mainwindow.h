@@ -233,8 +233,8 @@ private:
     void disableUseOxygen();
     void enableUseGlucose();
     void disableUseGlucose();
-    void enableUseTracer();
-    void disableUseTracer();
+    void enableUseGlutamine();
+    void disableUseGlutamine();
 
 	void writeout();
 	void execute_para();

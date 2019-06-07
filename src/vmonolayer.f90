@@ -1,3 +1,12 @@
+!-----------------------------------------------------------------------------------------
+! Units:
+!     time				s = seconds
+!     distance			cm
+!     volume			cm^3
+!     mass				micromole = 10^-6 mol = mumol
+!     flux				mumol/s
+!     concentration		mumol/cm^3 = mM
+!-----------------------------------------------------------------------------------------
 module monolayer_mod
 use global
 use chemokine
@@ -135,7 +144,7 @@ call logger(logmsg)
 if (.not.ok) return
 
 istep = 0
-do ichemo = 1,TRACER
+do ichemo = 1,GLUTAMINE
 	if (chemo(ichemo)%used) then
 		call InitConcs(ichemo)
 		call SetupMedium(ichemo)
@@ -354,7 +363,7 @@ end subroutine
 subroutine ReadCellParams(ok)
 logical :: ok
 integer :: i, idrug, imetab, nmetab, im, itestcase, Nmm3, ichemo, itreatment, iuse_extra, iuse_relax, iuse_par_relax, iuse_FD
-integer :: iuse_oxygen, iuse_glucose, iuse_lactate, iuse_tracer, iuse_drug, iuse_metab, iV_depend
+integer :: iuse_oxygen, iuse_glucose, iuse_lactate, iuse_glutamine, iuse_drug, iuse_metab, iV_depend
 integer :: iV_random, iuse_gd_all, iuse_divide_dist, iuse_lognormal, ityp
 !integer ::  idrug_decay, imetab_decay
 integer :: ictype, idisplay, isconstant, ioxygengrowth, iglucosegrowth, ilactategrowth, ioxygendeath, iglucosedeath
@@ -471,8 +480,6 @@ read(nfcell,*) chemo(GLUCOSE)%MM_C0
 read(nfcell,*) chemo(GLUCOSE)%Hill_N
 
 read(nfcell,*) iuse_lactate		
-!read(nfcell,*) ilactategrowth
-!chemo(LACTATE)%controls_growth = (ilactategrowth == 1)
 read(nfcell,*) chemo(LACTATE)%diff_coef
 read(nfcell,*) chemo(LACTATE)%medium_diff_coef
 read(nfcell,*) chemo(LACTATE)%membrane_diff_in
@@ -484,18 +491,17 @@ read(nfcell,*) chemo(LACTATE)%max_cell_rate
 read(nfcell,*) chemo(LACTATE)%MM_C0
 read(nfcell,*) chemo(LACTATE)%Hill_N
 
-read(nfcell,*) iuse_tracer		!chemo(TRACER)%used
-read(nfcell,*) chemo(TRACER)%diff_coef
-read(nfcell,*) chemo(TRACER)%medium_diff_coef
-read(nfcell,*) chemo(TRACER)%membrane_diff_in
-read(nfcell,*) chemo(TRACER)%membrane_diff_out
-read(nfcell,*) chemo(TRACER)%bdry_conc
+read(nfcell,*) iuse_glutamine		!chemo(GLUTAMINE)%used --> use_glutamine
+read(nfcell,*) chemo(GLUTAMINE)%diff_coef
+read(nfcell,*) chemo(GLUTAMINE)%medium_diff_coef
+read(nfcell,*) chemo(GLUTAMINE)%membrane_diff_in
+read(nfcell,*) chemo(GLUTAMINE)%membrane_diff_out
+read(nfcell,*) chemo(GLUTAMINE)%bdry_conc
 read(nfcell,*) iconstant
-chemo(TRACER)%constant = (iconstant == 1)
-read(nfcell,*) chemo(TRACER)%max_cell_rate
-read(nfcell,*) chemo(TRACER)%MM_C0
-read(nfcell,*) chemo(TRACER)%Hill_N
-! removed old read of TPZ and DNB drug data
+chemo(GLUTAMINE)%constant = (iconstant == 1)
+read(nfcell,*) chemo(GLUTAMINE)%max_cell_rate
+read(nfcell,*) chemo(GLUTAMINE)%MM_C0
+read(nfcell,*) chemo(GLUTAMINE)%Hill_N
 
 read(nfcell,*) LQ(1)%alpha_H
 read(nfcell,*) LQ(1)%beta_H
@@ -582,14 +588,19 @@ call logger('Finished reading input data')
 chemo(OXYGEN)%membrane_diff_in = chemo(OXYGEN)%membrane_diff_in*Vsite_cm3/60		! /min -> /sec
 chemo(OXYGEN)%membrane_diff_out = chemo(OXYGEN)%membrane_diff_out*Vsite_cm3/60		! /min -> /sec
 chemo(OXYGEN)%max_cell_rate = chemo(OXYGEN)%max_cell_rate*1.0e6						! mol/cell/s -> mumol/cell/s
+chemo(OXYGEN)%MM_C0 = chemo(OXYGEN)%MM_C0/1000										! uM -> mM
 chemo(GLUCOSE)%membrane_diff_in = chemo(GLUCOSE)%membrane_diff_in*Vsite_cm3/60		! /min -> /sec
 chemo(GLUCOSE)%membrane_diff_out = chemo(GLUCOSE)%membrane_diff_out*Vsite_cm3/60	! /min -> /sec
 chemo(GLUCOSE)%max_cell_rate = chemo(GLUCOSE)%max_cell_rate*1.0e6					! mol/cell/s -> mumol/cell/s
+chemo(GLUCOSE)%MM_C0 = chemo(GLUCOSE)%MM_C0/1000									! uM -> mM
 chemo(LACTATE)%membrane_diff_in = chemo(LACTATE)%membrane_diff_in*Vsite_cm3/60		! /min -> /sec
 chemo(LACTATE)%membrane_diff_out = chemo(LACTATE)%membrane_diff_out*Vsite_cm3/60	! /min -> /sec
+chemo(LACTATE)%MM_C0 = chemo(LACTATE)%MM_C0/1000									! uM -> mM
 chemo(LACTATE)%max_cell_rate = chemo(LACTATE)%max_cell_rate*1.0e6					! mol/cell/s -> mumol/cell/s
-chemo(TRACER)%membrane_diff_in = chemo(TRACER)%membrane_diff_in*Vsite_cm3/60		! /min -> /sec
-chemo(TRACER)%membrane_diff_out = chemo(TRACER)%membrane_diff_out*Vsite_cm3/60		! /min -> /sec
+chemo(GLUTAMINE)%membrane_diff_in = chemo(GLUTAMINE)%membrane_diff_in*Vsite_cm3/60	! /min -> /sec
+chemo(GLUTAMINE)%membrane_diff_out = chemo(GLUTAMINE)%membrane_diff_out*Vsite_cm3/60 ! /min -> /sec
+chemo(GLUTAMINE)%max_cell_rate = chemo(GLUTAMINE)%max_cell_rate*1.0e6				! mol/cell/s -> mumol/cell/s
+chemo(GLUTAMINE)%MM_C0 = chemo(GLUTAMINE)%MM_C0/1000								! uM -> mM
 
 
 if (celltype_fraction(1) == 1.0) then
@@ -632,10 +643,10 @@ hypoxia_threshold = hypoxia_threshold/1000			! uM -> mM
 chemo(OXYGEN)%used = (iuse_oxygen == 1)
 chemo(GLUCOSE)%used = (iuse_glucose == 1)
 chemo(LACTATE)%used = use_metabolism .and. (iuse_lactate == 1)
-chemo(TRACER)%used = (iuse_tracer == 1)
-chemo(OXYGEN)%MM_C0 = chemo(OXYGEN)%MM_C0/1000		! uM -> mM
-chemo(GLUCOSE)%MM_C0 = chemo(GLUCOSE)%MM_C0/1000	! uM -> mM
-chemo(LACTATE)%MM_C0 = chemo(LACTATE)%MM_C0/1000	! uM -> mM
+chemo(GLUTAMINE)%used = (iuse_glutamine == 1)
+!chemo(OXYGEN)%MM_C0 = chemo(OXYGEN)%MM_C0/1000		! uM -> mM
+!chemo(GLUCOSE)%MM_C0 = chemo(GLUCOSE)%MM_C0/1000	! uM -> mM
+!chemo(LACTATE)%MM_C0 = chemo(LACTATE)%MM_C0/1000	! uM -> mM
 if (.not.chemo(OXYGEN)%used) then
     chemo(OXYGEN)%controls_growth = .false.
     chemo(OXYGEN)%controls_death = .false.
@@ -780,6 +791,11 @@ call logger(logmsg)
 if (.not.use_new_drugdata) then
 	call DetermineKd	! Kd is now set or computed in the GUI 
 endif
+
+! glutamine
+use_glutamine = chemo(GLUTAMINE)%used
+C_Gn_test = chemo(GLUTAMINE)%bdry_conc		! temporary
+
 ok = .true.
 
 end subroutine
@@ -867,11 +883,15 @@ integer :: ityp
 
 read(nf,*) f_G_norm
 read(nf,*) f_P_norm
+read(nf,*) f_Gn_norm
 read(nf,*) N_GA
 read(nf,*) N_PA
+read(nf,*) N_GnA
 read(nf,*) N_GI
 read(nf,*) N_PI
+read(nf,*) N_GnI
 read(nf,*) N_PO
+read(nf,*) N_GnO
 read(nf,*) K_H1
 read(nf,*) K_H2
 read(nf,*) K_HB
@@ -880,6 +900,7 @@ read(nf,*) PDKmin
 read(nf,*) C_O2_norm
 read(nf,*) C_G_norm
 read(nf,*) C_L_norm
+read(nf,*) C_Gn_norm
 read(nf,*) f_ATPs
 read(nf,*) f_ATPg
 read(nf,*) f_ATPramp
@@ -889,7 +910,7 @@ read(nf,*) Hill_Km_P
 read(nf,*) fgp_solver
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM
-!ATP_Km = ATP_Km/1000			! uM -> mM
+!ATP_Km = ATP_Km/1000			! uM -> mM 
 end subroutine
 
 !-----------------------------------------------------------------------------------------
@@ -989,7 +1010,7 @@ type(event_type) :: E
 write(logmsg,*) 'ReadProtocol'
 call logger(logmsg)
 total_volume = medium_volume0
-chemo(TRACER+1:)%used = .false.
+chemo(GLUTAMINE+1:)%used = .false.
 do
 	read(nf,'(a)') line
 	if (trim(line) == 'PROTOCOL') exit
@@ -1016,7 +1037,7 @@ do itime = 1,ntimes
 		write(nflog,*) 'ndrugs_used: ',ndrugs_used
 		do idrug = 1,ndrugs_used
 			if (drugname == drug(idrug)%name) then
-				ichemo = TRACER + 1 + 3*(idrug-1)
+				ichemo = GLUTAMINE + 1 + 3*(idrug-1)
 				exit
 			endif
 		enddo
@@ -1750,7 +1771,7 @@ cell_list(k)%t_divide_last = 0		! used in colony growth
 cell_list(k)%Cin = 0
 cell_list(k)%Cin(OXYGEN) = chemo(OXYGEN)%bdry_conc
 cell_list(k)%Cin(GLUCOSE) = chemo(GLUCOSE)%bdry_conc
-cell_list(k)%Cin(TRACER) = chemo(TRACER)%bdry_conc
+cell_list(k)%Cin(GLUTAMINE) = chemo(GLUTAMINE)%bdry_conc
 cell_list(k)%CFSE = generate_CFSE(1.d0)
 cell_list(k)%M = 0
 !occupancy(site(1),site(2),site(3))%indx(1) = k
@@ -1831,7 +1852,7 @@ integer :: ichemo
 real(REAL_KIND) :: c0
 
 if (istep == 0) then
-	if (ichemo == OXYGEN .or. ichemo == GLUCOSE .or. ichemo == LACTATE .or. ichemo == TRACER) then
+	if (ichemo == OXYGEN .or. ichemo == GLUCOSE .or. ichemo == LACTATE .or. ichemo == GLUTAMINE) then
 		c0 = chemo(ichemo)%bdry_conc
 	else	! drug or metabolite
 		c0 = 0

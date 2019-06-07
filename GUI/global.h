@@ -9,7 +9,7 @@
 #define OXYGEN 1
 #define GLUCOSE 2
 #define LACTATE 3
-#define TRACER 4
+#define GLUTAMINE 4
 #define DRUG_A_PARENT 5
 #define DRUG_A_METAB_1 6
 #define DRUG_A_METAB_2 7
@@ -29,7 +29,7 @@
 #define IC_OXYGEN 1
 #define IC_GLUCOSE 2
 #define IC_LACTATE 3
-#define IC_TRACER 4
+#define IC_GLUTAMINE 4
 #define IC_DRUG_A_PARENT 5
 #define IC_DRUG_A_METAB_1 6
 #define IC_DRUG_A_METAB_2 7

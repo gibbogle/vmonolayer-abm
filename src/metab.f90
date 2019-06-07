@@ -35,6 +35,10 @@ integer, parameter :: FGP_SOLVER_MAXATP_TANDEM = 1
 integer, parameter :: FGP_SOLVER_MAXATP_STAGED = 2
 integer, parameter :: FGP_SOLVER_SURVIVAL_STAGED = 3
 
+logical :: use_glutamine 
+
+real(REAL_KIND), parameter :: f_I_threshold = 0.5	! NOT USED
+real(REAL_KIND) :: I_threshold
 ! From spheroid-abm, the max rates of consumption of oxygen and glucose are: 
 !   oxygen:  6.25e-17 moles/cell/s
 !   glucose: 6.80e-17 moles/cell/s
@@ -46,6 +50,8 @@ real(REAL_KIND) :: Hill_Km_O2
 real(REAL_KIND) :: Hill_N_O2
 real(REAL_KIND) :: Hill_Km_G	! Hill Km for dependence of glycolysis rate on glucose
 real(REAL_KIND) :: Hill_N_G		! Hill N for dependence of glycolysis rate on glucose 
+real(REAL_KIND) :: Hill_Km_Gn	! Hill Km for dependence of glutamine metabolism rate on glutamine
+real(REAL_KIND) :: Hill_N_Gn	! Hill N for dependence of glutamine metabolism rate on glutamine 
 real(REAL_KIND) :: Hill_Km_P    ! Hill Km for dependence of pyruvate oxidation rate on pyruvate
 real(REAL_KIND) :: Hill_N_P		! Hill N for dependence of pyruvate oxidation rate on pyruvate
 real(REAL_KIND) :: K_H1			! HIF-1 k1
@@ -55,14 +61,19 @@ real(REAL_KIND) :: K_PDK		! K_PDK
 real(REAL_KIND) :: PDKmin		! PDKmin
 real(REAL_KIND) :: C_O2_norm
 real(REAL_KIND) :: C_G_norm
+real(REAL_KIND) :: C_Gn_norm
 real(REAL_KIND) :: C_L_norm
+real(REAL_KIND) :: C_A_norm
 real(REAL_KIND) :: O2_baserate
 real(REAL_KIND) :: G_baserate
 real(REAL_KIND) :: K_PL			! P -> L
 real(REAL_KIND) :: K_LP			! L -> P
-real(REAL_KIND) :: r_P_norm, r_G_norm, r_A_norm, r_I_norm, C_P_norm, C_A_norm
-real(REAL_KIND) :: G_maxrate, O2_maxrate
+real(REAL_KIND) :: r_P_norm, r_G_norm, r_Gn_norm, r_A_norm, r_I_norm, C_P_norm
+real(REAL_KIND) :: G_maxrate, O2_maxrate, Gn_maxrate
 integer :: fgp_solver
+! glutamine
+real(REAL_KIND) :: C_Gn_test	! temporary
+!real(REAL_KIND) :: N_GnA, N_GnI, N_GnO, C_Gn_test	! must be added to global in metab_dll		
 
 !real(REAL_KIND) :: A_rate_base(MAX_CELLTYPES)	! total rate of production of ATP under full nutrition
 !real(REAL_KIND), parameter :: base_O_rate = 0.0e-11 
@@ -76,6 +87,8 @@ integer :: fgp_solver
 real(REAL_KIND), parameter :: r_H = 1.21e-4
 real(REAL_KIND), parameter :: d_H = 2.3e-3
 real(REAL_KIND), parameter :: Km_H = 20*0.18/160	! Kelly had 2 mmHg, Bill suggests 20
+
+real(REAL_KIND), parameter :: C_Gn_Km_factor = 0.2
 #if EXCEL
 real(REAL_KIND), parameter :: PI = 4*atan(1.0)
 #endif
@@ -103,15 +116,17 @@ end function
 
 !--------------------------------------------------------------------------
 ! Currently this sets up parameters for type 1 cells only.
+! For tandem case we need to incorporate glutamine.
 !--------------------------------------------------------------------------
 subroutine SetupMetabolism(mp,ok)
 type(metabolism_type), pointer :: mp
 logical :: ok
 integer :: ityp, it, N_P, N_O2
-real(REAL_KIND) :: f_Gn, f_Pn, f_PO, f_PA, MM_O2, MM_P, V, K1, K2, Km_P, C_P, C_L, r_Gn, r_Pn, r_Ln, r_An, r_In
+real(REAL_KIND) :: f_Gn, f_Pn, f_Gln, MM_O2, MM_P, V, K1, K2, Km_P, C_P, C_O2, C_G, C_L, r_Gn, r_Pn, r_Ln	!, r_An, r_In
 real(REAL_KIND) :: Km_O2_factor = 1
 real(REAL_KIND) :: average_volume = 1.2
 real(REAL_KIND) :: H, fPDK, rP1, rP2, rP3
+logical :: use_f_metab = .true.
 
 if (noSS) then 
     write(nflog,*) 'SetupMetabolism: not using SS solver'
@@ -131,75 +146,74 @@ Hill_Km_O2 = Km_O2_factor*Hill_Km_O2
 N_O2 = chemo(OXYGEN)%Hill_N
 O2_maxrate = chemo(OXYGEN)%max_cell_rate
 G_maxrate = chemo(GLUCOSE)%max_cell_rate
+Gn_maxrate = chemo(GLUTAMINE)%max_cell_rate
+O2_baserate = 0		! are these needed at all??
+G_baserate = 0
 
-MM_O2 = f_MM(C_O2_norm,Hill_Km_O2,N_O2)
 K1 = K_PL
 K2 = K_LP
 N_P = 1
 Km_P = Hill_Km_P
 f_Gn = f_G_norm  ! input parameters
 f_Pn = f_P_norm
-f_PO = N_PO
-f_PA = N_PA
+f_Gln = f_Gn_norm
+C_O2 = C_O2_norm
+C_G = C_G_norm
 C_L = C_L_norm
-C_P = (K2/K1)*C_L
+MM_O2 = f_MM(C_O2,Hill_Km_O2,N_O2)
 
-H = get_HIF1steadystate(C_O2_norm)
+H = get_HIF1steadystate(C_O2)
 call analyticSetPDK1(H, fPDK, 1.0d10)
 mp%HIF1 = H
 mp%PDK1 = fPDK
 
-if (chemo(LACTATE)%used) then
-	do it = 1,10	! new method, set f_G, f_P
+write(nflog,*) 'f_Gln: ',f_Gln
+if (use_f_metab) then
+	mp%f_G = f_Gn
+	mp%f_P = f_Pn
+	mp%f_Gn = f_Gn_norm
+	call f_metab(mp, C_O2, C_G, C_L)
+	write(nflog,*) 'f_Gln: ',mp%f_Gn
+	write(nflog,'(a,6e11.3)') 'G,P,L,A,I,Gn rates: ',mp%G_rate,mp%P_rate,mp%L_rate,mp%A_rate,mp%I_rate,mp%Gn_rate
+else
+	C_P = (K2/K1)*C_L
+	do it = 1,10	! iterative method to set f_G, f_P
 		MM_P = f_MM(C_P,Km_P,N_P)
-		r_Gn = get_glycosis_rate(H,C_G_norm)
-		r_Ln = N_GA*(1-f_Gn)*r_Gn - fPDK*MM_P*MM_O2*O2_maxrate/(f_PO*(1-f_Pn))
+		r_Gn = get_glycosis_rate(H,C_G)
+		r_Ln = N_GA*(1-f_Gn)*r_Gn - fPDK*MM_P*MM_O2*O2_maxrate/(N_PO*(1-f_Pn))
 		r_Pn = N_GA*(1-f_Gn)*r_Gn - r_Ln
-		r_An = N_GA*(1-f_Gn)*r_Gn + f_PA*(1-f_Pn)*r_Pn
-!		r_In = f_Gn*r_Gn + f_Pn*r_Pn
-		r_In = f_Gn*r_Gn*N_GI + f_Pn*r_Pn*N_PI
-		write(nflog,'(a,5e11.3)') 'G,P,L,A,I rates: ',r_Gn,r_Pn,r_Ln,r_An,r_In
-		C_P = (r_Ln/V + K2*C_L)/K1
-		if (C_P <= 0) then
+		mp%A_rate = N_GA*(1-f_Gn)*r_Gn + N_PA*(1-f_Pn)*r_Pn
+		mp%I_rate = f_Gn*r_Gn*N_GI + f_Pn*r_Pn*N_PI
+		mp%O_rate = N_PO*(1 - f_Pn)*r_Pn
+		mp%G_rate = r_Gn
+		mp%P_rate = r_Pn
+		mp%l_rate = r_Ln
+		mp%C_P = (mp%L_rate/V + K2*C_L)/K1
+		write(nflog,'(a,5e11.3)') 'G,P,L,A,I rates: ',r_Gn,r_Pn,r_Ln,mp%A_rate,mp%I_rate
+		if (mp%C_P <= 0) then
 			write(*,*) 'Error: C_P < 0: decrease N_PI and/or N_GI'
 			stop
 		endif
 	enddo
-else
-	! We need r_O2 = O2_maxrate = f_PO*2*(1 - f_Gn)*(1 - f_Pn)*G_maxrate  
-	write(nflog,'(a,2f8.4)') 'O2_maxrate/G_maxrate, f_PO*2*(1 - f_Gn)*(1 - f_Pn): ',O2_maxrate/G_maxrate, f_PO*2*(1 - f_Gn)*(1 - f_Pn)
-	f_Pn = 1 - O2_maxrate/(G_maxrate*f_PO*2*(1 - f_Gn))
-	write(nflog,'(a,f8.3,a,f8.3)') 'reset f_Pn to: ',f_Pn,'  f_PO: ',f_PO
-	r_Gn = get_glycosis_rate(0.0d0,C_G_norm)
-	r_Ln = 0
-	r_Pn = N_GA*(1-f_Gn)*r_Gn
-	r_An = N_GA*(1-f_Gn)*r_Gn + f_PA*(1-f_Pn)*r_Pn
-!	r_In = f_Gn*r_Gn + f_Pn*r_Pn
-	r_In = f_Gn*r_Gn*N_GI + f_Pn*r_Pn*N_PI
-	C_P = 0
-    f_G_norm = f_Gn
-    f_P_norm = f_Pn
 endif
 
-r_G_norm = r_Gn
-r_P_norm = r_Pn
-r_A_norm = r_An
-r_I_norm = r_In
-C_P_norm = C_P
-C_A_norm = 20		!#################  From Bill #################
-mp%f_G = f_Gn
-mp%f_P = f_Pn
-mp%C_P = C_P_norm
+r_G_norm = mp%G_rate
+r_P_norm = mp%P_rate
+r_A_norm = mp%A_rate
+r_I_norm = mp%I_rate
+r_Gn_norm = mp%Gn_rate
+C_P_norm = mp%C_P
+!C_A_norm = 20		!#################  From Bill #################  now an input parameter
+!mp%f_G = f_Gn
+!mp%f_P = f_Pn
+!mp%C_P = C_P_norm
 mp%C_A = C_A_norm
+mp%I_rate_max = r_I_norm
+!mp%A_rate = r_A_norm
+!mp%I_rate = r_I_norm
+!mp%G_rate = r_G_norm
 ATPg = f_ATPg*r_A_norm
 ATPs = f_ATPs*r_A_norm
-mp%I_rate_max = r_I_norm
-mp%A_rate = r_A_norm
-mp%I_rate = r_I_norm
-mp%G_rate = r_G_norm
-mp%O_rate = f_PO*(1 - f_Pn)*r_Pn
-O2_baserate = 0.0*O2_maxrate
-G_baserate = 0.0*G_maxrate
 write(nflog,'(a,4e12.3)') 'f_G_norm,f_P_norm,ATPg,C_P_norm: ',f_G_norm,f_P_norm,ATPg,C_P_norm
 end subroutine
 
@@ -368,16 +382,116 @@ end subroutine
 !--------------------------------------------------------------------------
 
 !--------------------------------------------------------------------------
+! Use f_Gln for glutamine factor, to avoid confusion with f_Gn
 !--------------------------------------------------------------------------
 subroutine f_metab(mp, C_O2_, C_G_, C_L_)
 integer :: ityp
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2_, C_G_, C_L_
-real(REAL_KIND) :: C_O2, C_G, C_L
+real(REAL_KIND) :: C_O2, C_G, C_L, C_Gn
 real(REAL_KIND) :: r_G, fPDK
-real(REAL_KIND) :: f_G, f_P, r_P, r_A, r_I, r_L, f_PO, f_PA
+real(REAL_KIND) :: f_G, f_P, f_Gln, r_P, r_A, r_I, r_L, r_Gn
 real(REAL_KIND) :: K1, K2, C_P
-real(REAL_KIND) :: r_GP, r_GA, r_PA, r_Pm, V, Km_O2, Km_P, q, a, b, c, d, e, MM_P, MM_O2, MM_G, Km_GO
+real(REAL_KIND) :: r_GP, r_GA, r_PA, r_Pm, V, Km_O2, Km_P, Km_G, Km_Gn, q, a, b, c, d, e, MM_P, MM_O2, MM_G, Km_GO
+real(REAL_KIND) :: r_GI, r_PI, r_O2
+real(REAL_KIND) :: r_Pm_base
+integer :: N_O2, N_P, it
+real(REAL_KIND) :: average_volume = 1.2
+logical :: dbug = .false.
+
+!dbug = (C_G_ /= C_G_norm)
+C_O2 = max(0.0,C_O2_)
+C_G = max(0.0,C_G_)
+C_L = max(0.0,C_L_)
+C_Gn = C_Gn_test	! temporary
+
+N_O2 = Hill_N_O2
+Km_O2 = Hill_Km_O2
+N_P = 1
+Km_P = Hill_Km_P
+V = Vcell_cm3*average_volume		! should be actual cell volume cp%V
+!f_PO = N_PO
+!f_PA = N_PA
+K1 = K_PL
+K2 = K_LP
+f_G = mp%f_G
+f_P = mp%f_P
+f_Gln = mp%f_Gn
+
+mp%G_rate = get_glycosis_rate(mp%HIF1,C_G)
+r_G = mp%G_rate
+fPDK = mp%PDK1
+MM_O2 = f_MM(C_O2,Km_O2,N_O2)
+r_Pm_base = fPDK*MM_O2*O2_maxrate/N_PO	! note that MM_P is not here, since it varies it is added as needed
+!	write(nflog,'(a,2e12.3)') 'r_Pm_base: ',r_Pm_base
+r_Gn = 0
+if (use_glutamine) then
+	r_Gn = fPDK*Gn_maxrate*(C_Gn_Km_factor*Hill_Km_G/(C_Gn_Km_factor*Hill_Km_G + C_G))*C_Gn/(Hill_Km_Gn + C_Gn)
+!		write(nflog,'(a,e12.3)') 'r_Gn first: ',r_Gn
+	r_Gn = min(r_Gn,fPDK*MM_O2*O2_maxrate/(N_GnO*(1 - f_Gln)))
+	r_Gn = min(r_Gn, (r_A_norm - r_G*N_GA)/((1-f_Gln)*N_GnA))
+	r_Gn = max(0.0, r_Gn)
+	r_Pm_base = r_Pm_base - (N_GnO/N_PO)*(1 - f_Gln)*r_Gn
+	if (dbug) then
+		write(nflog,'(a,2e12.3)') 'r_Pm_base,r_Gn: ',r_Pm_base,r_Gn
+	endif
+endif
+if (r_Pm_base == 0) then
+	r_P = 0
+	r_L = N_GA*(1 - f_G)*r_G
+	r_O2 = N_GnO*(1 - f_Gln)*r_Gn
+	r_A = (1-f_G)*r_G*N_GA + (1 - f_Gln)*N_GnA*r_Gn
+	r_I = f_G*r_G*N_GI + f_Gln*N_GnI*r_Gn
+	C_P = ((1-f_G)*r_G*N_GA + V*K2*C_L)/(V*K1)
+	write(nflog,'(a,4e12.3)') 'r_Gn: ',r_Gn,f_Gln,N_GnI,r_I
+else
+	a = V*K1
+!	b = fPDK*O2_maxrate*MM_O2/(N_PO*(1 - f_P)) + Km_P*V*K1 - N_GA*(1 - f_G)*r_G - V*K2*C_L
+	b = r_PM_base/(1 - f_P) + Km_P*V*K1 - N_GA*(1 - f_G)*r_G - V*K2*C_L
+	c = -Km_P*(N_GA*(1 - f_G)*r_G + V*K2*C_L)
+	d = sqrt(b*b - 4*a*c) 
+	C_P = (-b + d)/(2*a)
+	if (dbug) then
+		write(nflog,'(a,4e12.3)') 'f_metab: a,b,c,C_P: ',a,b,c,C_P
+	endif
+!	r_O2 = fPDK*O2_maxrate*MM_O2*C_P/(Km_P + C_P)
+!	r_P = r_O2/(N_PO*(1 - f_P))	! wrong now because O2 is also used up by glutamine
+	r_P = r_Pm_base*C_P/((1-f_P)*(Km_P+C_P))
+	r_O2 = (1 - f_P)*r_P*N_PO
+	r_L = N_GA*(1 - f_G)*r_G - r_P
+	r_A = (1-f_G)*r_G*N_GA + (1-f_P)*r_P*N_PA	! production
+	r_I = f_G*r_G*N_GI + f_P*r_P*N_PI			! production
+	if (use_glutamine) then
+		r_O2 = r_O2 + (1 - f_Gln)*r_Gn*N_GnO
+		r_A = r_A + (1 - f_Gln)*N_GnA*r_Gn
+		r_I = r_I + f_Gln*N_GnI*r_Gn
+	endif
+endif
+mp%A_rate = r_A									! production
+mp%I_rate = r_I									! production
+mp%P_rate = r_P									! utilisation
+mp%O_rate = r_O2								! consumption
+mp%Gn_rate = r_Gn								! consumption
+mp%L_rate = r_L									! production
+mp%C_P = C_P
+
+! Add base rate correction
+mp%O_rate = mp%O_rate + O2_baserate
+mp%G_rate = mp%G_rate + G_baserate
+!write(nflog,'(a,i8,2e12.3)') 'G_rate: ',istep,mp%HIF1,mp%G_rate
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+subroutine f_metab1(mp, C_O2_, C_G_, C_L_)
+integer :: ityp
+type(metabolism_type), pointer :: mp
+real(REAL_KIND) :: C_O2_, C_G_, C_L_
+real(REAL_KIND) :: C_O2, C_G, C_L, C_Gn
+real(REAL_KIND) :: r_G, fPDK
+real(REAL_KIND) :: f_G, f_P, f_Gln, r_P, r_A, r_I, r_L, r_Gn
+real(REAL_KIND) :: K1, K2, C_P
+real(REAL_KIND) :: r_GP, r_GA, r_PA, r_Pm, V, Km_O2, Km_P, Km_G, Km_Gn, q, a, b, c, d, e, MM_P, MM_O2, MM_G, Km_GO
 real(REAL_KIND) :: r_GI, r_PI, r_O2
 real(REAL_KIND) :: r_Pm_base
 integer :: N_O2, N_P, it
@@ -386,66 +500,50 @@ real(REAL_KIND) :: average_volume = 1.2
 C_O2 = max(0.0,C_O2_)
 C_G = max(0.0,C_G_)
 C_L = max(0.0,C_L_)
+C_Gn = C_Gn_test	! temporary
 
 N_O2 = Hill_N_O2
 Km_O2 = Hill_Km_O2
 N_P = 1
 Km_P = Hill_Km_P
 V = Vcell_cm3*average_volume		! should be actual cell volume cp%V
-f_PO = N_PO
-f_PA = N_PA
+!f_PO = N_PO
+!f_PA = N_PA
 K1 = K_PL
 K2 = K_LP
 f_G = mp%f_G
 f_P = mp%f_P
+f_Gln = mp%f_Gn
 
 mp%G_rate = get_glycosis_rate(mp%HIF1,C_G)
 r_G = mp%G_rate
 fPDK = mp%PDK1
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
-if (chemo(LACTATE)%used) then
-
-	a = V*K1
-	b = fPDK*O2_maxrate*MM_O2/(f_PO*(1 - f_P)) + Km_P*V*K1 - N_GA*(1 - f_G)*r_G - V*K2*C_L
-	c = -Km_P*(N_GA*(1 - f_G)*r_G + V*K2*C_L)
-	d = sqrt(b*b - 4*a*c) 
-	C_P = (-b + d)/(2*a)
-	
-	r_O2 = fPDK*O2_maxrate*MM_O2*C_P/(Km_P + C_P)
-	r_P = r_O2/(f_PO*(1 - f_P))
-	r_L = N_GA*(1 - f_G)*r_G - r_P
-	
-	mp%A_rate = (1-f_G)*r_G*N_GA + (1-f_P)*r_P*N_PA	! production
-!	mp%I_rate = f_G*r_G + f_P*r_P					! production
-	mp%I_rate = f_G*r_G*N_GI + f_P*r_P*N_PI			! production
-	mp%P_rate = r_P									! utilisation
-	mp%O_rate = r_O2								! consumption
-	mp%L_rate = r_L									! production
-	mp%C_P = C_P
-else    ! not corrected for revised treatment of N_GI, N_PI etc
-	r_P = fPDK*MM_O2*N_GA*(1 - f_G)*r_G
-	r_GI = r_G - r_P/2
-	r_GA = r_P
-	! Need to adjust f_P to maintain r_A at r_A_norm = N_GA*(1-f_Gn)*r_Gn + N_PA*(1-f_Pn)*r_Pn
-	f_P = 1 - (r_A_norm - N_GA*(1-f_G)*r_G)/(N_PA*r_P)
-	f_P = max(f_P,0.0)
-	f_P = min(f_P,1.0)
-	r_PI = f_P*r_P
-	r_PA = f_PA*(1 - f_P)*r_P
-	r_O2 = f_PO*(1 - f_P)*r_P
-	mp%A_rate = r_GA + r_PA
-	mp%I_rate = r_GI + r_PI
-	mp%P_rate = r_P
-	mp%O_rate = r_O2
-	mp%L_rate = 0
-	mp%C_P = 0
+r_Pm_base = fPDK*MM_O2*O2_maxrate/N_PO	! note that MM_P is not here, since it varies it is added as needed
+if (use_glutamine) then
+	r_Gn = fPDK*Gn_maxrate*(Hill_Km_G/(Hill_Km_G + C_G))*C_Gn/(Hill_Km_Gn + C_Gn)
+else
+	r_Gn = 0
 endif
-	
-! Add base rate correction
-mp%O_rate = mp%O_rate + O2_baserate
-mp%G_rate = mp%G_rate + G_baserate
-!write(nflog,'(a,i8,2e12.3)') 'G_rate: ',istep,mp%HIF1,mp%G_rate
+r_P = (r_Pm_base - (1-f_gln)*r_Gn*(N_GnO/N_PO))/(1-f_P)
+r_P = max(0.0,r_P)
+r_O2 = r_Pm_base*(1-f_P)*N_PO + (1-f_Gln)*r_Gn*N_GnO
+!r_L = N_GA*(1-f_G)*r_G - r_P
+r_A = (1-f_G)*r_G*N_GA + (1-f_P)*r_P*N_PA + (1-f_Gln)*r_Gn*N_GnA	! production
+r_I = f_G*r_G*N_GI + f_P*r_P*N_PI			! production
+C_P = ((1-f_G)*r_G*N_GA + V*K2*C_L + ((1-f_Gln)*r_Gn*(N_GnO/N_PO) - r_Pm_base)/((1-f_P)*N_PO))/(V*K1)
+C_P = max(0.0,C_P)
+r_L = V*(K1*C_P - K2*C_L)
+mp%A_rate = r_A									! production
+mp%I_rate = r_I									! production
+mp%P_rate = r_P									! utilisation
+mp%O_rate = r_O2								! consumption
+mp%Gn_rate = r_Gn								! consumption
+mp%L_rate = r_L									! production
+mp%C_P = C_P
+write(nflog,'(a,6e12.3)') 'f_P,r_G,r_P,r_Gn,r_A,C_P: ',f_P,r_G,r_P,r_Gn,r_A,C_P
 end subroutine
+
 
 !--------------------------------------------------------------------------
 ! This method does not assume steady-state for C_P, instead the d.e. for 
@@ -956,15 +1054,20 @@ mp%f_P = f_P
 end subroutine
 
 !----------------------------------------------------------------------------------
+! Incorporating glutamine metabolism
+! In the case that %A_rate < r_A_norm,
+! this solves for w (where fG = w*f_G_norm, fP = w*f_P_norm) and z = C_P.
+! Otherwise, w = 1 and fG = f_G_norm, fP = f_P_norm.  Can we set C_P = C_P_norm?
+!----------------------------------------------------------------------------------
 subroutine Set_f_GP_tandem(mp,C)
 integer :: ityp
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C(:)
-real(REAL_KIND) :: C_O2, C_G, C_L
-real(REAL_KIND) :: f_G, f_P, fGn, fPn, r_P, r_G, r_O2
+real(REAL_KIND) :: C_O2, C_G, C_L, C_Gn
+real(REAL_KIND) :: f_G, f_P, fGn, fPn, r_P, r_A, r_G, r_O2, r_Gn, f_Gln
 integer :: N_O2, N_P, n, i
 real(REAL_KIND) :: Km_O2, Km_P, V, K1, K2, MM_O2, fPDK, r_Pm_base, r_An
-real(REAL_KIND) :: a1, b1, c1, a2, b2, c2, a3, b3, c3, e1, e2, r(3), w, z, C_P, val
+real(REAL_KIND) :: a1, b1, c1, a2, b2, c2, a3, b3, c3, e1, e2, de1, r(3), w, z, C_P, val
 real(REAL_KIND) :: average_volume = 1.2
 logical :: f_P_first = .true.	! First f_P is determined, then f_G (Note: f_P_first = .false. is not used)
 
@@ -991,20 +1094,42 @@ K1 = K_PL
 K2 = K_LP
 r_An = r_A_norm
 
-r_G = get_glycosis_rate(mp%HIF1,C_G)
-fPDK = mp%PDK1
-MM_O2 = f_MM(C_O2,Km_O2,N_O2)
-r_Pm_base = fPDK*MM_O2*O2_maxrate/N_PO	! note that MM_P is not here, since it varies it is added as needed
-
 fGn = f_G_norm
 fPn = f_P_norm
 f_G = fGn
 f_P = fPn
 mp%f_G = f_G
 mp%f_P = f_P
+mp%f_Gn = f_Gn_norm
 call f_metab(mp,C_O2,C_G,C_L)
 if (mp%A_rate < r_An) then
+	C_Gn = C_Gn_test		! temporary
+	f_Gln = mp%f_Gn
+	r_G = get_glycosis_rate(mp%HIF1,C_G)
+	fPDK = mp%PDK1
+	MM_O2 = f_MM(C_O2,Km_O2,N_O2)
+	r_Pm_base = fPDK*MM_O2*O2_maxrate/N_PO	! note that MM_P is not here, since it varies it is added as needed
+	r_Gn = 0
+	if (use_glutamine) then
+		r_Gn = fPDK*Gn_maxrate*(C_Gn_Km_factor*Hill_Km_G/(C_Gn_Km_factor*Hill_Km_G + C_G))*C_Gn/(Hill_Km_Gn + C_Gn)
+		r_Gn = min(r_Gn, fPDK*MM_O2*O2_maxrate/(N_GnO*(1 - f_Gln)))
+		r_Gn = min(r_Gn, (r_An - r_G*N_GA)/((1-f_Gln)*N_GnA))
+		r_Gn = max(0.0, r_Gn)
+		r_Pm_base = r_Pm_base - (N_GnO/N_PO)*(1 - f_Gln)*r_Gn
+		if (r_Pm_base == 0) then
+			write(nflog,*) 'r_Pm_base = 0'
+			! r_P = 0
+			mp%f_G = max(0.0,1 - (r_An - (1-f_Gln)*r_Gn*N_GnA)/(r_G*N_GA))
+			mp%f_P = (mp%f_G/f_G_norm)*f_P_norm
+			return
+		endif
+	endif
 	e1 = r_An/(r_Pm_base*N_PA)
+	if (use_glutamine) then
+		de1 = (1 - f_Gln)*N_GnA*r_Gn/(r_Pm_base*N_PA)
+		write(nflog,'(a,2e12.3)') 'e1,de1: ',e1,de1
+		e1 = e1 - de1
+	endif
 	e2 = r_G*N_GA/(r_Pm_base*N_PA)
 	a1 = (e2 - e1)*Km_P/(fGn*e2)
 	b1 = (e2 - e1 + 1)/(fGn*e2)
@@ -1068,11 +1193,78 @@ if (mp%A_rate < r_An) then
 	w = max(w,0.0)
 	f_G = w*fGn
 	f_P = w*fPn
+	r_P = r_Pm_base*z/((1-f_P)*(Km_P+z))
+	r_A = (1-f_G)*r_G*N_GA + (1-f_P)*r_P*N_PA + (1-f_Gln)*r_Gn*N_GnA
+	write(nflog,'(a,e12.3,f8.3,2e12.3)') 'z,w,r_A,r_An: ',z,w,r_A,r_An
 endif
 mp%f_G = f_G
 mp%f_P = f_P
 
 !write(*,'(a,5e12.3)') 'r_P, r_O2, C_P, f_P, f_G: ',r_P, r_O2, C_P, f_P, f_G
+end subroutine
+
+!----------------------------------------------------------------------------------
+subroutine Set_f_GP_tandem1(mp,C)
+integer :: ityp
+type(metabolism_type), pointer :: mp
+real(REAL_KIND) :: C(:)
+real(REAL_KIND) :: C_O2, C_G, C_L, C_Gn
+real(REAL_KIND) :: f_G, f_P, fGn, fPn, r_P, r_G, r_O2, r_Gn, f_Gln
+integer :: N_O2, N_P, n, i
+real(REAL_KIND) :: Km_O2, Km_P, V, K1, K2, MM_O2, fPDK, r_Pm_base, r_An
+real(REAL_KIND) :: a1, b1, c1, a2, b2, c2, a3, b3, c3, e1, e2, de1, r(3), w, z, C_P, val
+real(REAL_KIND) :: average_volume = 1.2
+logical :: f_P_first = .true.	! First f_P is determined, then f_G (Note: f_P_first = .false. is not used)
+
+integer :: ierr, Ndim, k, ifail
+real(REAL_KIND) :: x(1), Rtol, f(1), x0, x1, dx, f0, f1, dfdx
+
+if (N1D == 0) then
+	! Cex for 3D case - vspheroid
+	C_O2 = C(1)
+	C_G = C(2)
+	C_L = C(3)
+else
+	! Cex for 1D case - monolayer
+	C_O2 = C(1)
+	C_G = C(N1D+2)
+	C_L = C(2*N1D+3)
+endif
+
+N_O2 = Hill_N_O2
+Km_O2 = Hill_Km_O2
+Km_P = Hill_Km_P
+V = Vcell_cm3*average_volume		! should be actual cell volume cp%V 
+K1 = K_PL
+K2 = K_LP
+r_An = r_A_norm
+
+fGn = f_G_norm
+fPn = f_P_norm
+f_G = fGn
+f_P = fPn
+mp%f_G = f_G
+mp%f_P = f_P
+call f_metab(mp,C_O2,C_G,C_L)
+write(nflog,'(a,5e12.3)') 'r_An, r_A: ',r_An,mp%A_rate,C_O2,C_G,C_L
+if (mp%A_rate < r_An) then
+	C_Gn = C_Gn_test		! temporary
+	f_Gln = mp%f_Gn
+	r_G = get_glycosis_rate(mp%HIF1,C_G)
+	fPDK = mp%PDK1
+	MM_O2 = f_MM(C_O2,Km_O2,N_O2)
+	r_Pm_base = fPDK*MM_O2*O2_maxrate/N_PO	! assume that C_P >> Km_P
+	r_Gn = fPDK*Gn_maxrate*(Hill_Km_G/(Hill_Km_G + C_G))*C_Gn/(Hill_Km_Gn + C_Gn)
+	! r_P = r_Pm_base - r_Gn*N_GnO/N_PO
+	w = (1 - (N_PA/(r_G*N_GA))*((r_An - (1-f_Gln)*r_Gn*N_GnA)/N_PA + (1-f_Gln)*r_Gn*(N_GnO/N_PO) - r_Pm_base))/fGn
+	w = min (1.0,w)
+	w = max(0.0,w)
+	f_G = w*fGn
+	f_P = w*fPn
+	write(nflog,'(a,4e12.3)') 'r_G,r_Pm_base,r_Gn,w: ',r_G,r_Pm_base,r_Gn,w
+endif
+mp%f_G = f_G
+mp%f_P = f_P
 end subroutine
 
 #if 0

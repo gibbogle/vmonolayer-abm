@@ -40,7 +40,7 @@ integer, parameter :: OXYGEN = 1
 integer, parameter :: GLUCOSE = 2
 integer, parameter :: LACTATE = 3
 !integer, parameter :: PYRUVATE = 4
-integer, parameter :: TRACER = 4
+integer, parameter :: GLUTAMINE = 4
 integer, parameter :: DRUG_A = 5
 integer, parameter :: TPZ_DRUG = DRUG_A
 integer, parameter :: TPZ_DRUG_METAB_1 = TPZ_DRUG + 1
@@ -123,7 +123,7 @@ type metabolism_type
 	real(REAL_KIND) :: f_P
 	real(REAL_KIND) :: C_P
 	real(REAL_KIND) :: C_A
-!	real(REAL_KIND) :: A_fract
+	real(REAL_KIND) :: f_Gn, Gn_rate
 end type
 
 type cell_type
@@ -376,12 +376,16 @@ real(REAL_KIND) :: start_wtime
 
 ! Metabolism parameters
 real(REAL_KIND) :: f_G_norm ! normal fraction of glycosis (r_G) going to make intermediates
+real(REAL_KIND) :: f_Gn_norm ! normal fraction of glutamine (r_Gn) going to make intermediates
 real(REAL_KIND) :: f_P_norm ! normal fraction of pyruvates (r_P) going to make intermediates
 real(REAL_KIND) :: N_GA		! number of ATP molecules generated per glucose molecule in glycosis
 real(REAL_KIND) :: N_GI		! number of intermediate molecules generated per glucose molecule in glycosis
+real(REAL_KIND) :: N_GnA		! number of ATP molecules generated per glutamine molecule
+real(REAL_KIND) :: N_GnI		! number of intermediate molecules generated per glutamine molecule
 real(REAL_KIND) :: N_PA		! number of ATP molecules generated per pyruvate molecule in pyruvate oxidation
 real(REAL_KIND) :: N_PI		! number of intermediate molecules generated per pyruvate molecule in pyruvate oxidation
 real(REAL_KIND) :: N_PO		! number of O2 molecules consumed per pyruvate molecule in pyruvate oxidation
+real(REAL_KIND) :: N_GnO		! number of O2 molecules consumed per glutamine molecule in glutamine oxidation
 real(REAL_KIND) :: f_ATPg	! threshold ATP production rate fractions for cell growth
 real(REAL_KIND) :: f_ATPs	! threshold ATP production rate fractions for cell survival
 real(REAL_KIND) :: f_ATPramp	! multiplying factor for ramp start for reducing r_G, r_P

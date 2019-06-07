@@ -956,8 +956,8 @@ padding: 8px
              <rect>
               <x>30</x>
               <y>10</y>
-              <width>511</width>
-              <height>331</height>
+              <width>521</width>
+              <height>321</height>
              </rect>
             </property>
             <property name="title">
@@ -968,8 +968,8 @@ padding: 8px
               <rect>
                <x>10</x>
                <y>10</y>
-               <width>491</width>
-               <height>311</height>
+               <width>501</width>
+               <height>301</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_GLGL3">
@@ -1085,7 +1085,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_GLUCOSE_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1098,7 +1098,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_GLUCOSE_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1111,7 +1111,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_OXYGEN_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1124,7 +1124,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_OXYGEN_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1203,7 +1203,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_OXYGEN_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1216,7 +1216,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_GLUCOSE_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1249,7 +1249,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_OXYGEN_MM_KM">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1262,7 +1262,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_GLUCOSE_MM_KM">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1288,7 +1288,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_OXYGEN_HILL_N">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1301,7 +1301,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_GLUCOSE_HILL_N">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1327,7 +1327,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_OXYGEN_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1340,7 +1340,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_GLUCOSE_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1353,7 +1353,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_OXYGEN_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1366,7 +1366,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_GLUCOSE_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1396,10 +1396,10 @@ padding: 8px
                </widget>
               </item>
               <item row="0" column="6">
-               <widget class="QLabel" name="alabel_tracer">
+               <widget class="QLabel" name="alabel_glutamine">
                 <property name="maximumSize">
                  <size>
-                  <width>50</width>
+                  <width>60</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1410,12 +1410,12 @@ padding: 8px
                  </font>
                 </property>
                 <property name="text">
-                 <string>Tracer</string>
+                 <string>Glutamine</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="6">
-               <widget class="QMyCheckBox" name="cbox_USE_TRACER">
+               <widget class="QMyCheckBox" name="cbox_USE_GLUTAMINE">
                 <property name="maximumSize">
                  <size>
                   <width>60</width>
@@ -1431,10 +1431,10 @@ padding: 8px
                </widget>
               </item>
               <item row="5" column="6">
-               <widget class="QLineEdit" name="line_TRACER_DIFF_COEF">
+               <widget class="QLineEdit" name="line_GLUTAMINE_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1444,10 +1444,10 @@ padding: 8px
                </widget>
               </item>
               <item row="6" column="6">
-               <widget class="QLineEdit" name="line_TRACER_MEDIUM_DIFF">
+               <widget class="QLineEdit" name="line_GLUTAMINE_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1457,10 +1457,10 @@ padding: 8px
                </widget>
               </item>
               <item row="7" column="6">
-               <widget class="QLineEdit" name="line_TRACER_CELL_DIFF_IN">
+               <widget class="QLineEdit" name="line_GLUTAMINE_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1470,10 +1470,10 @@ padding: 8px
                </widget>
               </item>
               <item row="9" column="6">
-               <widget class="QLineEdit" name="line_TRACER_BDRY_CONC">
+               <widget class="QLineEdit" name="line_GLUTAMINE_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1483,10 +1483,10 @@ padding: 8px
                </widget>
               </item>
               <item row="10" column="6">
-               <widget class="QLineEdit" name="line_TRACER_CONSUMPTION">
+               <widget class="QLineEdit" name="line_GLUTAMINE_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1496,10 +1496,10 @@ padding: 8px
                </widget>
               </item>
               <item row="11" column="6">
-               <widget class="QLineEdit" name="line_TRACER_MM_KM">
+               <widget class="QLineEdit" name="line_GLUTAMINE_MM_KM">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1509,10 +1509,10 @@ padding: 8px
                </widget>
               </item>
               <item row="12" column="6">
-               <widget class="QLineEdit" name="line_TRACER_HILL_N">
+               <widget class="QLineEdit" name="line_GLUTAMINE_HILL_N">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1529,12 +1529,12 @@ padding: 8px
                </widget>
               </item>
               <item row="4" column="6">
-               <widget class="QMyCheckBox" name="cbox_TRACER_CONSTANT">
+               <widget class="QMyCheckBox" name="cbox_GLUTAMINE_CONSTANT">
                 <property name="text">
                  <string/>
                 </property>
                 <property name="checked">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>
@@ -1630,7 +1630,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_LACTATE_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1643,7 +1643,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_LACTATE_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1656,7 +1656,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_LACTATE_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1669,7 +1669,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_LACTATE_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1682,7 +1682,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_LACTATE_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1695,7 +1695,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_LACTATE_MM_KM">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1708,7 +1708,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_LACTATE_HILL_N">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1741,7 +1741,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_OXYGEN_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1754,7 +1754,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_GLUCOSE_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1767,7 +1767,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_LACTATE_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1777,10 +1777,10 @@ padding: 8px
                </widget>
               </item>
               <item row="8" column="6">
-               <widget class="QLineEdit" name="line_TRACER_CELL_DIFF_OUT">
+               <widget class="QLineEdit" name="line_GLUTAMINE_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>65</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1816,7 +1816,7 @@ padding: 8px
              <rect>
               <x>30</x>
               <y>370</y>
-              <width>181</width>
+              <width>151</width>
               <height>121</height>
              </rect>
             </property>
@@ -1826,7 +1826,7 @@ padding: 8px
             <widget class="QLabel" name="alabel">
              <property name="geometry">
               <rect>
-               <x>40</x>
+               <x>20</x>
                <y>10</y>
                <width>91</width>
                <height>16</height>
@@ -1839,7 +1839,7 @@ padding: 8px
             <widget class="QLineEdit" name="lineEdit_glucose_ncells">
              <property name="geometry">
               <rect>
-               <x>110</x>
+               <x>90</x>
                <y>30</y>
                <width>50</width>
                <height>20</height>
@@ -1864,7 +1864,7 @@ padding: 8px
             <widget class="QLabel" name="alabel_2">
              <property name="geometry">
               <rect>
-               <x>28</x>
+               <x>8</x>
                <y>30</y>
                <width>81</width>
                <height>21</height>
@@ -1877,7 +1877,7 @@ padding: 8px
             <widget class="QPushButton" name="pushButton_glucose_0">
              <property name="geometry">
               <rect>
-               <x>70</x>
+               <x>50</x>
                <y>90</y>
                <width>51</width>
                <height>23</height>
@@ -1890,7 +1890,7 @@ padding: 8px
             <widget class="QLineEdit" name="lineEdit_glucose_ndays">
              <property name="geometry">
               <rect>
-               <x>110</x>
+               <x>90</x>
                <y>60</y>
                <width>50</width>
                <height>20</height>
@@ -1912,7 +1912,7 @@ padding: 8px
             <widget class="QLabel" name="alabel_5">
              <property name="geometry">
               <rect>
-               <x>30</x>
+               <x>10</x>
                <y>60</y>
                <width>81</width>
                <height>16</height>
@@ -1928,8 +1928,8 @@ padding: 8px
              <rect>
               <x>590</x>
               <y>10</y>
-              <width>421</width>
-              <height>541</height>
+              <width>391</width>
+              <height>471</height>
              </rect>
             </property>
             <property name="title">
@@ -1940,31 +1940,11 @@ padding: 8px
               <rect>
                <x>10</x>
                <y>10</y>
-               <width>401</width>
-               <height>519</height>
+               <width>371</width>
+               <height>451</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
-              <item row="3" column="1">
-               <widget class="QLineEdit" name="line_N_GA_1">
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>18</height>
-                 </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QMyLabel" name="label_N_GA_1">
-                <property name="text">
-                 <string>ATP moles produced per glucose mole</string>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="0">
                <widget class="QLabel" name="alabel_metab_params">
                 <property name="font">
@@ -1979,10 +1959,10 @@ padding: 8px
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QLineEdit" name="line_N_PA_1">
+               <widget class="QLineEdit" name="line_K_H1_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -1992,10 +1972,10 @@ padding: 8px
                </widget>
               </item>
               <item row="5" column="1">
-               <widget class="QLineEdit" name="line_N_GI_1">
+               <widget class="QLineEdit" name="line_K_H2_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2005,23 +1985,10 @@ padding: 8px
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QLineEdit" name="line_N_PI_1">
+               <widget class="QLineEdit" name="line_K_HB_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
-                  <height>18</height>
-                 </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="1">
-               <widget class="QLineEdit" name="line_N_PO_1">
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2031,98 +1998,31 @@ padding: 8px
                </widget>
               </item>
               <item row="4" column="0">
-               <widget class="QMyLabel" name="label_N_PA_1">
-                <property name="text">
-                 <string>ATP moles produced per pyruvate mole</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QMyLabel" name="label_N_GI_1">
-                <property name="text">
-                 <string>Intermediate moles produced per glucose mole</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QMyLabel" name="label_N_PI_1">
-                <property name="text">
-                 <string>Intermediate moles produced per pyruvate mole</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
-               <widget class="QMyLabel" name="label_N_PO_1">
-                <property name="text">
-                 <string>Oxygen moles consumed per pyruvate mole</string>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="1">
-               <widget class="QLineEdit" name="line_K_H1_1">
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>18</height>
-                 </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="1">
-               <widget class="QLineEdit" name="line_K_H2_1">
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>18</height>
-                 </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="10" column="1">
-               <widget class="QLineEdit" name="line_K_HB_1">
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>18</height>
-                 </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="0">
                <widget class="QMyLabel" name="label_K_H1_1">
                 <property name="text">
                  <string>N_H</string>
                 </property>
                </widget>
               </item>
-              <item row="9" column="0">
+              <item row="5" column="0">
                <widget class="QMyLabel" name="label_K_H2_1">
                 <property name="text">
                  <string>K_H</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
+              <item row="6" column="0">
                <widget class="QMyLabel" name="label_K_HB_1">
                 <property name="text">
                  <string>K_HB</string>
                 </property>
                </widget>
               </item>
-              <item row="16" column="1">
+              <item row="13" column="1">
                <widget class="QLineEdit" name="line_ATP_S_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2131,11 +2031,11 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="19" column="1">
+              <item row="16" column="1">
                <widget class="QLineEdit" name="line_K_PL_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2144,11 +2044,11 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="20" column="1">
+              <item row="17" column="1">
                <widget class="QLineEdit" name="line_K_LP_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2157,39 +2057,39 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="16" column="0">
+              <item row="13" column="0">
                <widget class="QMyLabel" name="label_ATP_S_1">
                 <property name="text">
                  <string>ATP production threshold for death (fraction of peak)</string>
                 </property>
                </widget>
               </item>
-              <item row="19" column="0">
+              <item row="16" column="0">
                <widget class="QMyLabel" name="label_K_PL_1">
                 <property name="text">
                  <string>Pyruvate -&gt; lactate rate constant</string>
                 </property>
                </widget>
               </item>
-              <item row="20" column="0">
+              <item row="17" column="0">
                <widget class="QMyLabel" name="label_K_LP_1">
                 <property name="text">
                  <string>Lactate -&gt; pyruvate rate constant</string>
                 </property>
                </widget>
               </item>
-              <item row="11" column="0">
+              <item row="7" column="0">
                <widget class="QMyLabel" name="label_K_PDK_1">
                 <property name="text">
                  <string>K_PDK</string>
                 </property>
                </widget>
               </item>
-              <item row="11" column="1">
+              <item row="7" column="1">
                <widget class="QLineEdit" name="line_K_PDK_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2198,7 +2098,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="21" column="0">
+              <item row="18" column="0">
                <widget class="QMyLabel" name="label_PYRUVATE_MM_KM_1">
                 <property name="font">
                  <font>
@@ -2211,11 +2111,11 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="21" column="1">
+              <item row="18" column="1">
                <widget class="QLineEdit" name="line_PYRUVATE_MM_KM_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2224,18 +2124,18 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="0">
+              <item row="8" column="0">
                <widget class="QMyLabel" name="label_PDKMIN_1">
                 <property name="text">
                  <string>PDKmin</string>
                 </property>
                </widget>
               </item>
-              <item row="12" column="1">
+              <item row="8" column="1">
                <widget class="QLineEdit" name="line_PDKMIN_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2244,14 +2144,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="13" column="1">
+              <item row="9" column="1">
                <widget class="QLineEdit" name="line_C_O2_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2260,7 +2160,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="13" column="0">
+              <item row="9" column="0">
                <widget class="QMyLabel" name="label_C_O2_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2270,14 +2170,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="14" column="1">
+              <item row="10" column="1">
                <widget class="QLineEdit" name="line_C_G_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2286,7 +2186,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="14" column="0">
+              <item row="10" column="0">
                <widget class="QMyLabel" name="label_C_G_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2296,14 +2196,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="15" column="1">
+              <item row="11" column="1">
                <widget class="QLineEdit" name="line_C_L_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2312,7 +2212,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="15" column="0">
+              <item row="11" column="0">
                <widget class="QMyLabel" name="label_C_L_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2322,11 +2222,11 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="17" column="1">
+              <item row="14" column="1">
                <widget class="QLineEdit" name="line_ATP_G_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2335,18 +2235,18 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="17" column="0">
+              <item row="14" column="0">
                <widget class="QMyLabel" name="label_ATP_G_1">
                 <property name="text">
                  <string>ATP production threshold for growth (fraction of peak)</string>
                 </property>
                </widget>
               </item>
-              <item row="18" column="1">
+              <item row="15" column="1">
                <widget class="QLineEdit" name="line_ATP_RAMP_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2355,7 +2255,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="18" column="0">
+              <item row="15" column="0">
                <widget class="QMyLabel" name="label_ATP_RAMP_1">
                 <property name="text">
                  <string>Ramp factor for reducing r_G, r_P based on ATP</string>
@@ -2366,7 +2266,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_F_GNORM_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2379,7 +2279,7 @@ padding: 8px
                <widget class="QLineEdit" name="line_F_PNORM_1">
                 <property name="maximumSize">
                  <size>
-                  <width>60</width>
+                  <width>50</width>
                   <height>18</height>
                  </size>
                 </property>
@@ -2402,14 +2302,60 @@ padding: 8px
                 </property>
                </widget>
               </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_F_GNNORM_1">
+                <property name="text">
+                 <string>Normal fraction of glutamine -&gt; intermediates</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLineEdit" name="line_F_GNNORM_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="0">
+               <widget class="QMyLabel" name="label_C_GN_NORM_1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Nominal normal IC glutamine concentration</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="1">
+               <widget class="QLineEdit" name="line_C_GN_NORM_1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </widget>
            <widget class="QLineEdit" name="line_F_GP_SOLVER">
             <property name="geometry">
              <rect>
-              <x>1020</x>
-              <y>22</y>
+              <x>590</x>
+              <y>490</y>
               <width>21</width>
               <height>21</height>
              </rect>
@@ -2424,8 +2370,8 @@ padding: 8px
            <widget class="QMyLabel" name="label_F_GP_SOLVER">
             <property name="geometry">
              <rect>
-              <x>1050</x>
-              <y>20</y>
+              <x>620</x>
+              <y>488</y>
               <width>101</width>
               <height>21</height>
              </rect>
@@ -2433,6 +2379,204 @@ padding: 8px
             <property name="text">
              <string>f_FP solver (1,2,3)</string>
             </property>
+           </widget>
+           <widget class="QGroupBox" name="groupBox_moles">
+            <property name="geometry">
+             <rect>
+              <x>190</x>
+              <y>340</y>
+              <width>361</width>
+              <height>221</height>
+             </rect>
+            </property>
+            <property name="title">
+             <string/>
+            </property>
+            <widget class="QWidget" name="gridLayoutWidget_8">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>10</y>
+               <width>341</width>
+               <height>207</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <item row="0" column="0">
+               <widget class="QLabel" name="alabel_mole_params_1">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Moles of production/consumption</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QMyLabel" name="label_N_GA_1">
+                <property name="text">
+                 <string>ATP moles produced per glucose mole</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="line_N_GA_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QMyLabel" name="label_N_PA_1">
+                <property name="text">
+                 <string>ATP moles produced per pyruvate mole</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="line_N_PA_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QMyLabel" name="label_N_GNA_1">
+                <property name="text">
+                 <string>ATP moles produced per glutamine mole</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLineEdit" name="line_N_GNA_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QMyLabel" name="label_N_GI_1">
+                <property name="text">
+                 <string>Intermediate moles produced per glucose mole</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="line_N_GI_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QMyLabel" name="label_N_PI_1">
+                <property name="text">
+                 <string>Intermediate moles produced per pyruvate mole</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="line_N_PI_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QMyLabel" name="label_N_GNI_1">
+                <property name="text">
+                 <string>Intermediate moles produced per glutamine mole</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLineEdit" name="line_N_GNI_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0">
+               <widget class="QMyLabel" name="label_N_PO_1">
+                <property name="text">
+                 <string>Oxygen moles consumed per pyruvate mole</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLineEdit" name="line_N_PO_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="0">
+               <widget class="QMyLabel" name="label_N_GNO_1">
+                <property name="text">
+                 <string>Oxygen moles consumed per glutamine mole</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QLineEdit" name="line_N_GNO_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </widget>
           <widget class="QWidget" name="tab_treatment">

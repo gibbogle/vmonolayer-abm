@@ -257,7 +257,7 @@ void MainWindow::showFACS()
         xmin = 1.0e-3;
         xmax = 10.0;
         break;
-    case TRACER:
+    case GLUTAMINE:
         break;
     case DRUG_A_PARENT:
 //        xlabel = "Drug A";
@@ -342,7 +342,7 @@ void MainWindow::showFACS()
         ymax = 10.0;
         LOG_MSG("Lactate selected");
         break;
-    case TRACER:
+    case GLUTAMINE:
         break;
     case DRUG_A_PARENT:
         break;

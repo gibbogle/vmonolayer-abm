@@ -336,45 +336,45 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Hill function N",
      "Lactate uptake rate Hill function N"},
 
-{"USE_TRACER", 0, 0, 1,
-"Use Tracer?",
-"Tracer is simulated"},
+{"USE_GLUTAMINE", 0, 0, 1,
+"Use Glutamine?",
+"Glutamine is simulated"},
 
-{"TRACER_DIFF_COEF", 6.0e-7, 0, 0,
+{"GLUTAMINE_DIFF_COEF", 6.0e-7, 0, 0,
  "Spheroid diffusion coeff",
- "TRACER diffusion coefficient"},
+ "Glutamine diffusion coefficient"},
 
-{"TRACER_MEDIUM_DIFF", 6.0e-6, 0, 0,
+{"GLUTAMINE_MEDIUM_DIFF", 6.0e-6, 0, 0,
  "Medium diffusion coeff",
  "Constituent diffusion coefficient in the medium"},
 
-{"TRACER_CELL_DIFF_IN", 20, 0, 0,
+{"GLUTAMINE_CELL_DIFF_IN", 20, 0, 0,
  "Membrane diff constant",
  "Cell membrane diffusion coefficient Kin"},
 
-{"TRACER_CELL_DIFF_OUT", 20, 0, 0,
+{"GLUTAMINE_CELL_DIFF_OUT", 20, 0, 0,
  "Membrane diff constant",
  "Cell membrane diffusion coefficient Kout"},
 
-{"TRACER_BDRY_CONC", 1.0, 0, 0,
+{"GLUTAMINE_BDRY_CONC", 1.0, 0, 0,
  "Boundary concentration",
- "TRACER boundary concentration"},
+ "Glutamine boundary concentration"},
 
-{"TRACER_CONSTANT", 1, 0, 1,
+{"GLUTAMINE_CONSTANT", 1, 0, 1,
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-{"TRACER_CONSUMPTION", 0, 0, 0,
+{"GLUTAMINE_CONSUMPTION", 0, 0, 0,
  "Consumption rate",
- "TRACER consumption rate"},
+ "Glutamine consumption rate"},
 
-{"TRACER_MM_KM", 0, 0, 0,
+{"GLUTAMINE_MM_KM", 0, 0, 0,
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
-{"TRACER_HILL_N", 0, 0, 2,
+{"GLUTAMINE_HILL_N", 0, 0, 2,
  "Hill function N",
- "Tracer uptake rate Hill function N"},
+ "Glutamine uptake rate Hill function N"},
 
 //==========================
 // Radiotherapy parameters
@@ -646,6 +646,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Normal fraction of pyruvate -> intermediates",
         "Fraction of pyruvate (r_P) going to make intermediates under conditions of full nutrition"},
 
+       {"F_GNNORM_1", 0.07, 0, 0,
+       "Normal fraction of glutamine -> intermediates",
+        "Fraction of glutamine (r_Gn) going to make intermediates under conditions of full nutrition"},
+
       {"N_GA_1", 2, 0, 0,
       "ATP moles produced per glucose mole",
       "Number of ATP moles produced by the glycolysis of one glucose mole"},
@@ -653,6 +657,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       {"N_PA_1", 14, 0, 0,
       "ATP moles produced per pyruvate mole",
       "Number of ATP moles produced by the oxidation of one pyruvate mole"},
+
+       {"N_GNA_1", 14, 0, 0,
+       "ATP moles produced per glutamate mole",
+       "Number of ATP moles produced by the oxidation of one glutamate mole"},
 
       {"N_GI_1", 1, 0, 0,
       "Intermediate moles produced per glucose mole",
@@ -662,9 +670,17 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Intermediate moles produced per pyruvate mole",
       "Number of moles of anabolic intermediates produced the oxidation of one pyruvate mole"},
 
+       {"N_GNI_1", 3, 0, 0,
+       "Intermediate moles produced per glutamate mole",
+       "Number of moles of anabolic intermediates produced the oxidation of one glutamate mole"},
+
       {"N_PO_1", 3, 0, 0,
       "Oxygen moles consumed per pyruvate mole",
       "Number of moles of oxygen consumed the oxidation of one pyruvate mole"},
+
+       {"N_GNO_1", 3, 0, 0,
+       "Oxygen moles consumed per glutamate mole",
+       "Number of moles of oxygen consumed the oxidation of one glutamate mole"},
 
       {"K_H1_1", 8, 0, 0,
       "Exponent N_H in Hss equation",
@@ -699,6 +715,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        {"C_L_NORM_1", 1.0, 0, 0,
        "Nominal normal IC lactate concentration",
        "Nominal normal IC lactate concentration, used to set normal metabolic rates for unconstrained growth"},
+
+        {"C_GN_NORM_1", 1.0, 0, 0,
+        "Nominal normal IC glutamate concentration",
+        "Nominal normal IC glutamate concentration, used to set normal metabolic rates for unconstrained growth"},
 
       {"ATP_S_1", 0.3, 0, 0,
       "ATP production threshold for survival (fraction of peak)",
@@ -879,7 +899,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 //    {"CFSE",                      0, 0,1,"","Extracellular CFSE concentration on a line through the blob centre"},
     {"Oxygen",                    0, 0,1,"","Extracellular oxygen concentration on a line through the blob centre"},
     {"Glucose",                   0, 0,1,"","Extracellular glucose concentration on a line through the blob centre"},
-//    {"Tracer",                    0, 0,1,"","Extracellular tracer concentration on a line through the blob centre"},
+    {"Glutamine",                 0, 0,1,"","Extracellular glutamine concentration on a line through the blob centre"},
     {"Drug_A",                    0, 0,1,"","Extracellular drug A concentration on a line through the blob centre"},
     {"Drug_A_metab1",             0, 0,1,"","Extracellular drug A metabolite 1 concentration on a line through the blob centre"},
     {"Drug_A_metab2",             0, 0,1,"","Extracellular drug A metabolite 2 concentration on a line through the blob centre"},
@@ -890,6 +910,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"IC_MULTI",                  1, 0,1,"","Selected constituent on a line through the blob centre"},
     {"IC_Oxygen",                 0, 0,1,"","Intracellular oxygen concentration on a line through the blob centre"},
     {"IC_Glucose",                0, 0,1,"","Intracellular glucose concentration on a line through the blob centre"},
+    {"IC_Glutamine",              0, 0,1,"","Intracellular glutamine concentration on a line through the blob centre"},
     {"IC_Drug_A",                 0, 0,1,"","Intracellular drug A concentration on a line through the blob centre"},
     {"IC_Drug_A_metab1",          0, 0,1,"","Intracellular drug A metabolite 1 concentration on a line through the blob centre"},
     {"IC_Drug_A_metab2",          0, 0,1,"","Intracellular drug A metabolite 2 concentration on a line through the blob centre"},

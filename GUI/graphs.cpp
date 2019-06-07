@@ -425,11 +425,11 @@ GRAPH_SET tsGraphSet[] = {
     "Glucose description",
     GLUCOSE, false, 0, 1, 0, PROF_TYPE},
 
-    {"Tracer",
-    "Tracer Concentration",
+    {"Glutamine",
+    "Glutamine Concentration",
     "",
-    "Tracer description",
-    TRACER, false, 0, 1, 0, PROF_TYPE},
+    "Glutamine description",
+    GLUTAMINE, false, 0, 1, 0, PROF_TYPE},
 
     {"Drug_A",
     "Drug A Concentration",

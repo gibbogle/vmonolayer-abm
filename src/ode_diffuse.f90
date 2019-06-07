@@ -142,9 +142,9 @@ do ic = 1,neqn
     elseif (ichemo == LACTATE) then
 	    Ng = chemo(LACTATE)%Hill_N
     endif
-    if (ichemo > TRACER) then
-        idrug = (ichemo - TRACER - 1)/3 + 1
-        im = ichemo - TRACER - 1 - 3*(idrug-1)		! 0 = drug, 1 = metab1, 2 = metab2
+    if (ichemo > GLUTAMINE) then
+        idrug = (ichemo - GLUTAMINE - 1)/3 + 1
+        im = ichemo - GLUTAMINE - 1 - 3*(idrug-1)		! 0 = drug, 1 = metab1, 2 = metab2
         dp => drug(idrug)
         metabolised(:,:) = (dp%Kmet0(:,:) > 0)
         if (idrug > 0) then
@@ -170,6 +170,8 @@ do ic = 1,neqn
 				dCreact = (-mp%G_rate + membrane_flux)/vol_cm3
 			elseif (ichemo == LACTATE) then
 				dCreact = (mp%L_rate + membrane_flux)/vol_cm3
+			elseif (ichemo == GLUTAMINE) then
+				dCreact = (mp%Gn_rate + membrane_flux)/vol_cm3
 			endif
 	    else
 			if (ichemo == OXYGEN) then
@@ -180,10 +182,14 @@ do ic = 1,neqn
 				metab = C**Ng/(chemo(ichemo)%MM_C0**Ng + C**Ng)
 				cell_flux = metab*chemo(ichemo)%max_cell_rate
 				dCreact = (-cell_flux + membrane_flux)/vol_cm3	! convert mass rate (mumol/s) to concentration rate (mM/s)
-	!		    write(*,'(a,6e11.3)') 'glucose: ',C,metab,chemo(ichemo)%max_cell_rate,membrane_flux,vol_cm3,dCreact
+			elseif (ichemo == GLUTAMINE) then
+				metab = C**Ng/(chemo(ichemo)%MM_C0**Ng + C**Ng)
+				cell_flux = metab*chemo(ichemo)%max_cell_rate
+				dCreact = (-cell_flux + membrane_flux)/vol_cm3	! convert mass rate (mumol/s) to concentration rate (mM/s)
+	!		    write(*,'(a,6e11.3)') 'glutaminee: ',C,metab,chemo(ichemo)%max_cell_rate,membrane_flux,vol_cm3,dCreact
 			endif
 		endif
-		if (ichemo > TRACER) then
+		if (ichemo > GLUTAMINE) then
 			if (im == 0) then
 				if (metabolised(ict,0) .and. C > 0) then
 					KmetC = dp%Kmet0(ict,0)*C
@@ -212,7 +218,7 @@ do ic = 1,neqn
 			endif
 		endif
         dydt(ic) = dCreact - C*decay_rate
-        if (ichemo <= LACTATE) then
+        if (ichemo <= GLUTAMINE) then
 			write(*,'(a,i2,e12.3)') 'cell dC/dt: ',ichemo,dydt(ic)
 		endif
     else    ! medium variable 
@@ -221,7 +227,7 @@ do ic = 1,neqn
         else
             dydt(ic) = 0
         endif
-        if (ichemo <= LACTATE) then
+        if (ichemo <= GLUTAMINE) then
 			write(*,'(a,i2,e12.3)') 'medium dC/dt: ',ichemo,dydt(ic)
 		endif
     endif
@@ -1014,14 +1020,16 @@ end subroutine
 ! This tends to move A (ATP conc) to the steady-state level at which the equation:
 ! A_n = (rA - rAs)/(1 - rAs)
 ! holds.  Here A_n, rA, rAs are all normalised.  
-! Note that C_A_norm has been specified arbitrarily, and we need the rate constant k.
+! Note that C_A_norm has been specified arbitrarily, and we need the rate constant k2.
+! A_rate is in mumol/s, and V is cm^3, dC/dt = mumol/s/cm^3 = mM/s, C = mM.
+! Note that k2 includes V, k2 = k1/V, therefore k1 = k2*V.
 !----------------------------------------------------------------------------------
 subroutine update_C_A(dt,mp)
 real(REAL_KIND) :: dt
 type(metabolism_type), pointer :: mp
-real(REAL_KIND) :: A, A_n, rA, rAs, Atarget_n, dC_Adt, k
+real(REAL_KIND) :: A, A_n, rA, rAs, Atarget_n, dC_Adt, k1, k2
 
-k = 2.0e7
+k2 = 2.0e7
 A = mp%C_A
 A_n = A/C_A_norm
 rA = mp%A_rate/r_A_norm				! normalise
@@ -1029,9 +1037,9 @@ rA = min(rA,1.0)
 rAs = f_ATPs						! normalised
 Atarget_n = (rA - rAs)/(1 - rAs)	! normalised
 !Atarget = Atarget_n*C_A_norm
-!r = mp%A_rate*(1 + k*(A_n - Atarget_n))
+!r = mp%A_rate*(1 + k1*(A_n - Atarget_n))
 !mp%C_A = A + (mp%A_rate - r)*dt
-dC_Adt = mp%A_rate*k*(Atarget_n - A_n)
+dC_Adt = mp%A_rate*k2*(Atarget_n - A_n)
 mp%C_A = A + dC_Adt*dt
 mp%C_A = max(mp%C_A, 0.0)
 !write(nflog,'(a,6e12.3)') 'update_C_A: ',mp%A_rate, rA, A, A_n, Atarget_n, dC_Adt

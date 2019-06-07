@@ -550,15 +550,15 @@ void MainWindow::loadParams()
                             if (use_GLUCOSE)
                                 disableUseGlucose();
                         }
-                        bool use_TRACER = qsname.contains("USE_TRACER");
+                        bool use_GLUTAMINE = qsname.contains("USE_GLUTAMINE");
                         if (p.value == 1) {
                             w_cb->setChecked(true);
-                            if (use_TRACER)
-                                enableUseTracer();
+                            if (use_GLUTAMINE)
+                                enableUseGlutamine();
                         } else {
                             w_cb->setChecked(false);
-                            if (use_TRACER)
-                                disableUseTracer();
+                            if (use_GLUTAMINE)
+                                disableUseGlutamine();
                         }
                         if (p.value == 1) {
                             w_cb->setChecked(true);
@@ -775,15 +775,15 @@ void MainWindow::reloadParams()
                             if (use_GLUCOSE)
                                 disableUseGlucose();
                         }
-                        bool use_TRACER = qsname.contains("USE_TRACER");
+                        bool use_GLUTAMINE = qsname.contains("USE_GLUTAMINE");
                         if (p.value == 1) {
                             w_cb->setChecked(true);
-                            if (use_TRACER)
-                                enableUseTracer();
+                            if (use_GLUTAMINE)
+                                enableUseGlutamine();
                         } else {
                             w_cb->setChecked(false);
-                            if (use_TRACER)
-                                disableUseTracer();
+                            if (use_GLUTAMINE)
+                                disableUseGlutamine();
                         }
                         if (p.value == 1) {
                             w_cb->setChecked(true);
@@ -2211,15 +2211,15 @@ void MainWindow::changeParam()
                     disableUseGlucose();
             }
 
-            bool use_TRACER = wname.contains("USE_TRACER");
+            bool use_GLUTAMINE = wname.contains("USE_GLUTAMINE");
             if (checkBox->isChecked()) {
                 v = 1;
-                if (use_TRACER)
-                    enableUseTracer();
+                if (use_GLUTAMINE)
+                    enableUseGlutamine();
             } else {
                 v = 0;
-                if (use_TRACER)
-                    disableUseTracer();
+                if (use_GLUTAMINE)
+                    disableUseGlutamine();
             }
 
             if (wname.contains("USE_CELL_CYCLE")) {
@@ -2366,12 +2366,12 @@ void MainWindow::disableUseGlucose()
 
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
-void MainWindow::enableUseTracer()
+void MainWindow::enableUseGlutamine()
 {
     for (int i=0; i<lineEdit_list.length(); i++) {
         QLineEdit *w = lineEdit_list[i];
         QString wname = w->objectName();
-        if (wname.contains("line_TRACER")) {
+        if (wname.contains("line_GLUTAMINE")) {
             w->setEnabled(true);
         }
     }
@@ -2379,12 +2379,12 @@ void MainWindow::enableUseTracer()
 
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
-void MainWindow::disableUseTracer()
+void MainWindow::disableUseGlutamine()
 {
     for (int i=0; i<lineEdit_list.length(); i++) {
         QLineEdit *w = lineEdit_list[i];
         QString wname = w->objectName();
-        if (wname.contains("line_TRACER")) {
+        if (wname.contains("line_GLUTAMINE")) {
             w->setEnabled(false);
         }
     }
@@ -2658,7 +2658,7 @@ int SliderPlus::nTicks() {
 // 1 Oxygen
 // 2 Glucose
 // 3 Lactate
-// 4 Tracer
+// 4 Glutamine
 // 5 DrugA
 // 6 DrugA metabolite 1
 // 7 DrugA metabolite 2
