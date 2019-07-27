@@ -1414,7 +1414,7 @@ if (.not.chemo(LACTATE)%used) then
 	Km_O2 = Hill_Km_O2
 	f_PA = N_PA
 	MM_O2 = f_MM(C_O2,Km_O2,N_O2)
-	r_G = MM_O2*get_glycosis_rate(mp%HIF1,C_G)
+	r_G = MM_O2*get_glycosis_rate(mp%HIF1,C_G,mp%O_rate)
 	fPDK = mp%PDK1
 
 	r_P = fPDK*2*(1 - f_G)*r_G

@@ -1929,7 +1929,7 @@ padding: 8px
               <x>590</x>
               <y>10</y>
               <width>391</width>
-              <height>471</height>
+              <height>521</height>
              </rect>
             </property>
             <property name="title">
@@ -1941,7 +1941,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>371</width>
-               <height>451</height>
+               <height>501</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -2348,6 +2348,58 @@ padding: 8px
                 </property>
                </widget>
               </item>
+              <item row="19" column="1">
+               <widget class="QLineEdit" name="line_PASTEUR_MM_KM_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="19" column="0">
+               <widget class="QMyLabel" name="label_PASTEUR_MM_KM_1">
+                <property name="font">
+                 <font>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Pasteur Effect  Michaelis-Menten Km</string>
+                </property>
+               </widget>
+              </item>
+              <item row="20" column="1">
+               <widget class="QLineEdit" name="line_GLUTAMINE_BASERATE_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="20" column="0">
+               <widget class="QMyLabel" name="label_GLUTAMINE_BASERATE_1">
+                <property name="font">
+                 <font>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Glutamine base consumption rate</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </widget>
@@ -2355,7 +2407,7 @@ padding: 8px
             <property name="geometry">
              <rect>
               <x>590</x>
-              <y>490</y>
+              <y>540</y>
               <width>21</width>
               <height>21</height>
              </rect>
@@ -2371,7 +2423,7 @@ padding: 8px
             <property name="geometry">
              <rect>
               <x>620</x>
-              <y>488</y>
+              <y>538</y>
               <width>101</width>
               <height>21</height>
              </rect>

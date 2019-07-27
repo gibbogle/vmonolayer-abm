@@ -154,7 +154,7 @@ K2 = K_LP
 f_PO = N_PO
 f_PA = N_PA
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
-r_G_max = get_glycosis_rate(HIF1,C_G)
+r_G_max = get_glycosis_rate(HIF1,C_G,mp%O_rate)
 !r_Pm_max = fPDK*MM_O2*O2_maxrate/(f_PO*(1-f_P_norm))	! note that MM_P is not here, since it varies it is added in optimiser()
 ! This is the rate of oxidation of pyruvate, i.e. (1-f_P)*r_P, excluding the effect of MM(C_P)
 !r_Pm_base = fPDK*MM_O2*(O2_maxrate-base_O_rate)/f_PO	! note that MM_P is not here, since it varies it is added in optimiser()

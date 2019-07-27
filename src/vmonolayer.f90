@@ -794,7 +794,7 @@ endif
 
 ! glutamine
 use_glutamine = chemo(GLUTAMINE)%used
-C_Gn_test = chemo(GLUTAMINE)%bdry_conc		! temporary
+!C_Gn_test = chemo(GLUTAMINE)%bdry_conc		! temporary
 
 ok = .true.
 
@@ -907,6 +907,8 @@ read(nf,*) f_ATPramp
 read(nf,*) K_PL
 read(nf,*) K_LP
 read(nf,*) Hill_Km_P
+read(nf,*) Hill_Km_C
+read(nf,*) Gn_baserate
 read(nf,*) fgp_solver
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM

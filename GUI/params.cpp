@@ -748,6 +748,17 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Pyruvate Michaelis-Menten Km (uM)",
        "Pyruvate Michaelis-Menten Km (uM). fMM = C_P/(Km + C_P) is a multiple of pyruvate oxidation rate, ensuring that the rate -> 0 as C_P -> 0"},
 
+       {"PASTEUR_MM_KM_1", 0.02, 0, 0,
+       "Pasteur Effect Michaelis-Menten Km (normalised)",
+       "The glycolysis rate is multiplied by cfactor, which is a function of the normalised total rate of oxygen consumption.\n\
+        Normalised O2 rate = r_O2N = r_O2/r_O2max, cfactor = r_O2N/(Km + r_O2N)"},
+
+        {"GLUTAMINE_BASERATE_1", 1.0e-17, 0, 0,
+         "Glutamine base consumption rate",
+         "To account for a possible base rate of metabolism of glutamine.  The rate of consumption is made of a fixed base rate, r_base, + a rate that depends on glucose conc C_G.\n\
+         With fbase = r_base/Vmax, and gfactor = fbase + (1 - fbase)**Km_GG/(Km_GG + C_G), where Km_GG = 0.2*Km_G,\n\
+         the glutamine rate becomes: r_Gln = fPDK*Vmax*gfactor*C_Gln/(Km_Gln + C_Gln)"},
+
        {"F_GP_SOLVER",1,0,0,
         "f_GP solver (1,2,3)",
         "Choices for f_GP solver: 1 = max ATP (tandem), 2 = max ATP (staged), 3 = survival (staged)"},
