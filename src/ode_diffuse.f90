@@ -790,6 +790,7 @@ endif
 !write(nflog,*) 'DrugSolver: ',istep
 ict = 1 ! for now just a single cell type
 idrug_rkc = idrug
+CO2_rkc = Caverage(OXYGEN)
 
 k = 0
 do im = 0,2
