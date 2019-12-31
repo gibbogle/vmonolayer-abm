@@ -249,11 +249,11 @@ enddo
 ! Metabolism state variables
 !mp => metabolic
 mp => phase_metabolic(1)
-r_G = mp%G_rate/r_G_norm
-r_P = mp%P_rate/r_P_norm
-r_A = mp%A_rate/r_A_norm
-!write(nflog,'(a,4e12.3)') 'r_G, r_A, mp%A_rate, r_A_norm: ',r_G,r_A,mp%A_rate,r_A_norm
-r_I = mp%I_rate/r_I_norm
+r_G = mp%G_rate/r_Gu
+r_P = mp%P_rate/r_Pu
+r_A = mp%A_rate/r_Au
+!write(nflog,'(a,4e12.3)') 'r_G, r_A, mp%A_rate, r_Au: ',r_G,r_A,mp%A_rate,r_Au
+r_I = mp%I_rate/r_Iu
 if (mp%G_rate > 0 .and. mp%L_rate > 0) then
 	P_utilisation = mp%P_rate/(2*(1-mp%f_G)*mp%G_rate)	!!!???
 else
@@ -272,25 +272,33 @@ if (ndoublings > 0) then
 else
     doubling_time = 0
 endif
-summaryData(1:67) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
+!write(nflog,'(a,2e12.3)') 'get_summary: Cmediumave(GLUTAMINE): ',Cmediumave(GLUTAMINE),Cmedium(GLUTAMINE)
+
+summaryData(1:70) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
 	rint(TNATP_dead), rint(TNdrug_dead(1)), rint(TNdrug_dead(2)), rint(TNradiation_dead), rint(TNdead), &
     rint(TNtagged_ATP), rint(TNtagged_drug(1)), rint(TNtagged_drug(2)), rint(TNtagged_radiation), &
 	100*viable_fraction, 100*hypoxic_fraction(i_hypoxia_cutoff), 100*clonohypoxic_fraction(i_hypoxia_cutoff), &
 	100*growth_fraction(i_growth_cutoff), 100*nogrow_fraction, 100*clono_fraction, Tplate_eff, &
-	EC(OXYGEN), EC(GLUCOSE), EC(LACTATE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
-	caverage(OXYGEN), caverage(GLUCOSE), caverage(LACTATE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
-	cmedium(OXYGEN), cmedium(GLUCOSE), cmedium(LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
+!	EC(OXYGEN:LACTATE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
+!	caverage(OXYGEN:LACTATE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
+!	cmedium(OXYGEN:LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
+	EC(OXYGEN:GLUTAMINE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
+	caverage(OXYGEN:GLUTAMINE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
+	cmedium(OXYGEN:GLUTAMINE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	doubling_time, r_G, r_P, r_A, r_I, mp%f_G, mp%f_P, mp%HIF1, mp%PDK1, rint(ndivided), &
 	100*phase_fraction(1:7), rmutations]
-write(nfres,'(a,a,2a12,i8,e12.4,21i7,58e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
+write(nfres,'(a,a,2a12,i8,e12.4,21i7,61e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
 	istep, hour, Ncells_type(1:2), TNviable, TNnonviable, &
     NATP_dead(1:2), Ndrug_dead(1,1:2), Ndrug_dead(2,1:2), Nradiation_dead(1:2), TNdead, &
     Ntagged_ATP(1:2), Ntagged_drug(1,1:2), Ntagged_drug(2,1:2), Ntagged_radiation(1:2), &
 	viable_fraction, hypoxic_fraction, clonohypoxic_fraction, growth_fraction, nogrow_fraction, &
 	clono_fraction, plate_eff(1:2), &
-	EC(OXYGEN), EC(GLUCOSE), EC(LACTATE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
-	caverage(OXYGEN), caverage(GLUCOSE), caverage(LACTATE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
-	cmedium(OXYGEN), cmedium(GLUCOSE), cmedium(LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
+!	EC(OXYGEN:LACTATE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
+!	caverage(OXYGEN:LACTATE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
+!	cmedium(OXYGEN:LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
+	EC(OXYGEN:GLUTAMINE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
+	caverage(OXYGEN:GLUTAMINE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
+	cmedium(OXYGEN:GLUTAMINE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	phase_fraction(1:7), rmutations, &	! note order change
 	doubling_time, r_G, r_P, r_A, r_I, ndivided, P_utilisation
 	
@@ -371,7 +379,7 @@ do kcell = 1,nlist
 	cp => cell_list(kcell)
 	ityp = cp%celltype
 	if (cp%state == DEAD) cycle
-	if (.not.(cp%state == DYING) .and. cp%metab%A_rate < ATPg) then
+	if (.not.(cp%state == DYING) .and. cp%metab%A_rate < r_Ag) then
 		nogrow(ityp) = nogrow(ityp) + 1
 	endif
 	do i = 1,3
@@ -1282,11 +1290,11 @@ enddo
 ! Metabolism state variables
 !mp => metabolic
 mp => phase_metabolic(1)
-r_G = mp%G_rate/r_G_norm
-r_P = mp%P_rate/r_P_norm
-r_A = mp%A_rate/r_A_norm
-!write(nflog,'(a,4e12.3)') 'r_G, r_A, mp%A_rate, r_A_norm: ',r_G,r_A,mp%A_rate,r_A_norm
-r_I = mp%I_rate/r_I_norm
+r_G = mp%G_rate/r_Gu
+r_P = mp%P_rate/r_Pu
+r_A = mp%A_rate/r_Au
+!write(nflog,'(a,4e12.3)') 'r_G, r_A, mp%A_rate, r_Au: ',r_G,r_A,mp%A_rate,r_Au
+r_I = mp%I_rate/r_Iu
 if (mp%G_rate > 0 .and. mp%L_rate > 0) then
 	P_utilisation = mp%P_rate/(2*(1-mp%f_G)*mp%G_rate)	!!!???
 else
@@ -1328,7 +1336,7 @@ endif
 !else
 !	divide_fraction = 0
 !endif
-summaryData(1:56) = [ rint(istep), rint(Ncells), rint(TNviable) , rint(TNanoxia_dead), rint(TNaglucosia_dead), &
+summaryData(1:59) = [ rint(istep), rint(Ncells), rint(TNviable) , rint(TNanoxia_dead), rint(TNaglucosia_dead), &
 	rint(TNdrug_dead(1)), rint(TNdrug_dead(2)), rint(TNradiation_dead), &
     rint(TNtagged_anoxia), rint(TNtagged_aglucosia), rint(TNtagged_drug(1)), rint(TNtagged_drug(2)), rint(TNtagged_radiation), &
 	hypoxic_percent, 100*clonohypoxic_fraction(i_hypoxia_cutoff), growth_percent, Tplate_eff, &

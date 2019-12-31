@@ -2806,11 +2806,11 @@ void MainWindow::setupGraphSelector()
     for (int i=0; i<grph->n_tsGraphs; i++) {
         int itype = grph->tsGraphs[i].type;
         if (itype == 0) {
-            if (i < 16) {
+            if (i < 20) {
                 col = 0;
-            } else if (i < 32) {
+            } else if (i < 40) {
                 col = 1;
-            } else if (i < 48) {
+            } else if (i < 60) {
                 col = 2;
             } else {
                 col = 3;

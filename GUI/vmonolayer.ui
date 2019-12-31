@@ -2400,14 +2400,43 @@ padding: 8px
                 </property>
                </widget>
               </item>
+              <item row="21" column="0">
+               <widget class="QMyLabel" name="label_NITROGEN_FACTOR_1">
+                <property name="font">
+                 <font>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Nitrogen factor</string>
+                </property>
+               </widget>
+              </item>
+              <item row="21" column="1">
+               <widget class="QLineEdit" name="line_NITROGEN_FACTOR_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </widget>
            <widget class="QLineEdit" name="line_F_GP_SOLVER">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="geometry">
              <rect>
               <x>590</x>
-              <y>540</y>
+              <y>542</y>
               <width>21</width>
               <height>21</height>
              </rect>
@@ -2423,7 +2452,7 @@ padding: 8px
             <property name="geometry">
              <rect>
               <x>620</x>
-              <y>538</y>
+              <y>540</y>
               <width>101</width>
               <height>21</height>
              </rect>
@@ -10199,7 +10228,7 @@ padding: 8px
      <x>0</x>
      <y>0</y>
      <width>1671</width>
-     <height>18</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -304,7 +304,7 @@ do kcell = 1,nlist
 	endif	
 	call getO2conc(cp,C_O2)
 	if (use_metabolism) then
-		if (cp%metab%A_rate < ATPs) then
+		if (cp%metab%A_rate < r_As) then
 			cp%ATP_tag = .true.
 			NATP_tag(ityp) = NATP_tag(ityp) + 1
 			cp%dVdt = 0
@@ -733,7 +733,7 @@ if (use_cell_cycle .and. .not.(cp%phase == G1_phase .or. cp%phase == S_phase .or
 	write(nflog,*) 'no growth - phase: ',cp%phase
 	return
 endif
-if (use_metabolism .and. cp%metab%A_rate < ATPg) then
+if (use_metabolism .and. cp%metab%A_rate < r_Ag) then
 	cp%dVdt = 0
 !	write(*,*) 'A_rate < ATPg: ', kcell_now
 	return
@@ -764,7 +764,11 @@ else
 		! need to set cp%dVdt from cp%metab%I_rate
 !		dVdt = max_growthrate(ityp)*cp%metab%I_rate/cp%metab%I_rate_max	! ***** Convert %I_rate to %dVdt *****
 !		dVdt = cp%growth_rate_factor*cp%dVdt
-		metab = cp%metab%I_rate/cp%metab%I_rate_max
+!		metab = cp%metab%I_rate/cp%metab%I_rate_max
+		metab = cp%metab%I_rate/r_Iu
+		
+!		metab = min(metab,1.0)      ! SHOULD NOT BE NECESSARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!		if (kcell_now == 1) write(nflog,'(a,3e12.3)') 'I_rate,I_rate_max,metab: ',cp%metab%I_rate,r_Iu,metab
 		dVdt = get_dVdt(cp,metab)
 	else
 		oxygen_growth = chemo(OXYGEN)%controls_growth
@@ -786,6 +790,7 @@ else
 	endif
 endif
 cp%dVdt = dVdt
+!if (kcell_now == 1) write(nflog,'(a,e12.3)') 'dVdt: ',dVdt 
 Vin_0 = cp%V
 dV = dVdt*dt
 Cdrug(:) = cp%Cin(DRUG_A:DRUG_B+2)

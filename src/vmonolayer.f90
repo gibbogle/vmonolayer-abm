@@ -120,9 +120,9 @@ use_volume_method = .not.use_cell_cycle
 ! Growth occurs during G1, S and G2, not in checkpoints
 do ityp = 1,2
 	ccp => cc_parameters(ityp)
-	tgrowth = ccp%T_G1 + ccp%T_S + ccp%T_G2
-	max_growthrate = Vdivide0/(2*tgrowth)
-	write(nflog,*) 'ityp, Vdivide0, max_growthrate: ',ityp,Vdivide0, max_growthrate
+	tgrowth(ityp) = ccp%T_G1 + ccp%T_S + ccp%T_G2
+	max_growthrate(ityp) = Vdivide0/(2*tgrowth(ityp))
+	write(nflog,*) 'ityp, Vdivide0, max_growthrate(ityp): ',ityp,Vdivide0, max_growthrate(ityp)
 enddo
 
 !is_dropped = .false.
@@ -227,10 +227,10 @@ else
     Caverage(MAX_CHEMO+ichemo) = 0
     Cmediumave(ichemo) = 0
 endif
-if (ichemo <= 3) then
+if (ichemo <= GLUTAMINE) then
     C_OGL(ichemo,:) = chemo(ichemo)%bdry_conc
 endif
-if (ichemo == GLUCOSE) then
+if (ichemo <= GLUTAMINE) then
 !	Cglucose = chemo(ichemo)%bdry_conc
 	chemo(ichemo)%Cmedium = chemo(ichemo)%bdry_conc
 endif
@@ -771,9 +771,9 @@ Ntagged_ATP(1) Ntagged_ATP(2) Ntagged_drugA(1) Ntagged_drugA(2) Ntagged_drugB(1)
 Ntagged_radiation(1) Ntagged_radiation(2) &
 f_viable f_hypoxic(1) f_hypoxic(2) f_hypoxic(3) f_clonohypoxic(1) f_clonohypoxic(2) f_clonohypoxic(3) f_growth(1) f_growth(2) f_growth(3) &
 f_nogrow f_clonogenic plating_efficiency(1) plating_efficiency(2) &
-EC_oxygen EC_glucose EC_lactate EC_drugA EC_drugA_metab1 EC_drugA_metab2 EC_drugB EC_drugB_metab1 EC_drugB_metab2 &
-IC_oxygen IC_glucose IC_lactate IC_pyruvate IC_ATP IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
-medium_oxygen medium_glucose medium_lactate medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
+EC_oxygen EC_glucose EC_lactate EC_glutamine EC_drugA EC_drugA_metab1 EC_drugA_metab2 EC_drugB EC_drugB_metab1 EC_drugB_metab2 &
+IC_oxygen IC_glucose IC_lactate IC_glutamine IC_ATP IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
+medium_oxygen medium_glucose medium_lactate medium_glutamine medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
 G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase S_phase_nonarrest Nmutations &
 doubling_time glycolysis_rate pyruvate_oxidation_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction'
 write(logmsg,*) 'Opened nfout: ',trim(outputfile)
@@ -881,17 +881,17 @@ subroutine ReadMetabolismParameters(nf)
 integer :: nf
 integer :: ityp
 
-read(nf,*) f_G_norm
-read(nf,*) f_P_norm
-read(nf,*) f_Gn_norm
+read(nf,*) f_Gu
+read(nf,*) f_Pu
+read(nf,*) f_Glnu
 read(nf,*) N_GA
 read(nf,*) N_PA
-read(nf,*) N_GnA
+read(nf,*) N_GlnA
 read(nf,*) N_GI
 read(nf,*) N_PI
-read(nf,*) N_GnI
+read(nf,*) N_GlnI
 read(nf,*) N_PO
-read(nf,*) N_GnO
+read(nf,*) N_GlnO
 read(nf,*) K_H1
 read(nf,*) K_H2
 read(nf,*) K_HB
@@ -900,7 +900,7 @@ read(nf,*) PDKmin
 read(nf,*) C_O2_norm
 read(nf,*) C_G_norm
 read(nf,*) C_L_norm
-read(nf,*) C_Gn_norm
+read(nf,*) C_Gln_norm
 read(nf,*) f_ATPs
 read(nf,*) f_ATPg
 read(nf,*) f_ATPramp
@@ -908,11 +908,13 @@ read(nf,*) K_PL
 read(nf,*) K_LP
 read(nf,*) Hill_Km_P
 read(nf,*) Hill_Km_C
-read(nf,*) Gn_baserate
+read(nf,*) Gln_baserate
+read(nf,*) f_N
 read(nf,*) fgp_solver
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM
 !ATP_Km = ATP_Km/1000			! uM -> mM 
+N_GP = N_GA     ! this should be a separate input parameter
 end subroutine
 
 !-----------------------------------------------------------------------------------------
@@ -1315,7 +1317,8 @@ V0 = Vdivide0/2
 !cp%fg = gfactor
 call set_divide_volume(kcell, V0)
 cp%dVdt = max_growthrate(ityp)
-cp%metab%I_rate = metabolic%I_rate_max	! this is just to ensure that initial growth rate is not 0
+!cp%metab%I_rate = metabolic%I_rate_max	! this is just to ensure that initial growth rate is not 0
+cp%metab%I_rate = r_Iu	! this is just to ensure that initial growth rate is not 0
 if (use_volume_method) then
     !cp%divide_volume = Vdivide0
     if (initial_count == 1) then
@@ -2028,7 +2031,7 @@ else
 	Caverage(MAX_CHEMO+1:2*MAX_CHEMO) = mass/(total_volume - Vcells)
 endif
 chemo(OXYGEN)%bdry_conc = Ce(OXYGEN)
-do ichemo = GLUCOSE,LACTATE
+do ichemo = GLUCOSE,GLUTAMINE   !LACTATE
 	C = Caverage(MAX_CHEMO+ichemo)
 	Caverage(ichemo) = C
 	chemo(ichemo)%Cmedium = C
@@ -2043,7 +2046,7 @@ do idrug = 1,2
 enddo
 
 call SetConstLevels	
-do ichemo = 1,3
+do ichemo = 1,4     ! 3 -> 4 = glutamine
 	C_OGL(ichemo,:) = chemo(ichemo)%Cmedium(:)
 enddo
 write(nflog,'(a,3e12.3)') 'Const Cmedium: ',Caverage(MAX_CHEMO+1:MAX_CHEMO+3)
@@ -2272,9 +2275,10 @@ endif
 if (dbug .or. mod(istep,nthour) == 0) then
 !	mp => metabolic
 	mp => phase_metabolic(1)
-	write(logmsg,'(a,i6,i4,a,i8,a,i8)') 'did istep, hour: ',istep,istep/nthour,' Nlive: ',Ncells,'   Nviable: ',sum(Nviable)
+	write(logmsg,'(a,i6,i4,a,i8,a,i8,a,3f8.3,a,e12.3)') 'istep, hour: ',istep,istep/nthour,' Nlive: ',Ncells,'   Nviable: ',sum(Nviable), &
+	    '  medium glu,lac,gln: ',cmediumave(GLUCOSE:GLUTAMINE),' r_Gln: ',mp%Gln_rate
 	call logger(logmsg)
-!	write(logmsg,'(a,4e12.3)') 'G_rate, A_rate, PO_rate, O_rate: ',mp%G_rate,mp%A_rate,mp%P_rate,mp%O_rate
+!	write(logmsg,'(a,4e12.3)') 'G_rate, A_rate, PO_rate, O_rate: ',mp%G_rate,mp%A_rate,mp%P_rate,mp%O_rate 
 !	call logger(logmsg)
 !	write(logmsg,'(a,3e12.3)') 'C_O2, C_G, C_L: ',Caverage(1:3)
 !	call logger(logmsg)
@@ -2348,7 +2352,7 @@ write(*,'(a,i2,3e12.3)') 'phase, V: ',cp%phase,cp%V		!I2Divide,Itotal,mp%Itotal,
 write(*,'(a,3e11.3)') 'G_rate, P_rate, O_rate: ',mp%G_rate, mp%P_rate, mp%O_rate
 write(*,'(a,4e11.3)') 'L_rate, A_rate, I_rate: ',mp%L_rate, mp%A_rate, mp%I_rate
 write(*,'(a,4f8.4)') 'O2, glucose, lactate, H: ',Caverage(OXYGEN),Caverage(GLUCOSE),Caverage(LACTATE),mp%HIF1
-if (mp%A_rate < ATPg) then
+if (mp%A_rate < r_Ag) then
 	write(*,*) 'Not growing'
 endif
 write(*,*)

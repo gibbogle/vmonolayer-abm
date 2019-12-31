@@ -73,7 +73,7 @@ integer, parameter :: EXTRA = 1
 integer, parameter :: INTRA = 2
 integer, parameter :: MAX_CELLTYPES = 2
 integer, parameter :: MAX_DRUGTYPES = 2
-integer, parameter :: max_nlist = 500000
+integer, parameter :: max_nlist = 200000
 integer, parameter :: NRF = 4
 integer, parameter :: LIMIT_THRESHOLD = 1500
 
@@ -123,7 +123,8 @@ type metabolism_type
 	real(REAL_KIND) :: f_P
 	real(REAL_KIND) :: C_P
 	real(REAL_KIND) :: C_A
-	real(REAL_KIND) :: f_Gn, Gn_rate
+	real(REAL_KIND) :: f_Gln, Gln_rate
+	real(REAL_KIND) :: recalcable     ! if > 0, can determine rates from w = f_G/f_Gu, otherwise need full procedure
 end type
 
 type cell_type
@@ -375,24 +376,26 @@ real(REAL_KIND) :: total_dMdt
 real(REAL_KIND) :: start_wtime
 
 ! Metabolism parameters
-real(REAL_KIND) :: f_G_norm ! normal fraction of glycosis (r_G) going to make intermediates
-real(REAL_KIND) :: f_Gn_norm ! normal fraction of glutamine (r_Gn) going to make intermediates
-real(REAL_KIND) :: f_P_norm ! normal fraction of pyruvates (r_P) going to make intermediates
+real(REAL_KIND) :: f_Gu     ! normal fraction of glycosis (r_G) going to make intermediates
+real(REAL_KIND) :: f_Glnu   ! normal fraction of glutamine (r_Gn) going to make intermediates
+real(REAL_KIND) :: f_Pu     ! normal fraction of pyruvates (r_P) going to make intermediates
 real(REAL_KIND) :: N_GA		! number of ATP molecules generated per glucose molecule in glycosis
 real(REAL_KIND) :: N_GI		! number of intermediate molecules generated per glucose molecule in glycosis
-real(REAL_KIND) :: N_GnA		! number of ATP molecules generated per glutamine molecule
-real(REAL_KIND) :: N_GnI		! number of intermediate molecules generated per glutamine molecule
+real(REAL_KIND) :: N_GP		! number of pyruvate molecules generated per glucose molecule in glycosis
+real(REAL_KIND) :: N_GlnA	! number of ATP molecules generated per glutamine molecule
+real(REAL_KIND) :: N_GlnI	! number of intermediate molecules generated per glutamine molecule
 real(REAL_KIND) :: N_PA		! number of ATP molecules generated per pyruvate molecule in pyruvate oxidation
 real(REAL_KIND) :: N_PI		! number of intermediate molecules generated per pyruvate molecule in pyruvate oxidation
 real(REAL_KIND) :: N_PO		! number of O2 molecules consumed per pyruvate molecule in pyruvate oxidation
-real(REAL_KIND) :: N_GnO		! number of O2 molecules consumed per glutamine molecule in glutamine oxidation
+real(REAL_KIND) :: N_GlnO	! number of O2 molecules consumed per glutamine molecule in glutamine oxidation
 real(REAL_KIND) :: f_ATPg	! threshold ATP production rate fractions for cell growth
 real(REAL_KIND) :: f_ATPs	! threshold ATP production rate fractions for cell survival
-real(REAL_KIND) :: f_ATPramp	! multiplying factor for ramp start for reducing r_G, r_P
-real(REAL_KIND) :: ATPg		! threshold ATP production rates for cell growth
-real(REAL_KIND) :: ATPs		! threshold ATP production rates for cell survival
+real(REAL_KIND) :: f_ATPramp ! multiplying factor for ramp start for reducing r_G, r_P
+real(REAL_KIND) :: r_Ag		! threshold ATP production rates for cell growth
+real(REAL_KIND) :: r_As		! threshold ATP production rates for cell survival
 real(REAL_KIND) :: CO_H		! threshold O2 for Ofactor
 real(REAL_KIND) :: CG_H		! threshold glucose for Gfactor
+real(REAL_KIND) :: I_rate_max   ! = r_Iu
 ! By cell
 type(metabolism_type), target :: phase_metabolic(3)
 
@@ -504,7 +507,7 @@ else
 	write(*,*) trim(msg)
 endif
 if (logfile_isopen) then
-	write(nflog,*) 'msg: ',trim(msg)
+	write(nflog,'(a)') trim(msg)
 	if (error /= 0) then
 	    write(nflog,'(a,i4)') 'winsock_send error: ',error
 	    close(nflog)
@@ -683,6 +686,9 @@ endif
 cp%divide_volume = V0 + Tgrowth*rVmax
 cp%divide_time = Tdiv
 cp%fg = fg
+if (kcell == 1) then
+    write(nflog,'(a,5e12.3)') 'set_divide_volume: V0,Tgrowth,Tdiv,div_vol,rVmax: ',V0,Tgrowth,Tdiv,cp%divide_volume,rVmax
+endif
 end subroutine	
 
 !--------------------------------------------------------------------------------------
@@ -729,8 +735,8 @@ metabolic => phase_metabolic(1)
 ityp = cp%celltype
 ccp => cc_parameters(ityp)
 !I2div = cp%divide_time*metabolic(ityp)%I_rate_max
-I2div = (ccp%T_G1 + ccp%T_S + ccp%T_G2) &
-		*metabolic%I_rate_max
+I2div = (ccp%T_G1 + ccp%T_S + ccp%T_G2)*I_rate_max
+!		*metabolic%I_rate_max
 end function
 
 !--------------------------------------------------------------------------------------

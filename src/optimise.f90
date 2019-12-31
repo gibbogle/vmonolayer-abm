@@ -36,9 +36,9 @@ f_PO = N_PO
 f_PA = N_PA
 K1 = K_PL
 K2 = K_LP
-f_G = f_G_norm
-f_P = f_P_norm
-r_A_target = r_A_norm
+f_G = f_Gu
+f_P = f_Pu
+r_A_target = r_Au
 
 if (r_G < 0.01) then
 	r_G = max(0.0d0,r_G)
@@ -79,7 +79,7 @@ do
 	if (dA < 0) then
 		r_PA = f_PA*(1-f_P)*r_P
 		r_A = r_GA + r_PA
-		write(*,'(a,3e12.3)') 'r_GA,r_PA,r_A: ',r_GA,r_PA,r_A/r_A_norm
+		write(*,'(a,3e12.3)') 'r_GA,r_PA,r_A: ',r_GA,r_PA,r_A/r_Au
 		write(*,*)
 		exit
 	else
@@ -107,7 +107,7 @@ x = f_G
 y = f_P
 write(*,'(a,3f10.6)') 'f_G,f_P,C_P: ',f_G,f_P,C_P
 write(*,'(a,6e10.3)') 'r_G,A,P,I,L,O2: ',mp%G_rate,mp%A_rate,mp%P_rate,mp%I_rate,mp%L_rate,mp%O_rate
-write(*,'(a,6f8.3)') 'normalised P,A,I: ',mp%P_rate/r_P_norm,mp%A_rate/r_A_norm,mp%I_rate/r_I_norm
+write(*,'(a,6f8.3)') 'normalised P,A,I: ',mp%P_rate/r_Pu,mp%A_rate/r_Au,mp%I_rate/r_Iu
 end subroutine
 
 !--------------------------------------------------------------------------
@@ -120,7 +120,7 @@ end subroutine
 ! NOT CORRECTED
 !--------------------------------------------------------------------------
 subroutine run_optimiser
-real(REAL_KIND) :: HIF1, fPDK, f_PO, f_PA, V, K1, K2, Km_O2, C_O2, C_G, r_G_max, C_L_max, r_Pm_base, r_Pm_max
+real(REAL_KIND) :: HIF1, fPDK, f_PO, f_PA, V, K1, K2, Km_O2, C_O2, C_G, C_Gln, r_G_max, C_L_max, r_Pm_base, r_Pm_max
 real(REAL_KIND) :: MM_O2
 real(REAL_KIND) :: r_G, r_Pm, C_L, alfa
 real(REAL_KIND) :: x, y, C_P, ysum
@@ -146,6 +146,7 @@ met = phase_metabolic(1)
 HIF1 = 0.5
 C_O2 = 0.1
 C_G = 0.0045
+C_Gln = 1
 fPDK = 0.5
 N_O2 = chemo(OXYGEN)%Hill_N
 Km_O2 = chemo(OXYGEN)%MM_C0
@@ -154,8 +155,8 @@ K2 = K_LP
 f_PO = N_PO
 f_PA = N_PA
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
-r_G_max = get_glycosis_rate(HIF1,C_G,mp%O_rate)
-!r_Pm_max = fPDK*MM_O2*O2_maxrate/(f_PO*(1-f_P_norm))	! note that MM_P is not here, since it varies it is added in optimiser()
+r_G_max = get_glycosis_rate(HIF1,C_G,C_Gln,mp%O_rate)
+!r_Pm_max = fPDK*MM_O2*O2_maxrate/(f_PO*(1-f_Pu))	! note that MM_P is not here, since it varies it is added in optimiser()
 ! This is the rate of oxidation of pyruvate, i.e. (1-f_P)*r_P, excluding the effect of MM(C_P)
 !r_Pm_base = fPDK*MM_O2*(O2_maxrate-base_O_rate)/f_PO	! note that MM_P is not here, since it varies it is added in optimiser()
 r_Pm_base = fPDK*MM_O2*O2_maxrate/f_PO	! note that MM_P is not here, since it varies it is added in optimiser()
@@ -164,7 +165,7 @@ C_L_max = 3.0
 r_G = r_G_max
 C_L = 3*C_L_max
 r_Pm = r_Pm_base
-C_P = C_P_norm		! initial guess
+C_P = C_Pu		! initial guess
 write(*,'(a,3e12.3)') 'r_G, C_L, r_Pm: ',r_G, C_L, r_Pm
 write(*,*)
 call optimiser(ityp, r_G, C_L, r_Pm, mp, x, y, C_P)

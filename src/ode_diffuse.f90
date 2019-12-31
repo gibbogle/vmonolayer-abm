@@ -171,7 +171,7 @@ do ic = 1,neqn
 			elseif (ichemo == LACTATE) then
 				dCreact = (mp%L_rate + membrane_flux)/vol_cm3
 			elseif (ichemo == GLUTAMINE) then
-				dCreact = (mp%Gn_rate + membrane_flux)/vol_cm3
+				dCreact = (mp%Gln_rate + membrane_flux)/vol_cm3
 			endif
 	    else
 			if (ichemo == OXYGEN) then
@@ -342,12 +342,13 @@ end subroutine
 
 !----------------------------------------------------------------------------------
 ! This version assumes a single metabolism solution for all cells (all phases)
+! This really now f_rkc_OGLG
 !----------------------------------------------------------------------------------
 subroutine f_rkc_OGL(neqn,t,y,dydt,icase)
 integer :: neqn, icase
 real(REAL_KIND) :: t, y(neqn), dydt(neqn)
 integer :: k, kk, i, ichemo, ict, Nmetabolisingcells
-real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(4)
+real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(5)
 real(REAL_KIND) :: C, membrane_kin, membrane_kout, membrane_flux, area_factor, Cbnd
 real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX, K1, K2
 type(metabolism_type), pointer :: mp
@@ -368,8 +369,9 @@ Nmetabolisingcells = Ncells
 Cin(1) = y(1)
 Cin(2) = y(N1D+2)
 Cin(3) = y(2*N1D+3)
+Cin(4) = y(3*N1D+4)
 if (noSS) then
-    Cin(4) = y(3*N1D+4)
+    Cin(5) = y(4*N1D+5)
     K1 = K_PL
     K2 = K_LP
 endif
@@ -378,7 +380,7 @@ mp => phase_metabolic(1)
 call get_metab_rates(mp,Cin)
 
 k = 0
-do ichemo = 1,3
+do ichemo = 1,4     ! 3 -> 4 = glutamine
 	! First process IC reactions
 	k = k+1
 	C = y(k)
@@ -394,9 +396,11 @@ do ichemo = 1,3
     elseif (ichemo == LACTATE) then
 		dCreact = (mp%L_rate + membrane_flux)/vol_cm3		! L_rate is rate of production
 !		dCreact = dCreact*f_MM(C,chemo(LACTATE)%MM_C0, int(chemo(LACTATE)%Hill_N))
+    elseif (ichemo == GLUTAMINE) then	! 
+		dCreact = (-mp%Gln_rate + membrane_flux)/vol_cm3		! Gn_rate is rate of consumption
     endif
 	dydt(k) = dCreact
-!	write(nflog,'(a,i4,e12.3)') 'dydt: ',im,dydt(k)
+!	if (ichemo == 4) write(nflog,'(a,3e12.3)') 'glutamine C,Cex,dydt: ',C,Cex,dydt(k)
 	if (isnan(dydt(k))) then
 		write(nflog,*) 'f_rkc_OGL: dydt isnan: ',ichemo,dydt(k)
 		write(*,*) 'f_rkc_drug: dydt isnan: ',ichemo,dydt(k)
@@ -428,7 +432,7 @@ do ichemo = 1,3
 enddo
 if (noSS) then  ! add reaction for pyruvate C_P
     k = k+1
-    dydt(k) = (2*(1-mp%f_G)*mp%G_rate - mp%P_rate)/vol_cm3 + K2*Cin(3) - K1*y(k)
+    dydt(k) = (2*(1-mp%f_G)*mp%G_rate - mp%P_rate)/vol_cm3 + K2*Cin(3) - K1*y(k)    !====================== CHECK THIS
 endif
 end subroutine
 
@@ -860,7 +864,8 @@ logical :: ok
 integer :: ichemo, k, ict, neqn, i, kcell, it
 real(REAL_KIND) :: t, tend
 !real(REAL_KIND) :: C(3*N1D+3), Cin(3), Csum, dCdt(3*N1D+3), dtt
-real(REAL_KIND) :: C(3*N1D+4), Cin(4), Csum, dCdt(3*N1D+4), C_P, dtt
+!real(REAL_KIND) :: C(3*N1D+4), Cin(4), Csum, dCdt(3*N1D+4), C_P, dtt
+real(REAL_KIND) :: C(4*N1D+5), Cin(5), Csum, dCdt(4*N1D+5), C_P, dtt
 real(REAL_KIND) :: timer1, timer2
 ! Variables for RKC
 integer :: info(4), idid
@@ -879,9 +884,10 @@ real(REAL_KIND) :: average_volume = 1.2
 ict = selected_celltype ! for now just a single cell type 
 !mp => metabolic
 mp => phase_metabolic(1)
+mp%recalcable = -1     ! This ensures full solution procedure at the start of each time step
 
 k = 0
-do ichemo = 1,3
+do ichemo = 1,4     ! 4 = glutamine
 !	if (.not.chemo(ichemo)%present) cycle
 	k = k+1
 	C(k) = Caverage(ichemo)		! IC 
@@ -890,6 +896,8 @@ do ichemo = 1,3
 		C(k) = C_OGL(ichemo,i)	! EC
 	enddo
 enddo
+!write(nflog,'(a,f6.3)') 'OGLsolver: glutamine: IC: ',C(3*(N1D+1) + 1)
+!write(nflog,'(10f6.3)') C(3*(N1D+1)+2: 3*(N1D+1)+N1D+1)
 if (noSS) then
     k = k+1
     C_P = mp%C_P
@@ -947,8 +955,9 @@ neqn = k
 !endif
 ! This determines average cell concentrations, assumed the same for all cells
 ! Now put the concentrations into the cells 
-mp%C_P = C(3*N1D+4)
-do ichemo = 1,3
+!mp%C_P = C(3*N1D+4) ! =============================================== FIX THIS
+mp%C_P = C(4*N1D+5)
+do ichemo = 1,4     ! 3 -> 4 = glutamine
 	if (.not.chemo(ichemo)%present) cycle
     k = (ichemo-1)*(N1D+1) + 1
     Caverage(ichemo) = C(k)
@@ -967,16 +976,19 @@ do ichemo = 1,3
 !	write(nflog,'(a,i3,5e12.3)') 'Cdrug: im: ',im,Cdrug(im,1:5)
 enddo
 if (noSS) then
-    mp%C_P = C(3*N1D+4)
+!    mp%C_P = C(3*N1D+4)
+    mp%C_P = C(4*N1D+5)
 endif
 !write(nflog,'(a,3e12.3)') 'post C O2: ',C(1),C(2),C(N1D+1)
 Cin(1) = C(1)
 Cin(2) = C(N1D+2)
 Cin(3) = C(2*N1D+3)
+Cin(4) = C(3*N1D+4)
 if (noSS) then
-    Cin(4) = mp%C_P
+    Cin(5) = mp%C_P
 endif
 call get_metab_rates(mp,Cin)
+!write(nflog,'(a,e12.3)') 'OGLSolver: mp%G_rate: ',mp%G_rate 
 
 ! Update C_A in phase_metabolic(1)
 call update_C_A(dt,mp)
@@ -1033,7 +1045,7 @@ real(REAL_KIND) :: A, A_n, rA, rAs, Atarget_n, dC_Adt, k1, k2
 k2 = 2.0e7
 A = mp%C_A
 A_n = A/C_A_norm
-rA = mp%A_rate/r_A_norm				! normalise
+rA = mp%A_rate/r_Au				! normalise
 rA = min(rA,1.0)
 rAs = f_ATPs						! normalised
 Atarget_n = (rA - rAs)/(1 - rAs)	! normalised
@@ -1391,7 +1403,7 @@ subroutine Set_f_GP_1(ityp,mp,C)
 integer :: ityp
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C(:)
-real(REAL_KIND) :: C_O2, C_G, Ofactor, Gfactor, ATPfactor, x, fmin
+real(REAL_KIND) :: C_O2, C_G, C_Gln, Ofactor, Gfactor, ATPfactor, x, fmin
 real(REAL_KIND) :: CO_L, CG_L, f_ATP_H, f_ATP_L, f, f_G_H, f_G_L
 real(REAL_KIND) :: f_G, f_P, r_P, r_G, r_GI, r_GA, r_PI, r_PA, fPDK, Km_O2, MM_O2, f_PA, Km, C1, C2, r_L, r_A
 integer :: N_O2, n
@@ -1405,8 +1417,8 @@ if (ityp /= 1) then
 	stop
 endif
 if (.not.chemo(LACTATE)%used) then
-!	f_G = f_G_norm
-!	f_P = f_P_norm
+!	f_G = f_Gu
+!	f_P = f_Pu
 	f_G = mp%f_G
 	f_P = mp%f_P
 	C_O2 = C(1)
@@ -1415,7 +1427,7 @@ if (.not.chemo(LACTATE)%used) then
 	Km_O2 = Hill_Km_O2
 	f_PA = N_PA
 	MM_O2 = f_MM(C_O2,Km_O2,N_O2)
-	r_G = MM_O2*get_glycosis_rate(mp%HIF1,C_G,mp%O_rate)
+	r_G = MM_O2*get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)
 	fPDK = mp%PDK1
 
 	r_P = fPDK*2*(1 - f_G)*r_G
@@ -1423,15 +1435,15 @@ if (.not.chemo(LACTATE)%used) then
 	r_PI = f_P*r_P
 	r_GA = r_P
 	r_PA = f_PA*(1 - f_P)*r_P
-	!write(*,'(a,3e12.3)') 'r_GA, r_PA, ATPg(ityp): ',r_GA,r_PA,ATPg(ityp) 
-	if (r_GA + r_PA < ATPg) then	! adjust f_P to maintain ATPg
-		! r_GA+r_PA = r_P*(f_P + f_PA*(1 - f_P)) = ATPg(ityp)
-		f_P = (ATPg/r_P - f_PA)/(1 - f_PA)
+	!write(*,'(a,3e12.3)') 'r_GA, r_PA, r_Ag(ityp): ',r_GA,r_PA,ATPg(ityp) 
+	if (r_GA + r_PA < r_Ag) then	! adjust f_P to maintain r_Ag
+		! r_GA+r_PA = r_P*(f_P + f_PA*(1 - f_P)) = r_Ag(ityp)
+		f_P = (r_Ag/r_P - f_PA)/(1 - f_PA)
 		f_P = alfa*f_P + (1-alfa)*mp%f_P
 		f_P = min(f_P,1.0)
 		if (f_P < 0) then
 			f_P = 0
-			f_G = 1 - ATPg/(fPDK*2*r_G*(1 + f_PA))
+			f_G = 1 - r_Ag/(fPDK*2*r_G*(1 + f_PA))
 			f_G = alfa*f_G + (1-alfa)*mp%f_G
 			f_G = min(f_G,1.0)
 			f_G = max(f_G,0.0)
@@ -1446,7 +1458,7 @@ endif
 if (use_ATP) then
 	f_ATP_L = f_ATPg
 	f_ATP_H = min(f_ATPramp*f_ATPg,1.0)
-	f = mp%A_rate/r_A_norm
+	f = mp%A_rate/r_Au
 	if (f > f_ATP_H) then
 		ATPfactor = 1
 	elseif (f < f_ATP_L) then
@@ -1457,7 +1469,7 @@ if (use_ATP) then
 	endif
 !	f_G_L = f_ATPg(ityp)
 !	f_G_H = min(f_ATPramp(ityp)*f_ATPg(ityp),1.0)
-	x = mp%G_rate/r_G_norm
+	x = mp%G_rate/r_Gu
 	C1 = 1
 	C2 = 0
 	n = 1
@@ -1479,7 +1491,7 @@ if (use_ATP) then
 !	write(*,'(a,2e12.3)') 'A_rate, ATPfactor: ',mp%A_rate,ATPfactor
 !	r_G = mp%G_rate
 !	r_L = mp%L_rate
-!	f_G = f_G_norm
+!	f_G = f_Gu
 !	r_P = 2*(1 - f_G)*r_G - r_L
 !	f_PA = N_PA(ityp)
 	C_O2 = C(1)
@@ -1489,20 +1501,20 @@ if (use_ATP) then
 	fmin = 0.3
 	if (C_O2 > C1) then
 		Ofactor = 1 - fmin
-!		f_P = f_P_norm
+!		f_P = f_Pu
 	elseif (C_O2 < C2) then
 		Ofactor = 0
 !		f_P = 0
 	else
 		x = (C_O2 - C2)/(C1 - C2)
 		Ofactor = x**n*(1-fmin)
-!		f_P = f_P_norm*(C_O2 - C2)/(C1 - C2)
+!		f_P = f_Pu*(C_O2 - C2)/(C1 - C2)
 	endif
 	Ofactor = Ofactor + fmin
-	f_P = Ofactor*f_P_norm
-	f_G = Ofactor*f_G_norm
-!	if (mp%A_rate/r_A_norm > f_ATPg(ityp)) then 
-!!		ATPfactor = (mp%A_rate/r_A_norm - f_ATPg(ityp))/(1 - f_ATPg(ityp))
+	f_P = Ofactor*f_Pu
+	f_G = Ofactor*f_Gu
+!	if (mp%A_rate/r_Au > f_ATPg(ityp)) then 
+!!		ATPfactor = (mp%A_rate/r_Au - f_ATPg(ityp))/(1 - f_ATPg(ityp))
 !!		ATPfactor = min(ATPfactor, 1.0)
 !		ATPfactor = 1
 !	else
@@ -1513,7 +1525,7 @@ if (use_ATP) then
 	
 	mp%f_P = alfa*ATPfactor*f_P + (1-alfa)*mp%f_P
 	mp%f_G = alfa*ATPfactor*f_G + (1-alfa)*mp%f_G
-	write(nflog,'(a,4e12.3)') 'mp%A_rate/r_A_norm,ATPfactor,mp%f_G,mp%f_P: ',mp%A_rate/r_A_norm,ATPfactor,mp%f_G,mp%f_P
+	write(nflog,'(a,4e12.3)') 'mp%A_rate/r_Au,ATPfactor,mp%f_G,mp%f_P: ',mp%A_rate/r_Au,ATPfactor,mp%f_G,mp%f_P
 !	r_A = 2*(1 - f_G)*r_G + f_PA*(1 - f_P)*r_P
 
 !	if (r_A < ATPg(ityp)) then
@@ -1521,16 +1533,16 @@ if (use_ATP) then
 !		f_G = max(f_G,0.0)
 !	endif
 
-!	mp%f_G = alfa*ATPfactor*f_G_norm + (1-alfa)*mp%f_G
+!	mp%f_G = alfa*ATPfactor*f_Gu + (1-alfa)*mp%f_G
 	
 !	Km = 0.06
 !	if (C_O2 < Km) then
 !		ATPfactor = ATPfactor*C_O2/Km
-!		mp%f_G = alfa*ATPfactor*f_G_norm + (1-alfa)*mp%f_G
+!		mp%f_G = alfa*ATPfactor*f_Gu + (1-alfa)*mp%f_G
 !		mp%f_P =(1-alfa)*mp%f_P
 !	endif
-!	mp%f_G = alfa*ATPfactor*f_G_norm + (1-alfa)*mp%f_G
-!	mp%f_P = alfa*ATPfactor*f_P_norm + (1-alfa)*mp%f_P
+!	mp%f_G = alfa*ATPfactor*f_Gu + (1-alfa)*mp%f_G
+!	mp%f_P = alfa*ATPfactor*f_Pu + (1-alfa)*mp%f_P
 !	if (C(1) < 0.05) then
 !		mp%f_G = 0	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !		mp%f_P = 0	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1557,8 +1569,8 @@ else
 	elseif (C_G < CG_H) then
 		Gfactor = (C_G - CG_L)/(CG_H - CG_L)
 	endif
-	mp%f_G = Gfactor*Ofactor*f_G_norm
-	mp%f_P = Ofactor*f_P_norm
+	mp%f_G = Gfactor*Ofactor*f_Gu
+	mp%f_P = Ofactor*f_Pu
 !	write(*,'(a,6f8.4)') 'G, Ofactor: ',Gfactor, Ofactor, C_G, C_O2, mp%f_G, mp%f_P
 endif
 end subroutine

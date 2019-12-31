@@ -74,7 +74,7 @@ real(REAL_KIND) :: Caverage(2*MAX_CHEMO)    ! average cell (IC) and medium bdry 
 real(REAL_KIND) :: Cmediumave(MAX_CHEMO)    ! average medium concentrations
 !real(REAL_KIND) :: Cglucose(N1D)
 !real(REAL_KIND) :: Cdrug(0:2,N1D)
-real(REAL_KIND) :: C_OGL(3,N1D)				! 1=OXYGEN, 2=GLUCOSE, 3=LACTATE
+real(REAL_KIND) :: C_OGL(4,N1D)				! 1=OXYGEN, 2=GLUCOSE, 3=LACTATE, 4 = GLUTAMINE
 
 contains
 

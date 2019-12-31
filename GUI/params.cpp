@@ -288,7 +288,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Max consumption rate",
  "GLUCOSE consumption rate"},
 
-{"GLUCOSE_MM_KM", 600, 0, 0,
+{"GLUCOSE_MM_KM", 400, 0, 0,
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
@@ -348,11 +348,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Medium diffusion coeff",
  "Constituent diffusion coefficient in the medium"},
 
-{"GLUTAMINE_CELL_DIFF_IN", 20, 0, 0,
+{"GLUTAMINE_CELL_DIFF_IN", 100, 0, 0,
  "Membrane diff constant",
  "Cell membrane diffusion coefficient Kin"},
 
-{"GLUTAMINE_CELL_DIFF_OUT", 20, 0, 0,
+{"GLUTAMINE_CELL_DIFF_OUT", 100, 0, 0,
  "Membrane diff constant",
  "Cell membrane diffusion coefficient Kout"},
 
@@ -364,15 +364,15 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-{"GLUTAMINE_CONSUMPTION", 0, 0, 0,
+{"GLUTAMINE_CONSUMPTION", 1.0e-16, 0, 0,
  "Consumption rate",
  "Glutamine consumption rate"},
 
-{"GLUTAMINE_MM_KM", 0, 0, 0,
+{"GLUTAMINE_MM_KM", 100, 0, 0,
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
-{"GLUTAMINE_HILL_N", 0, 0, 2,
+{"GLUTAMINE_HILL_N", 1, 0, 2,
  "Hill function N",
  "Glutamine uptake rate Hill function N"},
 
@@ -638,15 +638,15 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Use glucose metabolism",
        "If metabolism is turned on, cell cycle is used, and lactate is simulated.  If metabolism is turned off, lactate is not simulated"},
 
-       {"F_GNORM_1", 0.67, 0, 0,
+       {"F_GNORM_1", 0.6, 0, 0,
        "Normal fraction of glycolysis -> intermediates",
        "Fraction of glycolysis (r_G) going to make intermediates under conditions of full nutrition"},
 
-       {"F_PNORM_1", 0.07, 0, 0,
+       {"F_PNORM_1", 0.5, 0, 0,
        "Normal fraction of pyruvate -> intermediates",
         "Fraction of pyruvate (r_P) going to make intermediates under conditions of full nutrition"},
 
-       {"F_GNNORM_1", 0.07, 0, 0,
+       {"F_GNNORM_1", 0.7, 0, 0,
        "Normal fraction of glutamine -> intermediates",
         "Fraction of glutamine (r_Gn) going to make intermediates under conditions of full nutrition"},
 
@@ -658,11 +658,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "ATP moles produced per pyruvate mole",
       "Number of ATP moles produced by the oxidation of one pyruvate mole"},
 
-       {"N_GNA_1", 14, 0, 0,
-       "ATP moles produced per glutamate mole",
-       "Number of ATP moles produced by the oxidation of one glutamate mole"},
+       {"N_GNA_1", 7, 0, 0,
+       "ATP moles produced per glutamine mole",
+       "Number of ATP moles produced by the oxidation of one glutamine mole"},
 
-      {"N_GI_1", 1, 0, 0,
+      {"N_GI_1", 3, 0, 0,
       "Intermediate moles produced per glucose mole",
       "Number of moles of anabolic intermediates produced the glycolysis of one glucose mole"},
 
@@ -670,17 +670,17 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Intermediate moles produced per pyruvate mole",
       "Number of moles of anabolic intermediates produced the oxidation of one pyruvate mole"},
 
-       {"N_GNI_1", 3, 0, 0,
-       "Intermediate moles produced per glutamate mole",
-       "Number of moles of anabolic intermediates produced the oxidation of one glutamate mole"},
+       {"N_GNI_1", 1, 0, 0,
+       "Intermediate moles produced per glutamine mole",
+       "Number of moles of anabolic intermediates produced the oxidation of one glutamine mole"},
 
       {"N_PO_1", 3, 0, 0,
       "Oxygen moles consumed per pyruvate mole",
       "Number of moles of oxygen consumed the oxidation of one pyruvate mole"},
 
-       {"N_GNO_1", 3, 0, 0,
-       "Oxygen moles consumed per glutamate mole",
-       "Number of moles of oxygen consumed the oxidation of one glutamate mole"},
+       {"N_GNO_1", 1, 0, 0,
+       "Oxygen moles consumed per glutamine mole",
+       "Number of moles of oxygen consumed the oxidation of one glutamine mole"},
 
       {"K_H1_1", 8, 0, 0,
       "Exponent N_H in Hss equation",
@@ -708,7 +708,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Nominal normal IC O2 concentration",
        "Nominal normal IC O2 concentration, used to set normal metabolic rates for unconstrained growth"},
 
-       {"C_G_NORM_1", 2.5, 0, 0,
+       {"C_G_NORM_1", 1.0, 0, 0,
        "Nominal normal IC glucose concentration",
        "Nominal normal IC glucose concentration, used to set normal metabolic rates for unconstrained growth"},
 
@@ -717,8 +717,8 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Nominal normal IC lactate concentration, used to set normal metabolic rates for unconstrained growth"},
 
         {"C_GN_NORM_1", 1.0, 0, 0,
-        "Nominal normal IC glutamate concentration",
-        "Nominal normal IC glutamate concentration, used to set normal metabolic rates for unconstrained growth"},
+        "Nominal normal IC glutamine concentration",
+        "Nominal normal IC glutamine concentration, used to set normal metabolic rates for unconstrained growth"},
 
       {"ATP_S_1", 0.3, 0, 0,
       "ATP production threshold for survival (fraction of peak)",
@@ -736,11 +736,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         A multiplying factor on both r_G and r_P, f, is calculated as a ramp from 0 - 1 as f_A varies from ATP_G - ATPramp*ATP_G\n\
         i.e. the reduction starts when f_A = ATPramp*ATP_G (f = 1), and when f_A = ATP_G, f = 0.  f_G = f*f_Gn, f_P = f*f_Pn"},
 
-      {"K_PL_1", 0.0001, 0, 0,
-      "Pyruvate -> lactate rate constant",
-      "The forward rate constant K_PL of the pyruvate-lactate reaction, i.e. the rate constant for conversion of pyruvate to lactate"},
+       {"K_PL_1", 0.1, 0, 0,
+       "Pyruvate -> lactate rate constant",
+       "The forward rate constant K_PL of the pyruvate-lactate reaction, i.e. the rate constant for conversion of pyruvate to lactate"},
 
-      {"K_LP_1", 0.001, 0, 0,
+      {"K_LP_1", 0.1, 0, 0,
       "Lactate -> pyruvate rate constant",
       "The reverse rate constant K_LP of the pyruvate-lactate reaction, i.e. the rate constant for conversion of lactate to pyruvate"},
 
@@ -753,11 +753,15 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "The glycolysis rate is multiplied by cfactor, which is a function of the normalised total rate of oxygen consumption.\n\
         Normalised O2 rate = r_O2N = r_O2/r_O2max, cfactor = r_O2N/(Km + r_O2N)"},
 
-        {"GLUTAMINE_BASERATE_1", 1.0e-17, 0, 0,
-         "Glutamine base consumption rate",
-         "To account for a possible base rate of metabolism of glutamine.  The rate of consumption is made of a fixed base rate, r_base, + a rate that depends on glucose conc C_G.\n\
-         With fbase = r_base/Vmax, and gfactor = fbase + (1 - fbase)**Km_GG/(Km_GG + C_G), where Km_GG = 0.2*Km_G,\n\
-         the glutamine rate becomes: r_Gln = fPDK*Vmax*gfactor*C_Gln/(Km_Gln + C_Gln)"},
+       {"GLUTAMINE_BASERATE_1", 1.0e-11, 0, 0,
+       "Glutamine base consumption rate",
+       "To account for a possible base rate of metabolism of glutamine.  The rate of consumption is made of a fixed base rate, r_base, + a rate that depends on glucose conc C_G.\n\
+       With fbase = r_base/Vmax, and gfactor = fbase + (1 - fbase)**Km_GG/(Km_GG + C_G), where Km_GG = 0.2*Km_G,\n\
+       the glutamine rate becomes: r_Gln = fPDK*Vmax*gfactor*C_Gln/(Km_Gln + C_Gln)"},
+
+       {"NITROGEN_FACTOR_1", 0.2, 0, 0,
+       "Nitrogen factor",
+       "The factor f_N is the ratio of the rate of production of intermediates from glutamine to the total rate of production of intermediates."},
 
        {"F_GP_SOLVER",1,0,0,
         "f_GP solver (1,2,3)",
@@ -859,6 +863,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"ECoxygen",                  1, 0,1,"","EC concentration of oxygen in the medium (bottom)"},
     {"ECglucose",                 1, 0,1,"","EC concentration of glucose in the medium (bottom)"},
     {"EClactate",                 1, 0,1,"","EC concentration of lactate in the medium (bottom)"},
+    {"ECglutamine",               1, 0,1,"","EC concentration of glutamine in the medium (bottom)"},
     {"ECdrugA",                   0, 0,1,"","EC concentration of drug A in the medium (bottom)"},
     {"ECdrugAmet1",               0, 0,1,"","EC concentration of drug A metabolite 1 in the medium (bottom)"},
     {"ECdrugAmet2",               0, 0,1,"","EC concentration of drug A metabolite 2 in the medium (bottom)"},
@@ -868,7 +873,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"ICoxygen",                  1, 0,1,"","IC concentration of oxygen"},
     {"ICglucose",                 1, 0,1,"","IC concentration of glucose"},
     {"IClactate",                 1, 0,1,"","IC concentration of lactate"},
-    {"ICpyruvate",                1, 0,1,"","IC concentration of pyruvate"},
+    {"ICglutamine",               1, 0,1,"","IC concentration of glutamine"},
     {"ICATP",                     1, 0,1,"","IC concentration of ATP"},
     {"ICdrugA",                   0, 0,1,"","IC concentration of drug A"},
     {"ICdrugAmet1",               0, 0,1,"","IC concentration of drug A metabolite 1"},
@@ -879,6 +884,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
     {"Medoxygen",                 0, 0,1,"","Average medium concentration of oxygen"},
     {"Medglucose",                0, 0,1,"","Average medium concentration of glucose"},
     {"Medlactate",                0, 0,1,"","Average medium concentration of lactate"},
+    {"Medglutamine",              0, 0,1,"","Average medium concentration of glutamine"},
     {"MeddrugA",                  0, 0,1,"","Average medium concentration of drug A"},
     {"MeddrugAmet1",              0, 0,1,"","Average medium concentration of drug A metabolite 1"},
     {"MeddrugAmet2",              0, 0,1,"","Average medium concentration of drug A metabolite 2"},
