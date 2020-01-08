@@ -74,7 +74,7 @@ real(REAL_KIND) :: K_PL			! P -> L
 real(REAL_KIND) :: K_LP			! L -> P
 real(REAL_KIND) :: r_Pu, r_Gu, r_Glnu, r_Au, r_Iu, r_Ou, r_Lu, C_Pu   ! unconstrained conditions
 real(REAL_KIND) :: G_maxrate, O2_maxrate, Gln_maxrate
-real(REAL_KIND) :: f_N
+real(REAL_KIND) :: f_N, r_Abase, r_Ibase
 integer :: fgp_solver
 
 type param_set_type
@@ -97,6 +97,8 @@ real(REAL_KIND), parameter :: C_Gln_Km_factor = 0.2
 real(REAL_KIND), parameter :: PI = 4*atan(1.0)
 #endif
 logical :: use_Kelly = .false.
+logical :: use_wxfGlnu = .false.
+integer :: knt
 
 contains
 
@@ -244,6 +246,7 @@ endif
 r_Ag = f_ATPg*r_Au
 r_As = f_ATPs*r_Au
 mp%recalcable = -1
+knt = 0
 end subroutine
 
 !--------------------------------------------------------------------------
@@ -415,11 +418,11 @@ C_L = max(0.0,C_L_)
 C_Gln = max(0.0,C_Gln_)
 
 if (use_nitrogen) then
-!    if (mp%recalcable > 0) then
+    if (mp%recalcable > 0) then
 !        call f_metab_recalc(mp, C_O2, C_G, C_L, C_Gln)
-!    else
+    else
         call f_metab_nitrogen(mp, C_O2, C_G, C_L, C_Gln)
-!    endif
+    endif
     return
 endif
 
@@ -911,23 +914,27 @@ subroutine get_unconstrained_rates
 real(REAL_KIND) :: V
 type(metabolism_type), target :: metab
 type(metabolism_type), pointer :: mp
+real(REAL_KIND) :: base_factor = 0.0
 
 V = Vcell_cm3*average_volume		! should be actual cell volume cp%V
- 
+
 r_Gu = G_maxrate*glucose_metab(C_G_norm)
 r_Pu = (O2_maxrate - r_Glnu*(1 - f_Glnu)*N_GlnO)/((1 - f_Pu)*N_PO)
 !a0 = r_G*N_GA + ps%p*(1 - f_Glnu)*N_GlnA - ps%h*ps%p*f_Glnu*N_GlnI - r_Ag
-!b0 = -r_G*f_Gu*(N_GA + ps%h*N_GI)
+!b0 = -r_G*f_Gu*(N_GA + ps%h*N_GI) 
 !c0 = ps%q*(1 - f_Glnu)*N_GlnA - ps%h*ps%q*f_Glnu*N_GlnI
 !d0 = f_Pu*(N_PA + ps%h*N_PI)
 
-ps%a1 = ps%p*f_Glnu*N_GlnI
-ps%b1 = r_Gu*f_Gu*N_GI
-ps%c1 = -ps%q*f_Glnu*N_GlnI
-ps%d1 = f_Pu*N_PI
+!ps%a1 = ps%p*f_Glnu*N_GlnI
+!ps%b1 = r_Gu*f_Gu*N_GI
+!ps%c1 = -ps%q*f_Glnu*N_GlnI
+!ps%d1 = f_Pu*N_PI
 
-r_Iu = r_Gu*f_Gu*N_GI + r_Pu*f_Pu*N_PI + r_Glnu*f_Glnu*N_GlnI
-r_Au = r_Gu*(1 - f_Gu)*N_GA + r_Pu*(1 - f_Pu)*N_PA + r_Glnu*(1 - f_Glnu)*N_GlnA
+r_Ibase = base_factor*(r_Gu*f_Gu*N_GI + r_Pu*f_Pu*N_PI + r_Glnu*f_Glnu*N_GlnI)
+r_Abase = base_factor*(r_Gu*(1 - f_Gu)*N_GA + r_Pu*(1 - f_Pu)*N_PA + r_Glnu*(1 - f_Glnu)*N_GlnA)
+
+r_Iu = r_Gu*f_Gu*N_GI + r_Pu*f_Pu*N_PI + r_Glnu*f_Glnu*N_GlnI + r_Ibase
+r_Au = r_Gu*(1 - f_Gu)*N_GA + r_Pu*(1 - f_Pu)*N_PA + r_Glnu*(1 - f_Glnu)*N_GlnA + r_Abase
 r_Ou = r_Pu*(1 - f_Pu)*N_PO + r_Glnu*(1 - f_Glnu)*N_GlnO
 C_Pu = ((1 - f_Gu)*r_Gu*N_GP + V*K_LP*C_L_norm - r_Pu)/(V*K_PL)
 r_Lu = (1 - f_Gu)*r_Gu*N_GP - r_Pu
@@ -935,7 +942,17 @@ write(nflog,'(a,7e12.3)') 'unconstrained rates: A,I,G,Gln,P,L,O: ',r_Au,r_Iu,r_G
 write(nflog,'(a,e12.3)') 'O2_maxrate: ',O2_maxrate
 r_Ag = f_ATPg*r_Au
 r_As = f_ATPs*r_Au
-write(nflog,'(a,e12.3)') 'r_Ag: ',r_Ag
+write(nflog,'(a,e12.3)') 'C_Pu: ',C_Pu
+if (C_Pu < 0) then
+    write(nflog,*) 'Bad C_P !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+    write(nflog,*) 'Must: decrease f_Gu, or increase K_LP, or decrease r_Pu'
+    write(nflog,*) 'To decrease r_Pu: increase r_Glnu, or decrease f_Glnu, or decrease f_Pu'
+    write(nflog,*)
+endif
+if (r_Pu < 0) then
+    write(nflog,*) 'Bad r_P !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+    write(nflog,*) 'Must: decrease f_N, increase f_Gln, or decrease N_GlnO'
+endif
 return
 
 ! Now check by solving
@@ -956,12 +973,12 @@ subroutine set_param_set(r_G,C_Gln)
 real(REAL_KIND) :: r_G, C_Gln
 real(REAL_KIND) :: V, MM_Gln, Km_Gln, r1, r2
 integer :: N_Gln
-logical :: use_wxfGlnu = .true.
 
 V = Vcell_cm3*average_volume
 N_Gln = 1
 Km_Gln = Hill_Km_Gln
 MM_Gln = f_MM(C_Gln,Km_Gln,N_Gln)
+write(nflog,'(a,e12.3)') 'Limit of r_Gln: ',Gln_maxrate*MM_Gln
 
 ps%h = (r_Au - r_Ag)/r_Iu
 r1 = min(r_Glnu,Gln_maxrate*MM_Gln)
@@ -969,7 +986,7 @@ r2 = max(r1,Gln_maxrate*MM_Gln)
 ps%p = r2
 ps%q = (r2 - r1)/r_Pu
 
-ps%a0 = r_G*N_GA + ps%p*(1 - f_Glnu)*N_GlnA - ps%h*ps%p*f_Glnu*N_GlnI - r_Ag
+ps%a0 = r_G*N_GA + ps%p*(1 - f_Glnu)*N_GlnA - ps%h*ps%p*f_Glnu*N_GlnI - r_Ag + (r_Abase - r_Ibase)
 ps%b0 = -r_G*f_Gu*(N_GA + ps%h*N_GI)
 ps%c0 = ps%q*(1 - f_Glnu)*N_GlnA - ps%h*ps%q*f_Glnu*N_GlnI - N_PA
 ps%d0 = f_Pu*(N_PA + ps%h*N_PI)
@@ -990,12 +1007,12 @@ if (use_wxfGlnu) then
     ps%c3 = N_PO - ps%q*N_GlnO
     ps%d3 = ps%q*f_Glnu*N_GlnO - f_Pu*N_PO
 else
-    ps%a1 = ps%p*f_Glnu*N_GlnI
+    ps%a1 = ps%p*f_Glnu*N_GlnI + r_Ibase
     ps%b1 = r_G*f_Gu*N_GI
     ps%c1 = -ps%q*f_Glnu*N_GlnI
     ps%d1 = f_Pu*N_PI
 
-    ps%a2 = r_G*N_GA + ps%p*(1 - f_Glnu)*N_GlnA
+    ps%a2 = r_G*N_GA + ps%p*(1 - f_Glnu)*N_GlnA + r_Abase
     ps%b2 = -r_G*f_Gu*N_GA
     ps%c2 = -ps%q*(1 - f_Glnu)*N_GlnA + N_PA
     ps%d2 = -f_Pu*N_PA
@@ -1014,14 +1031,17 @@ real(REAL_KIND) :: clean, check
 integer :: N_O2, N_Gln, iw, Nw
 real(REAL_KIND) :: dw, r_Imax, w_max, r1, r2, a0, b0, c0, d0, r_O2limit, alfa
 logical :: checking = .false.
-logical :: done, dbug
-clean = -1
+logical :: dbug
+clean = 1
+
+write(nflog,*) 'f_metab_nitrogen: knt: ',knt
+if (mp%recalcable > 0) return
 
 dbug = .false.
 !dbug = (C_G < 0.05)
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
+
 call set_param_set(r_G,C_Gln)
-if (dbug) write(nflog,'(a,3e12.3)') 'ps%h, ps%p, ps%q: ',ps%h, ps%p, ps%q
 
 N_O2 = Hill_N_O2
 Km_O2 = Hill_Km_O2
@@ -1061,17 +1081,10 @@ if (dbug) then
 !    write(nflog,'(a,2e12.3)') 'd2: ',ps%d2,-f_Pu*N_PA
 endif
 V = Vcell_cm3*average_volume
-r_P = 0
-r_Gln = 0
-r_I = 0
-r_A = 0
-r_O2 = 0
-r_L = 0
-C_P = 0
 
 r_Imax = 0
 w_max = -1
-Nw = 10
+Nw = 100
 dw = 1.0/Nw
 do iw = 1,Nw+1
     w = (iw-1)*dw
@@ -1085,9 +1098,17 @@ do iw = 1,Nw+1
 enddo
 w = w_max
 r_P = (ps%a0 + ps%b0*w)/(ps%c0 + ps%d0*w)
+r_Gln = ps%p - ps%q*r_P
+write(nflog,'(a,f6.3,3e12.3)') 'w,r_I,r_P,r_Gln: ',w,r_I,r_P,r_Gln
+if (r_Gln < 0) then
+    write(nflog,'(a,5e12.3)') 'r_Gln < 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: w,r_Gln,r_P: ',w,r_Gln,r_P
+    r_Gln = 0
+    r_P = min(r_P, r_Pu)
+endif
 C_P = ((1 - w*f_Gu)*r_G*N_GP + V*K_LP*C_L - r_P)/(V*K_PL)
-!write(nflog,'(a,f6.3,2e12.3)') 'w,r_P,C_P: ',w,r_P,C_P
 if (C_P < 0.0) then
+    write(nflog,'(a,5e12.3)') 'C_P < 0: C_G,C_L,C_Gln,C_O2,C_P: ',C_G,C_L,C_Gln,C_O2,C_P
+    clean = -1
     C_P = 0
     a = ps%d0*r_G*f_Gu*N_GP
     b = ps%b0 + ps%c0*r_G*f_Gu*N_GP - ps%d0*(r_G*N_GP + V*K_LP*C_L)
@@ -1096,71 +1117,78 @@ if (C_P < 0.0) then
     w1 = (-b + d)/(2*a)
     w2 = (-b - d)/(2*a)
     w = max(w2,0.0)
+    w = min(w,1.0)
     r_P = r_G*(1 - w*f_Gu)*N_GP + V*K_LP*C_L
-!    write(nflog,'(a,3f8.4,2e12.3)') 'w1,w2,w,r_P,C_P: ',w1,w2,w,r_P,C_P
-endif    
-r_Gln = ps%p - ps%q*r_P
-r_I = ps%a1 + ps%b1*w + ps%c1*r_P + ps%d1*w*r_P
-r_A = ps%a2 + ps%b2*w + ps%c2*r_P + ps%d2*w*r_P
-r_O2 = r_P*(1 - w*f_Pu)*N_PO + r_Gln*(1 - w*f_Glnu)*N_GlnO
+    r_Gln = ps%p - ps%q*r_P
+    write(nflog,'(a,f8.4,3e12.3)') 'w,r_P,r_Gln,C_P: ',w,r_P,r_Gln,C_P
+endif
+if (use_wxfGlnu) then
+    r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_Gln*w*f_Glnu*N_GlnI
+    r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w*f_Glnu)*N_GlnA
+    r_O2 = r_P*(1 - w*f_Pu)*N_PO + r_Gln*(1 - w*f_Glnu)*N_GlnO
+else
+    r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_Gln*f_Glnu*N_GlnI + r_Ibase
+    r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - f_Glnu)*N_GlnA + r_Abase
+    r_O2 = r_P*(1 - w*f_Pu)*N_PO + r_Gln*(1 - f_Glnu)*N_GlnO
+endif
+!write(nflog,'(a,f6.3,5e12.3)') 'w,r G,P,Gln,A,O2: ',w,r_G,r_P,r_Gln,r_A,r_O2
+!else  
+!    r_I = ps%a1 + ps%b1*w + ps%c1*r_P + ps%d1*w*r_P
+!    r_A = ps%a2 + ps%b2*w + ps%c2*r_P + ps%d2*w*r_P
+!    r_O2 = r_P*(1 - w*f_Pu)*N_PO + r_Gln*(1 - w*f_Glnu)*N_GlnO
+!endif
 r_O2limit = mp%PDK1*O2_maxrate*MM_O2
 if (r_O2 > r_O2limit) then
-#if 0
-    ! solve for w, r_P with r_O2 = r_O2limit
-    a = ps%b3*ps%d0 + ps%d3*ps%b0
-    b = ps%b3*ps%c0 + ps%a3*ps%d0 + ps%c3*ps%b0 + ps%d3*ps%a0 - r_o2limit*ps%d0
-    c = ps%a3*ps%c0 + ps%c3*ps%a0 - r_O2limit*ps%c0
-    d = sqrt(b*b - 4*a*c)
-    w1 = (-b + d)/(2*a)
-    w2 = (-b - d)/(2*a)
-!    write(nflog,'(a,3f8.4,2e12.3)') 'w1,w2: ',w1,w2
-    w = w2
-    if (w > 0) then
-        r_P = (ps%a0 + ps%b0*w)/(ps%c0 + ps%d0*w)
-        r_O2 = ps%a3 + ps%b3*w + ps%c3*r_P + ps%d3*w*r_P
-        write(nflog,'(a,f8.4,3e12.3)') 'w,r_P,r_O2,a0/c0: ',w,r_P,r_O2,ps%a0/ps%c0
-    else
-        write(nflog,'(a,f8.4)') 'for r_O2 bad w: ',w
-        w = 0
-    endif
-#endif
+    clean = -1
     alfa = r_O2limit/r_O2
+    write(nflog,'(a,f6.3)') 'alfa: ',alfa
     r_O2 = r_O2limit
     r_P = alfa*r_P
     r_Gln = alfa*r_Gln
-!    w = alfa*w
-    w = (r_G*N_GA + r_P*N_PA + r_Gln*N_GlnA - r_Ag)/ &
+    if (use_wxfGlnu) then
+        w = (r_G*N_GA + r_P*N_PA + r_Gln*N_GlnA - r_Ag)/ &
         (ps%h*(r_G*f_Gu*N_GI + r_P*f_Pu*N_PI + r_Gln*f_Glnu*N_GlnI) + (r_G*f_Gu*N_GA + r_P*f_Pu*N_PA + r_Gln*f_Glnu*N_GlnA))
-    r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w*f_Glnu)*N_GlnA
-    r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_Gln*w*f_Glnu*N_GlnI
+    else
+        w = (r_G*N_GA + r_P*N_PA + r_Gln*((1 - f_Glnu)*N_GlnA - ps%h*f_Glnu*N_GlnI)- r_Ag + (r_Abase - r_Ibase))/ &
+        (ps%h*(r_G*f_Gu*N_GI + r_P*f_Pu*N_PI) + (r_G*f_Gu*N_GA + r_P*f_Pu*N_PA))
+    endif
+    w = max(w,0.0)
+    w = min(w,1.0)
+    r_Gln = min((r_O2limit - r_P*(1 - f_Pu)*N_PO)/((1 - f_Glnu)*N_GlnO),ps%p - ps%q*r_P)
+    if (use_wxfGlnu) then
+        r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w*f_Glnu)*N_GlnA
+        r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_Gln*w*f_Glnu*N_GlnI
+    else
+        r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - f_Glnu)*N_GlnA + r_Abase
+        r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_Gln*f_Glnu*N_GlnI + r_Ibase
+    endif
     C_P = ((1 - w*f_Gu)*r_G*N_GP + V*K_LP*C_L - r_P)/(V*K_PL)
-    write(nflog,'(a,f8.4,3e12.3)') 'for r_O2: w,r_P,r_Gln,C_P: ',w,r_P,r_Gln,C_P
+!    write(nflog,'(a,f8.4,3e12.3)') 'for r_O2: w,r_P,r_Gln,C_P: ',w,r_P,r_Gln,C_P
     if (C_P < 0) then
         write(nflog,*) 'C_P < 0 !!!!!!!!!!!!!!!!!!!!!!!!!'
     endif
     C_P = max(C_P,0.0)
 endif
 r_L = r_G*(1 - w*f_Gu)*N_GP - r_P
-!write(nflog,'(a,8e12.3)') 'ps% a0,b0,c0,d0,p,q,r1,r2: ',ps%a0,ps%b0,ps%c0,ps%d0,ps%p,ps%q,r1,r2
-done = .true.
-if (done) then
-    mp%P_rate = r_P
-    mp%G_rate = r_G
-    mp%Gln_rate = r_Gln
-    mp%I_rate = r_I
-    mp%A_rate = r_A
-    mp%O_rate = r_O2
-    mp%L_rate = r_L
-    mp%C_P = C_P
-    mp%f_G = w*f_Gu
-    mp%f_P = w*f_Pu
-    mp%recalcable = clean
-endif
+
+mp%P_rate = r_P
+mp%G_rate = r_G
+mp%Gln_rate = r_Gln
+mp%I_rate = r_I
+mp%A_rate = r_A
+mp%O_rate = r_O2
+mp%L_rate = r_L
+mp%C_P = C_P
+mp%f_G = w*f_Gu
+mp%f_P = w*f_Pu
+mp%recalcable = 1   !clean  ! testing
 end subroutine
 
 
 #if 0
 !==================================================================================================
+! This method failed for low glucose, since r_Gln went to 0 as r_P went to 0, 
+! leaving unused glutamine.
 !==================================================================================================
 subroutine get_unconstrained_rates
 real(REAL_KIND) :: f_NG, V, qu, MM_Gln, Km_Gln, L1

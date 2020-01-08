@@ -355,6 +355,7 @@ type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
 
+knt = knt+1
 ict = icase
 A = well_area
 d = total_volume/A
@@ -375,12 +376,18 @@ if (noSS) then
     K1 = K_PL
     K2 = K_LP
 endif
+!write(nflog,*)
+!write(nflog,'(a,i4,f10.3,4e15.6)') 'f_rkc_OGL: knt, t, Cin: ',knt,t,Cin(1:4)
+!if (knt > 1000) then
+!    write(nflog,*) 'knt > 1000'
+!    stop
+!endif
 !mp => metabolic
 mp => phase_metabolic(1)
 call get_metab_rates(mp,Cin)
 
 k = 0
-do ichemo = 1,4     ! 3 -> 4 = glutamine
+do ichemo = 1,4     ! 3 -> 4 = glutamine 
 	! First process IC reactions
 	k = k+1
 	C = y(k)
@@ -896,6 +903,7 @@ do ichemo = 1,4     ! 4 = glutamine
 		C(k) = C_OGL(ichemo,i)	! EC
 	enddo
 enddo
+write(nflog,'(a,6f8.3)') 'OGLsolver: Cin, tstart, dt: ',Caverage(1:4),tstart,dt
 !write(nflog,'(a,f6.3)') 'OGLsolver: glutamine: IC: ',C(3*(N1D+1) + 1)
 !write(nflog,'(10f6.3)') C(3*(N1D+1)+2: 3*(N1D+1)+N1D+1)
 if (noSS) then
@@ -918,7 +926,7 @@ neqn = k
 	info(2) = 1		! = 1 => use spcrad() to estimate spectral radius, != 1 => let rkc do it
 	info(3) = 1
 	info(4) = 0
-	rtol = 5d-4		! was 5d-4
+	rtol = 1d-3		! was 5d-4
 !	if (mp%G_rate < r_G_threshold) then
 !		write(*,'(a,4e12.3)') 'r_G < r_G_threshold: ',mp%G_rate
 !		rtol = 1d-2
@@ -928,6 +936,7 @@ neqn = k
 	idid = 0
 	t = tstart
 	tend = t + dt
+	knt = 0
 	call rkc(comm_rkc(1),neqn,f_rkc_OGL,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
 !	call rkc(comm_rkc(1),neqn,f_rkc_OGL_phased,C,t,tend,rtol,atol,info,work_rkc,idid,ict)
 	if (idid /= 1) then

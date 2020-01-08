@@ -759,9 +759,9 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        With fbase = r_base/Vmax, and gfactor = fbase + (1 - fbase)**Km_GG/(Km_GG + C_G), where Km_GG = 0.2*Km_G,\n\
        the glutamine rate becomes: r_Gln = fPDK*Vmax*gfactor*C_Gln/(Km_Gln + C_Gln)"},
 
-       {"NITROGEN_FACTOR_1", 0.2, 0, 0,
-       "Nitrogen factor",
-       "The factor f_N is the ratio of the rate of production of intermediates from glutamine to the total rate of production of intermediates."},
+       {"R_GLNU_FACTOR_1", 0.3, 0, 0,
+       "r_Glnu factor",
+        "The factor f_N is the ratio of the unconstrained glutamine rate (r_Glnu) to the maximum glutamine rate (Vmax_Gln)."},
 
        {"F_GP_SOLVER",1,0,0,
         "f_GP solver (1,2,3)",

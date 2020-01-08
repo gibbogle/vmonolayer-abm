@@ -701,7 +701,7 @@ do ityp = 1,2
 	    ccp%Pk_G2 = 0
 	endif
 enddo
-use_divide_time_distribution = (iuse_divide_dist == 1)
+use_divide_time_distribution = (iuse_lognormal == 1)
 use_V_dependence = (iV_depend == 1)
 randomise_initial_volume = (iV_random == 1)
 use_constant_divide_volume = (dVdivide == 0)
