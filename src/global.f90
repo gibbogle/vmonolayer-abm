@@ -39,9 +39,9 @@ integer, parameter :: CFSE = 0
 integer, parameter :: OXYGEN = 1
 integer, parameter :: GLUCOSE = 2
 integer, parameter :: LACTATE = 3
-!integer, parameter :: PYRUVATE = 4
 integer, parameter :: GLUTAMINE = 4
-integer, parameter :: DRUG_A = 5
+integer, parameter :: OTHERNUTRIENT = 5
+integer, parameter :: DRUG_A = 6
 integer, parameter :: TPZ_DRUG = DRUG_A
 integer, parameter :: TPZ_DRUG_METAB_1 = TPZ_DRUG + 1
 integer, parameter :: TPZ_DRUG_METAB_2 = TPZ_DRUG + 2
@@ -50,6 +50,7 @@ integer, parameter :: DNB_DRUG = DRUG_B
 integer, parameter :: DNB_DRUG_METAB_1 = DNB_DRUG + 1
 integer, parameter :: DNB_DRUG_METAB_2 = DNB_DRUG + 2
 integer, parameter :: MAX_CHEMO = DRUG_B + 2
+integer, parameter :: NUTS = DRUG_A - 1
 
 integer, parameter :: GROWTH_RATE = MAX_CHEMO + 1	! (not used here, used in the GUI)
 integer, parameter :: CELL_VOLUME = MAX_CHEMO + 2
@@ -116,14 +117,16 @@ type metabolism_type
 	real(REAL_KIND) :: A_rate
 	real(REAL_KIND) :: I_rate
 	real(REAL_KIND) :: O_rate
+	real(REAL_KIND) :: Gln_rate
+	real(REAL_KIND) :: ON_rate
 !	real(REAL_KIND) :: Itotal	! total of intermediates pool			NOT USED
 !	real(REAL_KIND) :: I2Divide	! intermediates total needed to divide	NOT USED
 	real(REAL_KIND) :: GA_rate
 	real(REAL_KIND) :: f_G
 	real(REAL_KIND) :: f_P
+	real(REAL_KIND) :: f_Gln
 	real(REAL_KIND) :: C_P
 	real(REAL_KIND) :: C_A
-	real(REAL_KIND) :: f_Gln, Gln_rate
 	real(REAL_KIND) :: recalcable     ! if > 0, can determine rates from w = f_G/f_Gu, otherwise need full procedure
 end type
 
@@ -388,6 +391,7 @@ real(REAL_KIND) :: N_PA		! number of ATP molecules generated per pyruvate molecu
 real(REAL_KIND) :: N_PI		! number of intermediate molecules generated per pyruvate molecule in pyruvate oxidation
 real(REAL_KIND) :: N_PO		! number of O2 molecules consumed per pyruvate molecule in pyruvate oxidation
 real(REAL_KIND) :: N_GlnO	! number of O2 molecules consumed per glutamine molecule in glutamine oxidation
+real(REAL_KIND) :: N_ONI	! number of intermediate molecules generated per ON molecule
 real(REAL_KIND) :: f_ATPg	! threshold ATP production rate fractions for cell growth
 real(REAL_KIND) :: f_ATPs	! threshold ATP production rate fractions for cell survival
 real(REAL_KIND) :: f_ATPramp ! multiplying factor for ramp start for reducing r_G, r_P

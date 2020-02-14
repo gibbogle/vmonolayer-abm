@@ -24,7 +24,7 @@ implicit none
 integer :: ivdbug
 
 !real(REAL_KIND) :: work_rkc(8+5*2*MAX_CHEMO)
-real(REAL_KIND) :: work_rkc(8+5*3*(N1D+1))
+real(REAL_KIND) :: work_rkc(8+(NUTS+1)*3*(N1D+1))
 logical :: chemo_active(2*MAX_CHEMO)    ! flags necessity to solve for the constituent
 real(REAL_KIND) :: CO2_rkc				! O2 concentration for f_rkc_drug
 integer :: idrug_rkc					! drug number for f_rkc_drug
@@ -103,6 +103,7 @@ type(drug_type), pointer :: dp
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
+integer :: res
 
 write(*,*)
 write(*,'(a,f9.4)') 'f_rkc: t: ',t
@@ -127,7 +128,7 @@ ict = icase
 if (use_metabolism) then
 !	mp => metabolic
 	mp => phase_metabolic(1)
-	call get_metab_rates(mp,Cin)
+	call get_metab_rates(mp,Cin,res)
 endif
 !write(*,*) 'icase, neqn: ',icase,neqn
 
@@ -348,12 +349,13 @@ subroutine f_rkc_OGL(neqn,t,y,dydt,icase)
 integer :: neqn, icase
 real(REAL_KIND) :: t, y(neqn), dydt(neqn)
 integer :: k, kk, i, ichemo, ict, Nmetabolisingcells
-real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(5)
+real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(NUTS+1)
 real(REAL_KIND) :: C, membrane_kin, membrane_kout, membrane_flux, area_factor, Cbnd
 real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX, K1, K2
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
+integer :: res
 
 knt = knt+1
 ict = icase
@@ -367,27 +369,34 @@ if (use_average_volume) then
 endif
 !Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
 Nmetabolisingcells = Ncells
-Cin(1) = y(1)
-Cin(2) = y(N1D+2)
-Cin(3) = y(2*N1D+3)
-Cin(4) = y(3*N1D+4)
+!Cin(1) = y(1)
+!Cin(2) = y(N1D+2)
+!Cin(3) = y(2*N1D+3)
+!Cin(4) = y(3*N1D+4)
+!Cin(5) = y(4*N1D+5)
+do ichemo = 1,NUTS
+    Cin(ichemo) = y((ichemo-1)*(N1D+1) + 1)
+enddo
 if (noSS) then
-    Cin(5) = y(4*N1D+5)
+    Cin(NUTS+1) = y(NUTS*(N1D+1) + 1)
     K1 = K_PL
     K2 = K_LP
 endif
 !write(nflog,*)
-!write(nflog,'(a,i4,f10.3,4e15.6)') 'f_rkc_OGL: knt, t, Cin: ',knt,t,Cin(1:4)
+!write(nflog,'(a,i4,f10.3,4e15.6)') 'f_rkc_OGL: knt, t, Cin: ',knt,t,Cin(1:4) 
 !if (knt > 1000) then
 !    write(nflog,*) 'knt > 1000'
 !    stop
 !endif
 !mp => metabolic
 mp => phase_metabolic(1)
-call get_metab_rates(mp,Cin)
-
+!if (mod(knt,10) == 1) then      ! solve for rates every 20th time
+if (knt == 1) then              ! solve for rates only once at the start of the main time step
+    call get_metab_rates(mp,Cin,res)
+    if (res /= 0) stop
+endif
 k = 0
-do ichemo = 1,4     ! 3 -> 4 = glutamine 
+do ichemo = 1,NUTS     ! 3 -> 4 = glutamine 
 	! First process IC reactions
 	k = k+1
 	C = y(k)
@@ -404,10 +413,11 @@ do ichemo = 1,4     ! 3 -> 4 = glutamine
 		dCreact = (mp%L_rate + membrane_flux)/vol_cm3		! L_rate is rate of production
 !		dCreact = dCreact*f_MM(C,chemo(LACTATE)%MM_C0, int(chemo(LACTATE)%Hill_N))
     elseif (ichemo == GLUTAMINE) then	! 
-		dCreact = (-mp%Gln_rate + membrane_flux)/vol_cm3		! Gn_rate is rate of consumption
+		dCreact = (-mp%Gln_rate + membrane_flux)/vol_cm3	! Gln_rate is rate of consumption
+    elseif (ichemo == OTHERNUTRIENT) then	! 
+		dCreact = (-mp%ON_rate + membrane_flux)/vol_cm3		! ON_rate is rate of consumption
     endif
 	dydt(k) = dCreact
-!	if (ichemo == 4) write(nflog,'(a,3e12.3)') 'glutamine C,Cex,dydt: ',C,Cex,dydt(k)
 	if (isnan(dydt(k))) then
 		write(nflog,*) 'f_rkc_OGL: dydt isnan: ',ichemo,dydt(k)
 		write(*,*) 'f_rkc_drug: dydt isnan: ',ichemo,dydt(k)
@@ -464,6 +474,7 @@ real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
 integer :: iphase, Nphases, NcellsPerPhase(6)
 real(REAL_KIND) :: total_flux
+integer :: res
 
 ict = icase
 A = well_area
@@ -494,7 +505,7 @@ do ichemo = 1,3
 		Cin(2) = y(N1D+Nphases+iphase)
 		Cin(3) = y(2*(N1D+Nphases)+iphase)
 		mp => phase_metabolic(iphase)
-		call get_metab_rates(mp,Cin)
+		call get_metab_rates(mp,Cin,res)
 !		k = k+1
 		k = (ichemo-1)*(N1D + Nphases) + iphase
 		C = y(k)
@@ -770,6 +781,8 @@ logical :: use_drugsolver = .true.
 call OGLSolver(tstart,dt,ok)
 if (.not.use_drugsolver) return
 if (chemo(DRUG_A)%present) then
+    write(nflog,*) 'DRUG_A present!'
+    stop
 	call DrugSolver(DRUG_A,tstart,dt,1,ok)
 endif
 if (chemo(DRUG_B)%present) then
@@ -868,11 +881,11 @@ end subroutine
 subroutine OGLSolver(tstart,dt,ok)
 real(REAL_KIND) :: tstart, dt
 logical :: ok
-integer :: ichemo, k, ict, neqn, i, kcell, it
+integer :: ichemo, k, ict, neqn, i, kcell, it, res
 real(REAL_KIND) :: t, tend
 !real(REAL_KIND) :: C(3*N1D+3), Cin(3), Csum, dCdt(3*N1D+3), dtt
 !real(REAL_KIND) :: C(3*N1D+4), Cin(4), Csum, dCdt(3*N1D+4), C_P, dtt
-real(REAL_KIND) :: C(4*N1D+5), Cin(5), Csum, dCdt(4*N1D+5), C_P, dtt
+real(REAL_KIND) :: C(NUTS*(N1D+1)+1), Cin(NUTS), Csum, dCdt(NUTS*(N1D+1)+1), C_P, dtt
 real(REAL_KIND) :: timer1, timer2
 ! Variables for RKC
 integer :: info(4), idid
@@ -887,15 +900,17 @@ logical :: use_explicit = .false.		! The explicit approach is hopelessly unstabl
 real(REAL_KIND) :: dC_Pdt, vol_cm3, K1, K2
 real(REAL_KIND) :: average_volume = 1.2
 
-!write(nflog,*) 'OGLSolver: ',istep
+write(nflog,*)
+write(nflog,*) 'OGLSolver: ',istep
 ict = selected_celltype ! for now just a single cell type 
 !mp => metabolic
 mp => phase_metabolic(1)
 mp%recalcable = -1     ! This ensures full solution procedure at the start of each time step
 
 k = 0
-do ichemo = 1,4     ! 4 = glutamine
+do ichemo = 1,NUTS     ! 4 = glutamine
 !	if (.not.chemo(ichemo)%present) cycle
+    Caverage(ichemo) = max(0.0,Caverage(ichemo))    ! try adding this to prevent -ve C_Gln
 	k = k+1
 	C(k) = Caverage(ichemo)		! IC 
 	do i = 1,N1D
@@ -903,21 +918,21 @@ do ichemo = 1,4     ! 4 = glutamine
 		C(k) = C_OGL(ichemo,i)	! EC
 	enddo
 enddo
-write(nflog,'(a,6f8.3)') 'OGLsolver: Cin, tstart, dt: ',Caverage(1:4),tstart,dt
+write(nflog,'(a,7f8.3)') 'OGLsolver: Cin, tstart, dt (h): ',Caverage(1:NUTS),tstart/3600,dt/3600
 !write(nflog,'(a,f6.3)') 'OGLsolver: glutamine: IC: ',C(3*(N1D+1) + 1)
 !write(nflog,'(10f6.3)') C(3*(N1D+1)+2: 3*(N1D+1)+N1D+1)
+C_P = 0
 if (noSS) then
     k = k+1
     C_P = mp%C_P
     C(k) = C_P
 endif
-
 neqn = k
 
 !if (noSS) then
 !    call Set_f_GP_noSS(mp,C,C_P)
 !else
-    call Set_f_GP(mp,C)
+   call Set_f_GP(mp,C)
 !endif
 !mp%A_fract = f_MM(C(1),ATP_Km(ict),1)
 !write(nflog,'(a,3e12.3)') 'A_fract: ',mp%A_fract
@@ -965,13 +980,15 @@ neqn = k
 ! This determines average cell concentrations, assumed the same for all cells
 ! Now put the concentrations into the cells 
 !mp%C_P = C(3*N1D+4) ! =============================================== FIX THIS
-mp%C_P = C(4*N1D+5)
-do ichemo = 1,4     ! 3 -> 4 = glutamine
+!mp%C_P = C(neqn)
+do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 	if (.not.chemo(ichemo)%present) cycle
     k = (ichemo-1)*(N1D+1) + 1
+    C(k) = max(0.0,C(k))
     Caverage(ichemo) = C(k)
     Csum = 0
     do i = 1,N1D
+        C(k+i) = max(0.0,C(k+i))
 		C_OGL(ichemo,i) = C(k+i)
 		Csum = Csum + C(k+i)
 		chemo(ichemo)%Cmedium(i) = C(k+i)
@@ -985,18 +1002,23 @@ do ichemo = 1,4     ! 3 -> 4 = glutamine
 !	write(nflog,'(a,i3,5e12.3)') 'Cdrug: im: ',im,Cdrug(im,1:5)
 enddo
 if (noSS) then
-!    mp%C_P = C(3*N1D+4)
-    mp%C_P = C(4*N1D+5)
+    mp%C_P = C(neqn)
 endif
 !write(nflog,'(a,3e12.3)') 'post C O2: ',C(1),C(2),C(N1D+1)
-Cin(1) = C(1)
-Cin(2) = C(N1D+2)
-Cin(3) = C(2*N1D+3)
-Cin(4) = C(3*N1D+4)
+!Cin(1) = C(1)
+!Cin(2) = C(N1D+2)
+!Cin(3) = C(2*N1D+3)
+!Cin(4) = C(3*N1D+4)
+!Cin(5) = C(4*N1D+%)
+do ichemo = 1,NUTS
+    Cin(ichemo) = C((ichemo-1)*(N1D+1) + 1)
+enddo
 if (noSS) then
-    Cin(5) = mp%C_P
+    Cin(6) = mp%C_P
 endif
-call get_metab_rates(mp,Cin)
+!write(nflog,*) 'recompute rates'
+!call get_metab_rates(mp,Cin,res)
+if (res /= 0) stop
 !write(nflog,'(a,e12.3)') 'OGLSolver: mp%G_rate: ',mp%G_rate 
 
 ! Update C_A in phase_metabolic(1)

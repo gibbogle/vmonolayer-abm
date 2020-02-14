@@ -190,15 +190,15 @@ integer :: ityp, i, im, idrug
 real(REAL_KIND) :: hour, plate_eff(MAX_CELLTYPES), divide_fraction, P_utilisation, doubling_time, viable_fraction, rmutations
 real(REAL_KIND) :: hypoxic_fraction(3), clonohypoxic_fraction(3), growth_fraction(3), nogrow_fraction
 real(REAL_KIND) :: phase_fraction(6+1), clono_fraction, Tplate_eff
-real(REAL_KIND) :: medium_oxygen, medium_glucose, medium_lactate, medium_drug(2,0:2)
-real(REAL_KIND) :: IC_oxygen, IC_glucose, IC_lactate, IC_pyruvate, IC_drug(2,0:2)
+real(REAL_KIND) :: medium_oxygen, medium_glucose, medium_lactate, medium_other, medium_drug(2,0:2)
+real(REAL_KIND) :: IC_oxygen, IC_glucose, IC_lactate, IC_pyruvate, IC_other, IC_drug(2,0:2)
 real(REAL_KIND) :: EC(MAX_CHEMO), cmedium(MAX_CHEMO)
-real(REAL_KIND) :: r_G, r_P, r_A, r_I, An
+real(REAL_KIND) :: r_G, r_P, r_Gln, r_ON, r_A, r_I, An
 type(metabolism_type), pointer :: mp
 
 hour = istep*DELTA_T/3600.
 
-Ntagged_ATP(:) = NATP_tag(:)				! number currently dying of ATP starvation
+Ntagged_ATP(:) = NATP_tag(:)				! number currently dying of ATP starvation 
 Ntagged_radiation(:) = Nradiation_tag(:)	! number currently tagged by radiation
 Ntagged_drug(1,:) = Ndrug_tag(1,:)			! number currently tagged by drugA
 Ntagged_drug(2,:) = Ndrug_tag(2,:)			! number currently tagged by drugA
@@ -250,6 +250,8 @@ enddo
 !mp => metabolic
 mp => phase_metabolic(1)
 r_G = mp%G_rate/r_Gu
+r_Gln = mp%Gln_rate/r_Glnu
+r_ON = mp%ON_rate/r_ONu
 r_P = mp%P_rate/r_Pu
 r_A = mp%A_rate/r_Au
 !write(nflog,'(a,4e12.3)') 'r_G, r_A, mp%A_rate, r_Au: ',r_G,r_A,mp%A_rate,r_Au
@@ -272,9 +274,9 @@ if (ndoublings > 0) then
 else
     doubling_time = 0
 endif
-!write(nflog,'(a,2e12.3)') 'get_summary: Cmediumave(GLUTAMINE): ',Cmediumave(GLUTAMINE),Cmedium(GLUTAMINE)
+write(nflog,'(a,3e12.3)') 'get_summary: C_P: ',mp%C_P,r_P,r_A
 
-summaryData(1:70) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
+summaryData(1:75) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
 	rint(TNATP_dead), rint(TNdrug_dead(1)), rint(TNdrug_dead(2)), rint(TNradiation_dead), rint(TNdead), &
     rint(TNtagged_ATP), rint(TNtagged_drug(1)), rint(TNtagged_drug(2)), rint(TNtagged_radiation), &
 	100*viable_fraction, 100*hypoxic_fraction(i_hypoxia_cutoff), 100*clonohypoxic_fraction(i_hypoxia_cutoff), &
@@ -282,12 +284,12 @@ summaryData(1:70) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviabl
 !	EC(OXYGEN:LACTATE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
 !	caverage(OXYGEN:LACTATE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 !	cmedium(OXYGEN:LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
-	EC(OXYGEN:GLUTAMINE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
-	caverage(OXYGEN:GLUTAMINE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
-	cmedium(OXYGEN:GLUTAMINE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
-	doubling_time, r_G, r_P, r_A, r_I, mp%f_G, mp%f_P, mp%HIF1, mp%PDK1, rint(ndivided), &
+	EC(OXYGEN:DRUG_A-1), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
+	caverage(OXYGEN:DRUG_A-1), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
+	cmedium(OXYGEN:DRUG_A-1), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
+	doubling_time, r_G, r_P, r_Gln, r_ON, r_A, r_I, mp%f_G, mp%f_P, mp%HIF1, mp%PDK1, rint(ndivided), &
 	100*phase_fraction(1:7), rmutations]
-write(nfres,'(a,a,2a12,i8,e12.4,21i7,61e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
+write(nfres,'(a,a,2a12,i8,e12.4,21i7,62e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
 	istep, hour, Ncells_type(1:2), TNviable, TNnonviable, &
     NATP_dead(1:2), Ndrug_dead(1,1:2), Ndrug_dead(2,1:2), Nradiation_dead(1:2), TNdead, &
     Ntagged_ATP(1:2), Ntagged_drug(1,1:2), Ntagged_drug(2,1:2), Ntagged_radiation(1:2), &
@@ -300,7 +302,7 @@ write(nfres,'(a,a,2a12,i8,e12.4,21i7,61e13.5)') trim(header),' ',gui_run_version
 	caverage(OXYGEN:GLUTAMINE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 	cmedium(OXYGEN:GLUTAMINE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	phase_fraction(1:7), rmutations, &	! note order change
-	doubling_time, r_G, r_P, r_A, r_I, ndivided, P_utilisation
+	doubling_time, r_G, r_P, r_Gln, r_A, r_I, ndivided, P_utilisation
 	
 !call sum_dMdt(GLUCOSE)
 ndoublings = 0

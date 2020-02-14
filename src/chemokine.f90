@@ -69,12 +69,12 @@ end type
 type(ODEdiff_type) :: ODEdiff
 
 integer :: nchemo, chemomap(MAX_CHEMO)
-
+! 1=OXYGEN, 2=GLUCOSE, 3=LACTATE, 4=GLUTAMINE, 5=OTHERNUTRIENT
 real(REAL_KIND) :: Caverage(2*MAX_CHEMO)    ! average cell (IC) and medium bdry (EC) concentrations
 real(REAL_KIND) :: Cmediumave(MAX_CHEMO)    ! average medium concentrations
 !real(REAL_KIND) :: Cglucose(N1D)
 !real(REAL_KIND) :: Cdrug(0:2,N1D)
-real(REAL_KIND) :: C_OGL(4,N1D)				! 1=OXYGEN, 2=GLUCOSE, 3=LACTATE, 4 = GLUTAMINE
+real(REAL_KIND) :: C_OGL(NUTS,N1D)			! 1D medium concentrations
 
 contains
 
@@ -116,15 +116,17 @@ chemo(OXYGEN)%name = 'Oxygen'
 chemo(GLUCOSE)%name = 'Glucose'
 chemo(LACTATE)%name = 'Lactate'
 chemo(GLUTAMINE)%name = 'Glutamine'
+chemo(OTHERNUTRIENT)%name = 'OtherNutrient'
 chemo(OXYGEN)%decay_rate = 0
 chemo(GLUCOSE)%decay_rate = 0
 chemo(LACTATE)%decay_rate = 0
 chemo(GLUTAMINE)%decay_rate = 0
+chemo(OTHERNUTRIENT)%decay_rate = 0
 
 do ichemo = 1,MAX_CHEMO
 	chemo(ichemo)%present = .false.
 	if (chemo(ichemo)%used) then
-		if (ichemo == OXYGEN .or. ichemo == GLUCOSE .or. ichemo == LACTATE .or. ichemo == GLUTAMINE) then
+		if (ichemo >= OXYGEN .and. ichemo <= OTHERNUTRIENT) then
 			chemo(ichemo)%present = .true.
 		endif
 	endif

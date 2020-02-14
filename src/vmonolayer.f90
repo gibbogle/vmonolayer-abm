@@ -132,6 +132,7 @@ enddo
 !zmin = 1
 mp => phase_metabolic(1)
 call SetupMetabolism(mp,ok)
+if (.not.ok) stop
 call PlaceCells(ok)
 call setTestCell(kcell_test)
 !call show_volume_data
@@ -144,7 +145,7 @@ call logger(logmsg)
 if (.not.ok) return
 
 istep = 0
-do ichemo = 1,GLUTAMINE
+do ichemo = 1,NUTS
 	if (chemo(ichemo)%used) then
 		call InitConcs(ichemo)
 		call SetupMedium(ichemo)
@@ -227,16 +228,13 @@ else
     Caverage(MAX_CHEMO+ichemo) = 0
     Cmediumave(ichemo) = 0
 endif
-if (ichemo <= GLUTAMINE) then
+if (ichemo <= NUTS) then
     C_OGL(ichemo,:) = chemo(ichemo)%bdry_conc
 endif
-if (ichemo <= GLUTAMINE) then
-!	Cglucose = chemo(ichemo)%bdry_conc
+if (ichemo <= NUTS) then
 	chemo(ichemo)%Cmedium = chemo(ichemo)%bdry_conc
 endif
-if (ichemo >= DRUG_A) then
-!	im = ichemo - DRUG_A
-!	Cdrug(im,:) = 0
+if (ichemo > NUTS) then
 	chemo(ichemo)%Cmedium = 0
 endif
 end subroutine
@@ -363,7 +361,7 @@ end subroutine
 subroutine ReadCellParams(ok)
 logical :: ok
 integer :: i, idrug, imetab, nmetab, im, itestcase, Nmm3, ichemo, itreatment, iuse_extra, iuse_relax, iuse_par_relax, iuse_FD
-integer :: iuse_oxygen, iuse_glucose, iuse_lactate, iuse_glutamine, iuse_drug, iuse_metab, iV_depend
+integer :: iuse_oxygen, iuse_glucose, iuse_lactate, iuse_glutamine, iuse_othernutrient, iuse_drug, iuse_metab, iV_depend
 integer :: iV_random, iuse_gd_all, iuse_divide_dist, iuse_lognormal, ityp
 !integer ::  idrug_decay, imetab_decay
 integer :: ictype, idisplay, isconstant, ioxygengrowth, iglucosegrowth, ilactategrowth, ioxygendeath, iglucosedeath
@@ -503,6 +501,18 @@ read(nfcell,*) chemo(GLUTAMINE)%max_cell_rate
 read(nfcell,*) chemo(GLUTAMINE)%MM_C0
 read(nfcell,*) chemo(GLUTAMINE)%Hill_N
 
+read(nfcell,*) iuse_othernutrient		!chemo(GLUTAMINE)%used --> use_glutamine
+read(nfcell,*) chemo(OTHERNUTRIENT)%diff_coef
+read(nfcell,*) chemo(OTHERNUTRIENT)%medium_diff_coef
+read(nfcell,*) chemo(OTHERNUTRIENT)%membrane_diff_in
+read(nfcell,*) chemo(OTHERNUTRIENT)%membrane_diff_out
+read(nfcell,*) chemo(OTHERNUTRIENT)%bdry_conc
+read(nfcell,*) iconstant
+chemo(OTHERNUTRIENT)%constant = (iconstant == 1)
+read(nfcell,*) chemo(OTHERNUTRIENT)%max_cell_rate
+read(nfcell,*) chemo(OTHERNUTRIENT)%MM_C0
+read(nfcell,*) chemo(OTHERNUTRIENT)%Hill_N
+
 read(nfcell,*) LQ(1)%alpha_H
 read(nfcell,*) LQ(1)%beta_H
 read(nfcell,*) LQ(1)%OER_am
@@ -562,6 +572,7 @@ read(nfcell,*) spcrad_value
 !Ncelltypes = 1
 
 read(nfcell,*) Ndrugs_used
+write(nflog,*) 'Ndrugs_used: ',Ndrugs_used
 if (Ndrugs_used > 0) then
     call ReadDrugData(nfcell)
 endif
@@ -601,6 +612,10 @@ chemo(GLUTAMINE)%membrane_diff_in = chemo(GLUTAMINE)%membrane_diff_in*Vsite_cm3/
 chemo(GLUTAMINE)%membrane_diff_out = chemo(GLUTAMINE)%membrane_diff_out*Vsite_cm3/60 ! /min -> /sec
 chemo(GLUTAMINE)%max_cell_rate = chemo(GLUTAMINE)%max_cell_rate*1.0e6				! mol/cell/s -> mumol/cell/s
 chemo(GLUTAMINE)%MM_C0 = chemo(GLUTAMINE)%MM_C0/1000								! uM -> mM
+chemo(OTHERNUTRIENT)%membrane_diff_in = chemo(OTHERNUTRIENT)%membrane_diff_in*Vsite_cm3/60	    ! /min -> /sec
+chemo(OTHERNUTRIENT)%membrane_diff_out = chemo(OTHERNUTRIENT)%membrane_diff_out*Vsite_cm3/60    ! /min -> /sec
+chemo(OTHERNUTRIENT)%max_cell_rate = chemo(OTHERNUTRIENT)%max_cell_rate*1.0e6				    ! mol/cell/s -> mumol/cell/s
+chemo(OTHERNUTRIENT)%MM_C0 = chemo(OTHERNUTRIENT)%MM_C0/1000								    ! uM -> mM
 
 
 if (celltype_fraction(1) == 1.0) then
@@ -644,6 +659,7 @@ chemo(OXYGEN)%used = (iuse_oxygen == 1)
 chemo(GLUCOSE)%used = (iuse_glucose == 1)
 chemo(LACTATE)%used = use_metabolism .and. (iuse_lactate == 1)
 chemo(GLUTAMINE)%used = (iuse_glutamine == 1)
+chemo(OTHERNUTRIENT)%used = (iuse_othernutrient == 1)
 !chemo(OXYGEN)%MM_C0 = chemo(OXYGEN)%MM_C0/1000		! uM -> mM
 !chemo(GLUCOSE)%MM_C0 = chemo(GLUCOSE)%MM_C0/1000	! uM -> mM
 !chemo(LACTATE)%MM_C0 = chemo(LACTATE)%MM_C0/1000	! uM -> mM
@@ -775,7 +791,7 @@ EC_oxygen EC_glucose EC_lactate EC_glutamine EC_drugA EC_drugA_metab1 EC_drugA_m
 IC_oxygen IC_glucose IC_lactate IC_glutamine IC_ATP IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
 medium_oxygen medium_glucose medium_lactate medium_glutamine medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
 G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase S_phase_nonarrest Nmutations &
-doubling_time glycolysis_rate pyruvate_oxidation_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction'
+doubling_time glycolysis_rate pyruvate_oxidation_rate glutamine_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction'
 write(logmsg,*) 'Opened nfout: ',trim(outputfile)
 ! Note order change
 call logger(logmsg)
@@ -887,9 +903,11 @@ read(nf,*) f_Glnu
 read(nf,*) N_GA
 read(nf,*) N_PA
 read(nf,*) N_GlnA
+read(nf,*) N_GP
 read(nf,*) N_GI
 read(nf,*) N_PI
 read(nf,*) N_GlnI
+    read(nf,*) N_ONI
 read(nf,*) N_PO
 read(nf,*) N_GlnO
 read(nf,*) K_H1
@@ -901,6 +919,7 @@ read(nf,*) C_O2_norm
 read(nf,*) C_G_norm
 read(nf,*) C_L_norm
 read(nf,*) C_Gln_norm
+    read(nf,*) C_ON_norm
 read(nf,*) f_ATPs
 read(nf,*) f_ATPg
 read(nf,*) f_ATPramp
@@ -914,7 +933,7 @@ read(nf,*) fgp_solver
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM
 !ATP_Km = ATP_Km/1000			! uM -> mM 
-N_GP = N_GA     ! this should be a separate input parameter
+!N_GP = N_GA     ! this should be a separate input parameter
 end subroutine
 
 !-----------------------------------------------------------------------------------------
@@ -1014,7 +1033,7 @@ type(event_type) :: E
 write(logmsg,*) 'ReadProtocol'
 call logger(logmsg)
 total_volume = medium_volume0
-chemo(GLUTAMINE+1:)%used = .false.
+chemo(DRUG_A:)%used = .false.
 do
 	read(nf,'(a)') line
 	if (trim(line) == 'PROTOCOL') exit
@@ -1041,7 +1060,7 @@ do itime = 1,ntimes
 		write(nflog,*) 'ndrugs_used: ',ndrugs_used
 		do idrug = 1,ndrugs_used
 			if (drugname == drug(idrug)%name) then
-				ichemo = GLUTAMINE + 1 + 3*(idrug-1)
+				ichemo = DRUG_A + 3*(idrug-1)
 				exit
 			endif
 		enddo
@@ -1777,6 +1796,7 @@ cell_list(k)%Cin = 0
 cell_list(k)%Cin(OXYGEN) = chemo(OXYGEN)%bdry_conc
 cell_list(k)%Cin(GLUCOSE) = chemo(GLUCOSE)%bdry_conc
 cell_list(k)%Cin(GLUTAMINE) = chemo(GLUTAMINE)%bdry_conc
+cell_list(k)%Cin(OTHERNUTRIENT) = chemo(OTHERNUTRIENT)%bdry_conc
 cell_list(k)%CFSE = generate_CFSE(1.d0)
 cell_list(k)%M = 0
 !occupancy(site(1),site(2),site(3))%indx(1) = k
@@ -1857,7 +1877,7 @@ integer :: ichemo
 real(REAL_KIND) :: c0
 
 if (istep == 0) then
-	if (ichemo == OXYGEN .or. ichemo == GLUCOSE .or. ichemo == LACTATE .or. ichemo == GLUTAMINE) then
+	if (ichemo >= OXYGEN .and. ichemo < DRUG_A) then
 		c0 = chemo(ichemo)%bdry_conc
 	else	! drug or metabolite
 		c0 = 0
@@ -2031,7 +2051,7 @@ else
 	Caverage(MAX_CHEMO+1:2*MAX_CHEMO) = mass/(total_volume - Vcells)
 endif
 chemo(OXYGEN)%bdry_conc = Ce(OXYGEN)
-do ichemo = GLUCOSE,GLUTAMINE   !LACTATE
+do ichemo = GLUCOSE,NUTS
 	C = Caverage(MAX_CHEMO+ichemo)
 	Caverage(ichemo) = C
 	chemo(ichemo)%Cmedium = C
@@ -2046,7 +2066,7 @@ do idrug = 1,2
 enddo
 
 call SetConstLevels	
-do ichemo = 1,4     ! 3 -> 4 = glutamine
+do ichemo = 1,5     ! 5 = othernutrient
 	C_OGL(ichemo,:) = chemo(ichemo)%Cmedium(:)
 enddo
 write(nflog,'(a,3e12.3)') 'Const Cmedium: ',Caverage(MAX_CHEMO+1:MAX_CHEMO+3)
@@ -2143,8 +2163,8 @@ logical :: dbug
 type(metabolism_type), pointer :: metabolic
 	
 metabolic => phase_metabolic(1)
+mp => phase_metabolic(1)
 !call testmetab2
-
 dbug = (istep < 0)
 Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
 !if (Nmetabolisingcells == 0) then
@@ -2217,6 +2237,7 @@ do idiv = 0,ndiv-1
 	if (dbug) write(nflog,*) 'GrowCells'
 	call GrowCells(DELTA_T,t_simulation,ok)
 	if (dbug) write(nflog,*) 'did GrowCells'
+
 	if (.not.ok) then
 		res = 3
 		return
@@ -2275,8 +2296,8 @@ endif
 if (dbug .or. mod(istep,nthour) == 0) then
 !	mp => metabolic
 	mp => phase_metabolic(1)
-	write(logmsg,'(a,i6,i4,a,i8,a,i8,a,3f8.3,a,e12.3)') 'istep, hour: ',istep,istep/nthour,' Nlive: ',Ncells,'   Nviable: ',sum(Nviable), &
-	    '  medium glu,lac,gln: ',cmediumave(GLUCOSE:GLUTAMINE),' r_Gln: ',mp%Gln_rate
+	write(logmsg,'(a,i6,i4,a,i8,a,i8,a,4f8.3,a,e12.3)') 'istep, hour: ',istep,istep/nthour,' Nlive: ',Ncells,'   Nviable: ',sum(Nviable), &
+	    '  medium glu,lac,gln,ON: ',cmediumave(GLUCOSE:NUTS),' r_Gln: ',mp%Gln_rate
 	call logger(logmsg)
 !	write(logmsg,'(a,4e12.3)') 'G_rate, A_rate, PO_rate, O_rate: ',mp%G_rate,mp%A_rate,mp%P_rate,mp%O_rate 
 !	call logger(logmsg)
@@ -2338,6 +2359,7 @@ integer :: kcell
 type(cell_type), pointer :: cp
 type (metabolism_type), pointer :: mp
 real(REAL_KIND) :: Cin(MAX_CHEMO)
+integer :: res
 !real(REAL_KIND) :: HIF1, G_rate, PP_rate, P_rate
 !real(REAL_KIND) :: L_rate, A_rate, I_rate, O_rate
 
@@ -2345,7 +2367,7 @@ cp =>cell_list(kcell)
 mp => cp%metab
 Cin = Caverage(1:MAX_CHEMO)
 !write(*,'(a,3f8.4)') 'O2, glucose, lactate: ',Cin(1:3) 
-call get_metab_rates(mp, Cin)
+call get_metab_rates(mp, Cin, res)
 return
 
 write(*,'(a,i2,3e12.3)') 'phase, V: ',cp%phase,cp%V		!I2Divide,Itotal,mp%Itotal,mp%I2Divide

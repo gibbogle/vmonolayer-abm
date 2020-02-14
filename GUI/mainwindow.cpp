@@ -2368,6 +2368,7 @@ void MainWindow::disableUseGlucose()
 //--------------------------------------------------------------------------------------------------------
 void MainWindow::enableUseGlutamine()
 {
+    return;
     for (int i=0; i<lineEdit_list.length(); i++) {
         QLineEdit *w = lineEdit_list[i];
         QString wname = w->objectName();
@@ -2381,6 +2382,7 @@ void MainWindow::enableUseGlutamine()
 //--------------------------------------------------------------------------------------------------------
 void MainWindow::disableUseGlutamine()
 {
+    return;
     for (int i=0; i<lineEdit_list.length(); i++) {
         QLineEdit *w = lineEdit_list[i];
         QString wname = w->objectName();
