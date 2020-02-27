@@ -128,7 +128,7 @@ ict = icase
 if (use_metabolism) then
 !	mp => metabolic
 	mp => phase_metabolic(1)
-	call get_metab_rates(mp,Cin,res)
+	call get_metab_rates(mp,Cin,Cmedium(GLUTAMINE),res)
 endif
 !write(*,*) 'icase, neqn: ',icase,neqn
 
@@ -390,9 +390,9 @@ endif
 !endif
 !mp => metabolic
 mp => phase_metabolic(1)
-!if (mod(knt,10) == 1) then      ! solve for rates every 20th time
+!if (mod(knt,20) == 1) then      ! solve for rates every 10th time
 if (knt == 1) then              ! solve for rates only once at the start of the main time step
-    call get_metab_rates(mp,Cin,res)
+    call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
     if (res /= 0) stop
 endif
 k = 0
@@ -505,7 +505,7 @@ do ichemo = 1,3
 		Cin(2) = y(N1D+Nphases+iphase)
 		Cin(3) = y(2*(N1D+Nphases)+iphase)
 		mp => phase_metabolic(iphase)
-		call get_metab_rates(mp,Cin,res)
+		call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)
 !		k = k+1
 		k = (ichemo-1)*(N1D + Nphases) + iphase
 		C = y(k)

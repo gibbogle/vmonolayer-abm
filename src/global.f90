@@ -379,6 +379,7 @@ real(REAL_KIND) :: total_dMdt
 real(REAL_KIND) :: start_wtime
 
 ! Metabolism parameters
+real(REAL_KIND) :: f_GL     ! ratio of lactate production to glucose consumption
 real(REAL_KIND) :: f_Gu     ! normal fraction of glycosis (r_G) going to make intermediates
 real(REAL_KIND) :: f_Glnu   ! normal fraction of glutamine (r_Gn) going to make intermediates
 real(REAL_KIND) :: f_Pu     ! normal fraction of pyruvates (r_P) going to make intermediates

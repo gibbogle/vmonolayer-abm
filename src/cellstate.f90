@@ -768,8 +768,8 @@ else
 		metab = cp%metab%I_rate/r_Iu
 		
 !		metab = min(metab,1.0)      ! SHOULD NOT BE NECESSARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!		if (kcell_now == 1) write(nflog,'(a,3e12.3)') 'I_rate,I_rate_max,metab: ',cp%metab%I_rate,r_Iu,metab
 		dVdt = get_dVdt(cp,metab)
+		if (kcell_now == 1) write(nflog,'(a,4e12.3)') 'I_rate,I_rate_max,metab,dVdt: ',cp%metab%I_rate,r_Iu,metab,dVdt
 	else
 		oxygen_growth = chemo(OXYGEN)%controls_growth
 		glucose_growth = chemo(GLUCOSE)%controls_growth

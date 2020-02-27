@@ -802,8 +802,8 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 
        {"PASTEUR_MM_KM_1", 0.02, 0, 0,
        "Pasteur Effect Michaelis-Menten Km (normalised)",
-       "The glycolysis rate is multiplied by cfactor, which is a function of the normalised total rate of oxygen consumption.\n\
-        Normalised O2 rate = r_O2N = r_O2/r_O2max, cfactor = r_O2N/(Km + r_O2N)"},
+       "The glycolysis rate is multiplied by cfactor, which is a function of the glucose concentration.\n\
+        ..."},
 
        {"GLUTAMINE_BASERATE_1", 0, 0, 0,
        "Glutamine base consumption rate",
@@ -811,9 +811,9 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        With fbase = r_base/Vmax, and gfactor = fbase + (1 - fbase)**Km_GG/(Km_GG + C_G), where Km_GG = 0.2*Km_G,\n\
        the glutamine rate becomes: r_Gln = fPDK*Vmax*gfactor*C_Gln/(Km_Gln + C_Gln)"},
 
-       {"F_N_1", 0.2, 0, 0,
-       "Glutamine intermediates rate factor",
-        "The factor f_N is the ratio of the rate of intermediates production from glutamine to the total intermediates production rate."},
+       {"F_GL_1", 1.5, 0, 0,
+       "Lactate:glucose rate factor",
+        "The factor f_GL is the ratio of the rate of lactate production from pyruvate to the glucose consumption rate."},
 
        {"F_GP_SOLVER",1,0,0,
         "f_GP solver (1,2,3)",

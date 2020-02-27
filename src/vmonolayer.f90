@@ -907,7 +907,7 @@ read(nf,*) N_GP
 read(nf,*) N_GI
 read(nf,*) N_PI
 read(nf,*) N_GlnI
-    read(nf,*) N_ONI
+read(nf,*) N_ONI
 read(nf,*) N_PO
 read(nf,*) N_GlnO
 read(nf,*) K_H1
@@ -919,7 +919,7 @@ read(nf,*) C_O2_norm
 read(nf,*) C_G_norm
 read(nf,*) C_L_norm
 read(nf,*) C_Gln_norm
-    read(nf,*) C_ON_norm
+read(nf,*) C_ON_norm
 read(nf,*) f_ATPs
 read(nf,*) f_ATPg
 read(nf,*) f_ATPramp
@@ -928,7 +928,7 @@ read(nf,*) K_LP
 read(nf,*) Hill_Km_P
 read(nf,*) Hill_Km_C
 read(nf,*) Gln_baserate
-read(nf,*) f_N
+read(nf,*) f_GL     ! was f_N
 read(nf,*) fgp_solver
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM
@@ -2367,7 +2367,7 @@ cp =>cell_list(kcell)
 mp => cp%metab
 Cin = Caverage(1:MAX_CHEMO)
 !write(*,'(a,3f8.4)') 'O2, glucose, lactate: ',Cin(1:3) 
-call get_metab_rates(mp, Cin, res)
+call get_metab_rates(mp, Cin, 1.0d0, res)
 return
 
 write(*,'(a,i2,3e12.3)') 'phase, V: ',cp%phase,cp%V		!I2Divide,Itotal,mp%Itotal,mp%I2Divide
