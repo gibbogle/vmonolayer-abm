@@ -384,14 +384,14 @@ if (noSS) then
 endif
 !write(nflog,*)
 !write(nflog,'(a,i4,f10.3,4e15.6)') 'f_rkc_OGL: knt, t, Cin: ',knt,t,Cin(1:4) 
-if (knt > 5000) then
-    write(nflog,*) 'knt > 5000'
+if (knt > 10000) then
+    write(nflog,*) 'knt > 10000'
     stop
 endif
 !mp => metabolic
 mp => phase_metabolic(1)
-!if (mod(knt,20) == 1) then      ! solve for rates every 20th time
-if (knt == 1) then              ! solve for rates only once at the start of the main time step
+if (mod(knt,10) == 1) then      ! solve for rates every 10th time
+!if (knt == 1) then              ! solve for rates only once at the start of the main time step
     call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
     if (res /= 0) stop
 endif
@@ -919,7 +919,9 @@ do ichemo = 1,NUTS     ! 4 = glutamine
 		C(k) = C_OGL(ichemo,i)	! EC
 	enddo
 enddo
-write(nflog,'(a,7f8.3)') 'OGLsolver: Cin, tstart, dt (h): ',Caverage(1:NUTS),tstart/3600,dt/3600
+write(*,*) 'C oxygen: ',C(1)
+!write(nflog,'(10e12.3)') C(1:N1D+1)
+!write(nflog,'(a,7f8.3)') 'OGLsolver: Cin, tstart, dt (h): ',Caverage(1:NUTS),tstart/3600,dt/3600
 !write(nflog,'(a,f6.3)') 'OGLsolver: glutamine: IC: ',C(3*(N1D+1) + 1)
 !write(nflog,'(10f6.3)') C(3*(N1D+1)+2: 3*(N1D+1)+N1D+1)
 C_P = 0
@@ -1002,6 +1004,7 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
     Caverage(MAX_CHEMO + ichemo) = C(k+1)	! not really average, this is medium at the cell layer, i.e. EC
 !	write(nflog,'(a,i3,5e12.3)') 'Cdrug: im: ',im,Cdrug(im,1:5)
 enddo
+write(*,'(a,4e12.3)') 'OGLSolver: Cex: ',chemo(1:GLUTAMINE)%Cmedium(1)
 if (noSS) then
     mp%C_P = C(neqn)
 endif
@@ -1038,7 +1041,7 @@ do kcell = 1,nlist
 !	call update_C_A(dt,mp)
 enddo
 
-write(*,'(a,2e12.3)') 'did OGLSolver: Grate, Cmediumave(G): ',cell_list(1)%metab%G_rate, Cmediumave(GLUCOSE)
+write(*,'(a,2e12.3)') 'did OGLSolver: Grate, Orate: ',cell_list(1)%metab%G_rate, cell_list(1)%metab%O_rate
 return
 
 ! Check Lactate flux balance

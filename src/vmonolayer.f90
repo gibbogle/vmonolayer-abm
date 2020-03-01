@@ -2156,7 +2156,7 @@ integer :: i, ic, ichemo, ndt, iz, idrug, ityp, idiv, ndiv, Nmetabolisingcells
 integer :: nvars, ns
 real(REAL_KIND) :: dxc, ex_conc(120*CYCLE_PHASE+1)		! just for testing
 real(REAL_KIND) :: DELTA_T_save, t_sim_0
-real(REAL_KIND) :: HIF1, PDK1
+real(REAL_KIND) :: C_O2, HIF1, PDK1
 type(metabolism_type), pointer :: mp
 logical :: ok = .true.
 logical :: dbug
@@ -2223,7 +2223,10 @@ do idiv = 0,ndiv-1
 	if (use_metabolism) then
 		do ityp = 1,Ncelltypes
 			HIF1 = metabolic%HIF1
-			call analyticSetHIF1(Caverage(OXYGEN),HIF1,DELTA_T)
+			C_O2 = chemo(OXYGEN)%cmedium(1)
+			write(*,'(a,2e12.3)') 'before: HIF1,C_O2: ',HIF1,C_O2
+			call analyticSetHIF1(C_O2,HIF1,DELTA_T)
+			write(*,'(a,e12.3)') 'after: HIF1: ',HIF1
 			metabolic%HIF1 = HIF1
 			PDK1 = metabolic%PDK1
 			call analyticSetPDK1(HIF1,PDK1,dt)
