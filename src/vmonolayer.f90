@@ -925,7 +925,7 @@ read(nf,*) f_ATPg
 read(nf,*) f_ATPramp
 read(nf,*) K_PL
 read(nf,*) K_LP
-read(nf,*) Hill_Km_P
+read(nf,*) C_GlnLo  !Hill_Km_P
 read(nf,*) Hill_Km_C
 read(nf,*) Gln_baserate
 read(nf,*) f_GL     ! was f_N

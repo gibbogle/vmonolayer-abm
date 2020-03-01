@@ -77,7 +77,7 @@ real(REAL_KIND) :: K_PL			! P -> L
 real(REAL_KIND) :: K_LP			! L -> P
 real(REAL_KIND) :: r_Pu, r_Gu, r_Glnu, r_Au, r_Iu, r_Ou, r_Lu, r_Onu, C_Pu   ! unconstrained conditions
 real(REAL_KIND) :: G_maxrate, O2_maxrate, Gln_maxrate, ON_maxrate
-real(REAL_KIND) :: f_N, f_NG, r_Abase, r_Ibase
+real(REAL_KIND) :: f_N, f_NG, r_Abase, r_Ibase, C_GlnLo
 integer :: fgp_solver
 
 type param_set_type
@@ -178,7 +178,7 @@ else
 endif
 ok = .true.
 V = Vcell_cm3*average_volume
-f_NG = f_N/(f_Glnu*N_GlnI)   ! this assumes that f_N is defined correctly: r_GlnI = f_N*r_I
+f_NG = f_N/(f_Glnu*N_GlnI)   ! this assumes that f_N is defined correctly: r_GlnI = f_N*r_I     ! not used now
 !mp => phase_metabolic(1)
 
 Hill_Km_O2 = chemo(OXYGEN)%MM_C0
@@ -1008,13 +1008,12 @@ type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
 integer :: res
 real(REAL_KIND) :: w, h, z, u, ulim, w1
-real(REAL_KIND) :: C_GlnLo, C_GlnHi, f_cutoff
+real(REAL_KIND) :: C_GlnHi, f_cutoff
 real(REAL_KIND) :: V, K1, K2, f_Gln
 real(REAL_KIND) :: Km_O2, Km_Gln, Km_ON, MM_O2, MM_Gln, MM_ON, MM_rGln, L_O2, L_Gln, L_ON, r_GlnON_I, Km_rGln, wlim, zterm
 real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r_GlnI, r_ONI, ONfactor
 real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max
 integer :: iw, Nw, npp, ncp
-logical :: use_rIu = .false.
 logical :: use_f_GL = .true.
     
 res = 0
@@ -1027,9 +1026,8 @@ K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
 
-C_GlnLo = 0.02
+!C_GlnLo = 0.02                      !!!!! was hard-coded
 C_GlnHi = C_GlnLo + 0.005
-!C_GlnEx = C_OGL(GLUTAMINE,1)    ! I think this is at the bottom of the well
 if (C_GlnEX > C_GlnHi) then
     f_cutoff = 1
 elseif (C_GlnEx < C_GlnLo) then
@@ -1041,7 +1039,7 @@ r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previo
 r_GlnON_I = Gln_maxrate*f_Gln*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
 r_Gln = f_cutoff*MM_Gln*Gln_maxrate
 r_GlnI = r_Gln*f_Gln*N_GlnI
-Km_rGln = 0.01*Gln_maxrate   ! just a guess
+Km_rGln = 0.05*Gln_maxrate           !!!!! hard-coded
 MM_rGln = r_Gln/(Km_rGln + r_Gln)
 !r_ON = MM_Gln*MM_ON*ON_maxrate
 !r_ONI = r_ON*N_ONI
@@ -1069,7 +1067,7 @@ Nw = 100
 dw = 1.0/Nw
 npp = 0
 ncp = 0
-ulim = 1.2
+ulim = 1.2                          !!!!! hard-coded
 w1 = 1
 do iw = Nw+1,2,-1
     w = (iw-1)*dw
@@ -1684,7 +1682,7 @@ f_Nx = f_Nmin + (f_Nx - f_Nmin)*MM_Gln
 write(nflog,*) 'f_Nx: ',f_Nx
 
 
-f_NG = f_Nx/(f_Glnu*N_GlnI)   ! this assumes that f_N is defined correctly: r_GlnI = f_N*r_I
+f_NG = f_Nx/(f_Glnu*N_GlnI)   ! this assumes that f_N is defined correctly: r_GlnI = f_N*r_I    ! not used now
 
 r_ON = L_ON     ! until a constraint on r_Gln forces a reduction
 redo = .false.

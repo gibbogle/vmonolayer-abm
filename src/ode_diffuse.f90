@@ -384,10 +384,10 @@ if (noSS) then
 endif
 !write(nflog,*)
 !write(nflog,'(a,i4,f10.3,4e15.6)') 'f_rkc_OGL: knt, t, Cin: ',knt,t,Cin(1:4) 
-!if (knt > 1000) then
-!    write(nflog,*) 'knt > 1000'
-!    stop
-!endif
+if (knt > 6000) then
+    write(nflog,*) 'knt > 6000'
+    stop
+endif
 !mp => metabolic
 mp => phase_metabolic(1)
 !if (mod(knt,20) == 1) then      ! solve for rates every 10th time

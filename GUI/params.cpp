@@ -796,9 +796,9 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Lactate -> pyruvate rate constant",
       "The reverse rate constant K_LP of the pyruvate-lactate reaction, i.e. the rate constant for conversion of lactate to pyruvate"},
 
-       {"PYRUVATE_MM_KM_1", 20, 0, 0,
-       "Pyruvate Michaelis-Menten Km (uM)",
-       "Pyruvate Michaelis-Menten Km (uM). fMM = C_P/(Km + C_P) is a multiple of pyruvate oxidation rate, ensuring that the rate -> 0 as C_P -> 0"},
+       {"C_GLN_LO_1", 0.02, 0, 0,
+       "Glutamine cutoff concentration (mM)",
+       "When extracellular glutamine concentration falls below this value consumption of glutamine and other nutrient ceases"},
 
        {"PASTEUR_MM_KM_1", 0.02, 0, 0,
        "Pasteur Effect Michaelis-Menten Km (normalised)",

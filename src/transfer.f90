@@ -261,6 +261,7 @@ if (mp%G_rate > 0 .and. mp%L_rate > 0) then
 else
 	P_utilisation = 0
 endif
+C_A_norm = 1
 An = mp%C_A/C_A_norm	! normalised ATP level
 
 call getMediumConc(EC,cmedium)

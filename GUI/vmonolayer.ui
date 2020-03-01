@@ -2260,7 +2260,7 @@ padding: 8px
                </widget>
               </item>
               <item row="19" column="0">
-               <widget class="QMyLabel" name="label_PYRUVATE_MM_KM_1">
+               <widget class="QMyLabel" name="label_C_GLN_LO_1">
                 <property name="font">
                  <font>
                   <weight>50</weight>
@@ -2268,12 +2268,12 @@ padding: 8px
                  </font>
                 </property>
                 <property name="text">
-                 <string>Pyruvate Michaelis-Menten Km</string>
+                 <string>Glutamine cutoff concentration (mM)</string>
                 </property>
                </widget>
               </item>
               <item row="19" column="1">
-               <widget class="QLineEdit" name="line_PYRUVATE_MM_KM_1">
+               <widget class="QLineEdit" name="line_C_GLN_LO_1">
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
@@ -2327,7 +2327,7 @@ padding: 8px
                  <bool>true</bool>
                 </property>
                 <property name="text">
-                 <string>Nominal normal IC O2 concentration</string>
+                 <string>Nominal normal IC O2 concentration (mM)</string>
                 </property>
                </widget>
               </item>
@@ -2353,7 +2353,7 @@ padding: 8px
                  <bool>true</bool>
                 </property>
                 <property name="text">
-                 <string>Nominal normal IC glucose concentration</string>
+                 <string>Nominal normal IC glucose concentration (mM)</string>
                 </property>
                </widget>
               </item>
@@ -2379,7 +2379,7 @@ padding: 8px
                  <bool>true</bool>
                 </property>
                 <property name="text">
-                 <string>Nominal normal IC lactate concentration</string>
+                 <string>Nominal normal IC lactate concentration (mM)</string>
                 </property>
                </widget>
               </item>
@@ -2489,7 +2489,7 @@ padding: 8px
                  <bool>true</bool>
                 </property>
                 <property name="text">
-                 <string>Nominal normal IC glutamine concentration</string>
+                 <string>Nominal normal IC glutamine concentration (mM)</string>
                 </property>
                </widget>
               </item>
@@ -2605,7 +2605,7 @@ padding: 8px
                  <bool>true</bool>
                 </property>
                 <property name="text">
-                 <string>Nominal normal IC other nutrient concentration</string>
+                 <string>Nominal normal IC other nutrient concentration (mM)</string>
                 </property>
                </widget>
               </item>
