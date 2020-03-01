@@ -1019,7 +1019,7 @@ endif
 !write(nflog,*) 'recompute rates'
 !call get_metab_rates(mp,Cin,res)
 if (res /= 0) stop
-!write(nflog,'(a,e12.3)') 'OGLSolver: mp%G_rate: ',mp%G_rate 
+!write(nflog,'(a,e12.3)') 'did OGLSolver: mp%G_rate: ',mp%G_rate 
 
 ! Update C_A in phase_metabolic(1)
 call update_C_A(dt,mp)
@@ -1037,7 +1037,9 @@ do kcell = 1,nlist
 !	call update_C_A(dt,mp)
 enddo
 
-!write(nflog,*) 'OGLSolver: Grate: ',cell_list(1)%metab%G_rate, Cmediumave(GLUCOSE)
+write(*,'(a,2e12.3)') 'did OGLSolver: Grate, Cmediumave(G): ',cell_list(1)%metab%G_rate, Cmediumave(GLUCOSE)
+return
+
 ! Check Lactate flux balance
 ichemo = LACTATE
 Cic = Caverage(LACTATE)
