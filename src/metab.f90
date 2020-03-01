@@ -1036,6 +1036,7 @@ else
     f_cutoff = (C_glnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
 endif
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
+write(*,'(a,5e11.3)') 'r_G,H,C_G,C_Gln,r_O: ',r_G,mp%HIF1,C_G,C_Gln,mp%O_rate
 r_GlnON_I = Gln_maxrate*f_Gln*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
 r_Gln = f_cutoff*MM_Gln*Gln_maxrate
 r_GlnI = r_Gln*f_Gln*N_GlnI
@@ -1048,7 +1049,7 @@ r_ON = r_ONI/N_ONI
 
 !  What is h?
 h = (r_Au - r_Ag)/r_Iu
-write(nflog,'(a,5e12.3)') 'r_G, r_Gln, r_GlnI, r_ONI: ',r_G, r_Gln, r_GlnI, r_ONI
+write(nflog,'(a,5e11.3)') 'r_G, r_Gln, r_GlnI, r_ONI: ',r_G, r_Gln, r_GlnI, r_ONI
 
 if (use_f_GL) then
     wlim = (1 - f_GL/N_GP)/f_Gu

@@ -384,13 +384,13 @@ if (noSS) then
 endif
 !write(nflog,*)
 !write(nflog,'(a,i4,f10.3,4e15.6)') 'f_rkc_OGL: knt, t, Cin: ',knt,t,Cin(1:4) 
-if (knt > 6000) then
-    write(nflog,*) 'knt > 6000'
+if (knt > 5000) then
+    write(nflog,*) 'knt > 5000'
     stop
 endif
 !mp => metabolic
 mp => phase_metabolic(1)
-!if (mod(knt,20) == 1) then      ! solve for rates every 10th time
+!if (mod(knt,20) == 1) then      ! solve for rates every 20th time
 if (knt == 1) then              ! solve for rates only once at the start of the main time step
     call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
     if (res /= 0) stop
@@ -428,6 +428,7 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 	k = k+1
 	C = y(k)
 	dydt(k) = (-Nmetabolisingcells*membrane_flux - Kd*A*(C - y(k+1))/dX)/dV
+!	write(*,'(a,i4,e12.3)') 'k,dydt: ',k,dydt(k)
 	
 	! Next compute diffusion and decay on the FD grid
 	! Need special treatment for oxygen at air boundary
@@ -885,7 +886,7 @@ integer :: ichemo, k, ict, neqn, i, kcell, it, res
 real(REAL_KIND) :: t, tend
 !real(REAL_KIND) :: C(3*N1D+3), Cin(3), Csum, dCdt(3*N1D+3), dtt
 !real(REAL_KIND) :: C(3*N1D+4), Cin(4), Csum, dCdt(3*N1D+4), C_P, dtt
-real(REAL_KIND) :: C(NUTS*(N1D+1)+1), Cin(NUTS), Csum, dCdt(NUTS*(N1D+1)+1), C_P, dtt
+real(REAL_KIND) :: C(NUTS*(N1D+1)+1), Cin(NUTS+1), Csum, dCdt(NUTS*(N1D+1)+1), C_P, dtt
 real(REAL_KIND) :: timer1, timer2
 ! Variables for RKC
 integer :: info(4), idid
@@ -941,7 +942,7 @@ neqn = k
 	info(2) = 1		! = 1 => use spcrad() to estimate spectral radius, != 1 => let rkc do it
 	info(3) = 1
 	info(4) = 0
-	rtol = 1d-3		! was 5d-4
+	rtol = 5d-3		! was 5d-4
 !	if (mp%G_rate < r_G_threshold) then
 !		write(*,'(a,4e12.3)') 'r_G < r_G_threshold: ',mp%G_rate
 !		rtol = 1d-2
@@ -1018,7 +1019,7 @@ if (noSS) then
 endif
 !write(nflog,*) 'recompute rates'
 !call get_metab_rates(mp,Cin,res)
-if (res /= 0) stop
+!if (res /= 0) stop
 !write(nflog,'(a,e12.3)') 'did OGLSolver: mp%G_rate: ',mp%G_rate 
 
 ! Update C_A in phase_metabolic(1)
