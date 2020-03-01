@@ -390,8 +390,8 @@ if (knt > 10000) then
 endif
 !mp => metabolic
 mp => phase_metabolic(1)
-if (mod(knt,10) == 1) then      ! solve for rates every 10th time
-!if (knt == 1) then              ! solve for rates only once at the start of the main time step
+!if (mod(knt,10) == 1) then      ! solve for rates every 10th time
+if (knt == 1) then              ! solve for rates only once at the start of the main time step
     call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
     if (res /= 0) stop
 endif
