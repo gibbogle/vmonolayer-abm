@@ -24,7 +24,7 @@ implicit none
 integer :: ivdbug
 
 !real(REAL_KIND) :: work_rkc(8+5*2*MAX_CHEMO)
-real(REAL_KIND) :: work_rkc(8+(NUTS+1)*3*(N1D+1))
+real(REAL_KIND) :: work_rkc(8+5*NUTS*(N1D+1))
 logical :: chemo_active(2*MAX_CHEMO)    ! flags necessity to solve for the constituent
 real(REAL_KIND) :: CO2_rkc				! O2 concentration for f_rkc_drug
 integer :: idrug_rkc					! drug number for f_rkc_drug
