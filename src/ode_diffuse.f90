@@ -394,7 +394,7 @@ mp => phase_metabolic(1)
 if (knt == 1) then              ! solve for rates only once at the start of the main time step
     call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
     if (res /= 0) stop
-    write(nflog,'(a,5e12.3)') 'rates: ',mp%O_rate,mp%G_rate,mp%L_rate,mp%Gln_rate,mp%ON_rate
+    write(nflog,'(a,6e12.3)') 'rates: ',mp%O_rate,mp%G_rate,mp%L_rate,mp%Gln_rate,mp%ON_rate,mp%P_rate*N_PO + mp%Gln_rate*N_GlnO
 endif
 k = 0
 do ichemo = 1,NUTS     ! 3 -> 4 = glutamine 
@@ -421,7 +421,7 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 		dCreact = (-mp%ON_rate + membrane_flux)/vol_cm3		! ON_rate is rate of consumption
 !    write(nflog,'(a,2i5,2f8.5,3e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,r_Gln,dydt: ',knt,ichemo,Cex,C,membrane_flux,mp%ON_rate,dCreact
     endif
-    write(nflog,'(a,2i5,2f8.5,2e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,dydt: ',knt,ichemo,Cex,C,membrane_flux,dCreact
+!    write(nflog,'(a,2i5,2f8.5,2e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,dydt: ',knt,ichemo,Cex,C,membrane_flux,dCreact
 	dydt(k) = dCreact
 	if (isnan(dydt(k))) then
 		write(nflog,*) 'f_rkc_OGL: dydt isnan: ',ichemo,dydt(k)
@@ -926,7 +926,6 @@ do ichemo = 1,NUTS     ! 4 = glutamine
 		C(k) = C_OGL(ichemo,i)	! EC
 	enddo
 enddo
-write(*,*) 'C oxygen: ',C(1)
 !write(nflog,'(10e12.3)') C(1:N1D+1)
 !write(nflog,'(a,7f8.3)') 'OGLsolver: Cin, tstart, dt (h): ',Caverage(1:NUTS),tstart/3600,dt/3600
 !write(nflog,'(a,f6.3)') 'OGLsolver: glutamine: IC: ',C(3*(N1D+1) + 1)
@@ -1048,7 +1047,7 @@ do kcell = 1,nlist
 !	call update_C_A(dt,mp)
 enddo
 
-write(*,'(a,2e12.3)') 'did OGLSolver: Grate, Orate: ',cell_list(1)%metab%G_rate, cell_list(1)%metab%O_rate
+!write(*,'(a,2e12.3)') 'did OGLSolver: Grate, Orate: ',cell_list(1)%metab%G_rate, cell_list(1)%metab%O_rate
 return
 
 ! Check Lactate flux balance

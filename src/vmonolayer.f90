@@ -2224,9 +2224,9 @@ do idiv = 0,ndiv-1
 		do ityp = 1,Ncelltypes
 			HIF1 = metabolic%HIF1
 			C_O2 = chemo(OXYGEN)%cmedium(1)
-			write(*,'(a,2e12.3)') 'before: HIF1,C_O2: ',HIF1,C_O2
+!			write(*,'(a,2e12.3)') 'before: HIF1,C_O2: ',HIF1,C_O2
 			call analyticSetHIF1(C_O2,HIF1,DELTA_T)
-			write(*,'(a,e12.3)') 'after: HIF1: ',HIF1
+!			write(*,'(a,e12.3)') 'after: HIF1: ',HIF1
 			metabolic%HIF1 = HIF1
 			PDK1 = metabolic%PDK1
 			call analyticSetPDK1(HIF1,PDK1,dt)
