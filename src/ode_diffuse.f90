@@ -394,6 +394,7 @@ mp => phase_metabolic(1)
 if (knt == 1) then              ! solve for rates only once at the start of the main time step
     call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
     if (res /= 0) stop
+    write(nflog,'(a,5e12.3)') 'rates: ',mp%O_rate,mp%G_rate,mp%L_rate,mp%Gln_rate,mp%ON_rate
 endif
 k = 0
 do ichemo = 1,NUTS     ! 3 -> 4 = glutamine 
@@ -407,7 +408,7 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 	membrane_flux = area_factor*(membrane_kin*Cex - membrane_kout*C)
     if (ichemo == OXYGEN) then
 		dCreact = (-mp%O_rate + membrane_flux)/vol_cm3		! O_rate is rate of consumption
-    write(nflog,'(a,2i5,2f8.5,3e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,r_O,dydt: ',knt,ichemo,Cex,C,membrane_flux,mp%O_rate,dCreact
+!    write(nflog,'(a,2i5,2f8.5,3e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,r_O,dydt: ',knt,ichemo,Cex,C,membrane_flux,mp%O_rate,dCreact
     elseif (ichemo == GLUCOSE) then	! 
 		dCreact = (-mp%G_rate + membrane_flux)/vol_cm3		! G_rate is rate of consumption
     elseif (ichemo == LACTATE) then
@@ -420,6 +421,7 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 		dCreact = (-mp%ON_rate + membrane_flux)/vol_cm3		! ON_rate is rate of consumption
 !    write(nflog,'(a,2i5,2f8.5,3e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,r_Gln,dydt: ',knt,ichemo,Cex,C,membrane_flux,mp%ON_rate,dCreact
     endif
+    write(nflog,'(a,2i5,2f8.5,2e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,dydt: ',knt,ichemo,Cex,C,membrane_flux,dCreact
 	dydt(k) = dCreact
 	if (isnan(dydt(k))) then
 		write(nflog,*) 'f_rkc_OGL: dydt isnan: ',ichemo,dydt(k)
