@@ -504,6 +504,7 @@ contains
 !--------------------------------------------
       h = tdir*absh
       hmin = ten*uround*max(abs(t),abs(t + h))
+      write(*,*) 'h: ',h
       call step(neqn,f,t,yn,fn,h,m,y,vtemp1,vtemp2,icase)
       call f(neqn,t+h,y,vtemp1,icase)
 !      nfe = nfe + m
