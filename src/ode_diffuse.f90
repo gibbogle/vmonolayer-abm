@@ -407,6 +407,7 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 	membrane_flux = area_factor*(membrane_kin*Cex - membrane_kout*C)
     if (ichemo == OXYGEN) then
 		dCreact = (-mp%O_rate + membrane_flux)/vol_cm3		! O_rate is rate of consumption
+    write(nflog,'(a,2i5,2f8.5,3e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,r_O,dydt: ',knt,ichemo,Cex,C,membrane_flux,mp%O_rate,dCreact
     elseif (ichemo == GLUCOSE) then	! 
 		dCreact = (-mp%G_rate + membrane_flux)/vol_cm3		! G_rate is rate of consumption
     elseif (ichemo == LACTATE) then
@@ -414,8 +415,10 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 !		dCreact = dCreact*f_MM(C,chemo(LACTATE)%MM_C0, int(chemo(LACTATE)%Hill_N))
     elseif (ichemo == GLUTAMINE) then	! 
 		dCreact = (-mp%Gln_rate + membrane_flux)/vol_cm3	! Gln_rate is rate of consumption
+!    write(nflog,'(a,2i5,2f8.5,3e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,r_Gln,dydt: ',knt,ichemo,Cex,C,membrane_flux,mp%Gln_rate,dCreact
     elseif (ichemo == OTHERNUTRIENT) then	! 
 		dCreact = (-mp%ON_rate + membrane_flux)/vol_cm3		! ON_rate is rate of consumption
+!    write(nflog,'(a,2i5,2f8.5,3e14.6)') 'knt,ichemo,Cex,Cin,membrane_flux,r_Gln,dydt: ',knt,ichemo,Cex,C,membrane_flux,mp%ON_rate,dCreact
     endif
 	dydt(k) = dCreact
 	if (isnan(dydt(k))) then
@@ -448,6 +451,8 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 		endif
 	enddo
 enddo
+!write(nflog,*) 'knt: ',knt
+!write(nflog,'(10e12.3)') dydt
 if (noSS) then  ! add reaction for pyruvate C_P
     k = k+1
     dydt(k) = (2*(1-mp%f_G)*mp%G_rate - mp%P_rate)/vol_cm3 + K2*Cin(3) - K1*y(k)    !====================== CHECK THIS
@@ -944,7 +949,7 @@ neqn = k
 	info(2) = 1		! = 1 => use spcrad() to estimate spectral radius, != 1 => let rkc do it
 	info(3) = 1
 	info(4) = 0
-	rtol = 5d-3		! was 5d-4
+	rtol = 1d-2		! was 5d-4
 !	if (mp%G_rate < r_G_threshold) then
 !		write(*,'(a,4e12.3)') 'r_G < r_G_threshold: ',mp%G_rate
 !		rtol = 1d-2
