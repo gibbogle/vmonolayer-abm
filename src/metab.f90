@@ -973,19 +973,26 @@ r_Ag = f_ATPg*r_Au
 h = (r_Au - r_Ag)/r_Iu
 hp = h
 write(nflog,'(a,5e12.3)') 'initial guess: r_G,r_P,r_Iu,r_Au,h: ',r_G,r_P,r_Iu,r_Au,h
-do k = 1,20
+do k = 1,10
     call f_metab(mp, C, C_GlnEx, res)
     if (res /= 0) then
         write(nflog,*) 'f_metab failed'
         return
     endif
+! r_Ou = r_Pu*N_PO + r_Glnu*N_GlnO  (assuming that ON utilisation does not consume O2)
+! Set Gln_maxrate = r_Glnu
+!    Gln_maxrate = (mp%O_rate - mp%P_rate*N_PO)/N_GlnO
+! oops! drives Gln_maxrate -> 0 
+! Let N_GlnO = N_PO, solve for this
+    N_PO = O2_maxrate/(mp%P_rate + mp%Gln_rate)
+    N_GlnO = N_PO
     r_Au = mp%A_rate
     r_Iu = mp%I_rate
     r_Ag = f_ATPg*r_Au
     h = (r_Au - r_Ag)/r_Iu
     h = (h + hp)/2
     hp = h
-    write(nflog,'(a,3e12.3)') 'Unconstrained: r_Au, r_Ag, h: ',r_Au, r_Ag, h
+    write(nflog,'(a,6e12.3)') 'Unconstrained: r_Au, r_Ag, h, N_PO, mp%O_rate,O2_maxrate: ',r_Au, r_Ag, h, N_PO, mp%O_rate, O2_maxrate
     write(nflog,*)
 enddo
 r_Gu = mp%G_rate

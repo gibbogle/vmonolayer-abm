@@ -284,11 +284,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-{"GLUCOSE_CONSUMPTION", 1.0e-16, 0, 0,
+{"GLUCOSE_CONSUMPTION", 1.3e-16, 0, 0,
  "Max consumption rate",
  "GLUCOSE consumption rate"},
 
-{"GLUCOSE_MM_KM", 400, 0, 0,
+{"GLUCOSE_MM_KM", 300, 0, 0,
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
@@ -364,11 +364,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-{"GLUTAMINE_CONSUMPTION", 1.0e-16, 0, 0,
+{"GLUTAMINE_CONSUMPTION", 0.85e-16, 0, 0,
  "Consumption rate",
  "Glutamine consumption rate"},
 
-{"GLUTAMINE_MM_KM", 100, 0, 0,
+{"GLUTAMINE_MM_KM", 200, 0, 0,
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
@@ -404,7 +404,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Constant concentration",
      "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-    {"OTHER_CONSUMPTION", 1.0e-16, 0, 0,
+    {"OTHER_CONSUMPTION", 1.5e-16, 0, 0,
      "Consumption rate",
      "Other nutrient consumption rate"},
 
@@ -698,7 +698,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "ATP moles produced per pyruvate mole",
       "Number of ATP moles produced by the oxidation of one pyruvate mole"},
 
-       {"N_GLNA_1", 8, 0, 0,
+       {"N_GLNA_1", 10, 0, 0,
        "ATP moles produced per glutamine mole",
        "Number of ATP moles produced by the oxidation of one glutamine mole"},
 
@@ -714,19 +714,19 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Intermediate moles produced per pyruvate mole",
       "Number of moles of anabolic intermediates produced the oxidation of one pyruvate mole"},
 
-       {"N_GLNI_1", 1, 0, 0,
+       {"N_GLNI_1", 2, 0, 0,
        "Intermediate moles produced per glutamine mole",
        "Number of moles of anabolic intermediates produced the oxidation of one glutamine mole"},
 
-       {"N_ONI_1", 1.5, 0, 0,
+       {"N_ONI_1", 2, 0, 0,
        "Intermediate moles produced per othernutrient mole",
        "Number of moles of anabolic intermediates produced the oxidation of one other nutrient mole"},
 
-      {"N_PO_1", 1, 0, 0,
+      {"N_PO_1", 0.88, 0, 0,
       "Oxygen moles consumed per pyruvate mole",
       "Number of moles of oxygen consumed the oxidation of one pyruvate mole"},
 
-       {"N_GLNO_1", 1, 0, 0,
+       {"N_GLNO_1", 0.88, 0, 0,
        "Oxygen moles consumed per glutamine mole",
        "Number of moles of oxygen consumed the oxidation of one glutamine mole"},
 
@@ -734,7 +734,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Exponent N_H in Hss equation",
       "With x = C_O/C_O_max, steady-state HIF-1 level is Hss = (1-x)^N_H, where C_O = oxygen concentration"},
 
-      {"K_H2_1", 0.00005, 0, 0,
+      {"K_H2_1", 5e-5, 0, 0,
       "HIF-1 rate constant K_H",
       "The rate of change of HIF-1 level H is given by: dH/dt = K_H*(Hss - H), where C_O = oxygen concentration, Hss is steady-state level for C_O"},
 
@@ -768,15 +768,15 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         "Nominal normal IC glutamine concentration",
         "Nominal normal IC glutamine concentration, used to set normal metabolic rates for unconstrained growth"},
 
-        {"C_ON_NORM_1", 6.0, 0, 0,
+        {"C_ON_NORM_1", 4.0, 0, 0,
         "Nominal normal IC othernutrient concentration",
         "Nominal normal IC other nutrient concentration, used to set normal metabolic rates for unconstrained growth"},
 
-      {"ATP_S_1", 0.3, 0, 0,
+      {"ATP_S_1", 0.1, 0, 0,
       "ATP production threshold for survival (fraction of peak)",
       "Cell death occurs when the ATP production rate falls below the fraction ATP_S of the maximum (no nutrient constraints) production rate"},
 
-      {"ATP_G_1", 0.5, 0, 0,
+      {"ATP_G_1", 0.3, 0, 0,
        "ATP production threshold for growth (fraction of peak)",
        "Cell growth stops when the ATP production rate falls below the fraction ATP_G of the maximum (no nutrient constraints) production rate.\n\
         Intermediates production from glycolysis and pyruvate ramps down when ATP rate is below ATPramp*ATP_G, to 0 when ATP rate = ATP_G."},
@@ -792,7 +792,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Pyruvate -> lactate rate constant",
        "The forward rate constant K_PL of the pyruvate-lactate reaction, i.e. the rate constant for conversion of pyruvate to lactate"},
 
-      {"K_LP_1", 0.1, 0, 0,
+      {"K_LP_1", 0.01, 0, 0,
       "Lactate -> pyruvate rate constant",
       "The reverse rate constant K_LP of the pyruvate-lactate reaction, i.e. the rate constant for conversion of lactate to pyruvate"},
 
