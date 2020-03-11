@@ -175,7 +175,7 @@ end function
 !-----------------------------------------------------------------------------------------
 ! Removing references to anoxia, aglucosia
 ! Adding non-viable, nogrow, ndead
-! Added phase_fraction(7) = fraction of non-arrested S-phase cells
+! Added phase_fraction(7) = fraction of non-arrested S-phase cells 
 !-----------------------------------------------------------------------------------------
 subroutine get_summary(summaryData,i_hypoxia_cutoff,i_growth_cutoff) BIND(C)
 !DEC$ ATTRIBUTES DLLEXPORT :: get_summary
@@ -257,12 +257,13 @@ r_A = mp%A_rate/r_Au
 !write(nflog,'(a,4e12.3)') 'r_G, r_A, mp%A_rate, r_Au: ',r_G,r_A,mp%A_rate,r_Au
 r_I = mp%I_rate/r_Iu
 if (mp%G_rate > 0 .and. mp%L_rate > 0) then
-	P_utilisation = mp%P_rate/(2*(1-mp%f_G)*mp%G_rate)	!!!???
+!	P_utilisation = mp%P_rate/(2*(1-mp%f_G)*mp%G_rate)	!!!????
+	P_utilisation = 0
 else
 	P_utilisation = 0
 endif
 C_A_norm = 1
-An = mp%C_A/C_A_norm	! normalised ATP level
+!An = mp%C_A/C_A_norm	! normalised ATP level
 
 call getMediumConc(EC,cmedium)
 
@@ -300,10 +301,10 @@ write(nfres,'(a,a,2a12,i8,e12.4,21i7,62e13.5)') trim(header),' ',gui_run_version
 !	caverage(OXYGEN:LACTATE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 !	cmedium(OXYGEN:LACTATE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	EC(OXYGEN:GLUTAMINE), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
-	caverage(OXYGEN:GLUTAMINE), mp%C_P, An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
+	caverage(OXYGEN:GLUTAMINE), mp%C_P, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 	cmedium(OXYGEN:GLUTAMINE), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	phase_fraction(1:7), rmutations, &	! note order change
-	doubling_time, r_G, r_P, r_Gln, r_A, r_I, ndivided, P_utilisation
+	doubling_time, r_G, r_P, r_Gln, r_A, r_I, real(ndivided), P_utilisation
 	
 !call sum_dMdt(GLUCOSE)
 ndoublings = 0
