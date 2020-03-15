@@ -1108,8 +1108,8 @@ f1 = f1_max
 r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
 r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
 r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA
-if (r_A > 2*r_Au) then
-    write(*,*) 'r_A > 2*r_Au: ',r_A,r_Au 
+if (r_A > 10*r_Au) then
+    write(*,*) 'r_A > 10*r_Au: ',r_A,r_Au 
     write(*,'(a,4e12.3)') 'r_Aw,r_Gln,(1 - f1),N_GlnA: ',r_Aw,r_Gln,(1 - f1),N_GlnA
     write(*,'(a,3e12.3)') 'w,r_G*(1 - w*f_Gu)*N_GA, r_P*(1 - w*f_Pu)*N_PA: ',w,r_G*(1 - w*f_Gu)*N_GA, r_P*(1 - w*f_Pu)*N_PA
     stop
