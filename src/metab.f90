@@ -1014,6 +1014,132 @@ subroutine f_metab_ON(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
 integer :: res
+real(REAL_KIND) :: w, h, z, u, ulim, w1, f_cutoff, f0, f1
+real(REAL_KIND) :: C_GlnHi, r_Aw, r_Iw
+real(REAL_KIND) :: V, K1, K2, f_Gln
+real(REAL_KIND) :: Km_O2, Km_Gln, Km_ON, MM_O2, MM_Gln, MM_ON, MM_rGln, L_O2, L_Gln, L_ON, r_GlnON_I, Km_rGln, wlim, zterm
+real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r_GlnI, r_ONI, ONfactor
+real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, f1_max
+integer :: iw, Nw, npp, ncp
+logical :: use_f_GL = .true.
+    
+res = 0
+MM_O2 = f_MM(C_O2,Hill_Km_O2,int(Hill_N_O2))
+L_O2 = mp%PDK1*O2_maxrate*MM_O2
+MM_Gln = f_MM(C_Gln,Hill_Km_Gln,int(Hill_N_Gln))
+MM_ON = f_MM(C_ON,Hill_Km_ON,int(Hill_N_ON))
+V = Vcell_cm3*average_volume
+K1 = K_PL
+K2 = K_LP
+f_Gln = f_Glnu
+
+!C_GlnLo = 0.02                      !!!!! was hard-coded
+C_GlnHi = C_GlnLo + 0.005
+if (C_GlnEX > C_GlnHi) then
+    f_cutoff = 1
+elseif (C_GlnEx < C_GlnLo) then
+    f_cutoff = 0
+else
+    f_cutoff = (C_glnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
+endif
+r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
+!write(*,'(a,5e11.3)') 'r_G,H,C_G,C_Gln,r_O: ',r_G,mp%HIF1,C_G,C_Gln,mp%O_rate
+r_GlnON_I = Gln_maxrate*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
+f0 = f_cutoff*MM_Gln
+r_Gln = f0*Gln_maxrate
+Km_rGln = 0.05*Gln_maxrate           !!!!! hard-coded
+MM_rGln = r_Gln/(Km_rGln + r_Gln)
+h = (r_Au - r_Ag)/r_Iu
+!write(nflog,'(a,5e11.3)') 'r_G, r_Gln, r_GlnI, r_ONI: ',r_G, r_Gln, r_GlnI, r_ONI
+
+if (use_f_GL) then
+    wlim = (1 - f_GL/N_GP)/f_Gu
+!    write(nflog,'(a,f8.4)') 'wlim: ',wlim
+    if (wlim < 0) then
+        write(nflog,*) 'No solution possible since wlim < 0: ',wlim
+        res = 1
+        return
+    endif
+endif
+r_Imax = 0
+r_Amax = 0
+r_IAmax = 0
+w_max = -1
+Nw = 100
+dw = 1.0/Nw
+npp = 0
+ncp = 0
+ulim = 1.2                          !!!!! hard-coded
+do iw = Nw+1,2,-1
+    w = (iw-1)*dw
+    r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
+    if (r_P < 0) cycle
+    r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
+    r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
+    ! Note: f1 is the fraction of r_Gln that goes to I
+    if (r_Gln <= 0) then
+        f1 = 0
+    else
+        f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + f0*r_GlnON_I))/(r_Gln*(h*(1 - f0)*N_GlnI + N_GlnA))
+    endif
+!    if (f1 < 0 .or. f1 > 1) then
+!        write(*,*) 'iw, f1: ',iw,f1
+!    endif
+    if (f1 > 1.0) cycle     ! is this necessary?
+    f1 = max(f1,0.0)
+    f1 = min(f1,1.0)
+    r_ONI = f_cutoff*(r_GlnON_I - r_Gln*f1*N_GlnI)    ! need to check r_ON against MM_ON*ON_maxrate
+    r_ONI = min(r_ONI,MM_ON*ON_maxrate*N_ONI)
+    r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
+    if (r_I > r_Imax) then
+        w_max = w
+        r_Imax = r_I
+        f1_max = f1
+    endif
+enddo
+w = w_max
+if (w < 0) then     ! no solution
+    r_P = 0
+    w = 0
+else
+    r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
+endif
+f1 = f1_max
+r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
+r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
+r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA
+if (r_A > 1.5*r_Au) then
+    write(*,*) 'r_A > r_Au: ',r_A,r_Au 
+    write(*,'(a,4e12.3)') 'r_Aw,r_Gln,(1 - f1),N_GlnA: ',r_Aw,r_Gln,(1 - f1),N_GlnA
+    write(*,'(a,3e12.3)') 'w,r_G*(1 - w*f_Gu)*N_GA, r_P*(1 - w*f_Pu)*N_PA: ',w,r_G*(1 - w*f_Gu)*N_GA, r_P*(1 - w*f_Pu)*N_PA
+    stop
+endif
+r_ONI = f_cutoff*(r_GlnON_I - r_Gln*f1*N_GlnI)
+r_ONI = min(r_ONI,MM_ON*ON_maxrate*N_ONI)
+r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
+r_ON = r_ONI/N_ONI
+r_L = f_GL*r_G
+C_P = (r_L + V*K2*C_L)/(V*K1) 
+r_O = r_P*N_PO + r_Gln*N_GlnO
+mp%P_rate = r_P
+mp%G_rate = r_G
+mp%Gln_rate = r_Gln
+mp%I_rate = r_I
+mp%A_rate = r_A
+mp%O_rate = r_O
+mp%L_rate = r_L
+mp%ON_rate = r_ON
+mp%C_P = C_P
+mp%f_G = w*f_Gu
+mp%f_P = w*f_Pu
+end subroutine
+
+!==================================================================================================
+!==================================================================================================
+subroutine f_metab_ON5(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
+type(metabolism_type), pointer :: mp
+real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
+integer :: res
 real(REAL_KIND) :: w, h, z, u, ulim, w1
 real(REAL_KIND) :: C_GlnHi, f_cutoff
 real(REAL_KIND) :: V, K1, K2, f_Gln
@@ -1046,13 +1172,13 @@ r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previo
 !write(*,'(a,5e11.3)') 'r_G,H,C_G,C_Gln,r_O: ',r_G,mp%HIF1,C_G,C_Gln,mp%O_rate
 r_GlnON_I = Gln_maxrate*f_Gln*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
 r_Gln = f_cutoff*MM_Gln*Gln_maxrate
-r_GlnI = r_Gln*f_Gln*N_GlnI
+!r_GlnI = r_Gln*f_Gln*N_GlnI
 Km_rGln = 0.05*Gln_maxrate           !!!!! hard-coded
 MM_rGln = r_Gln/(Km_rGln + r_Gln)
 !r_ON = MM_Gln*MM_ON*ON_maxrate
 !r_ONI = r_ON*N_ONI
-r_ONI = (r_GlnON_I - r_GlnI)*MM_rGln ! r_ONI compensates for drop in r_GlnI, but ultimately is suppressed by low r_Gln
-r_ON = r_ONI/N_ONI
+!r_ONI = (r_GlnON_I - r_GlnI)*MM_rGln ! r_ONI compensates for drop in r_GlnI, but ultimately is suppressed by low r_Gln
+!r_ON = r_ONI/N_ONI
 
 !  What is h?
 h = (r_Au - r_Ag)/r_Iu

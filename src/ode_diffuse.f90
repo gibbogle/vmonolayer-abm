@@ -1008,9 +1008,11 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
         cell_list(kcell)%Cin(ichemo) = Caverage(ichemo)
     enddo
     Caverage(MAX_CHEMO + ichemo) = C(k+1)	! not really average, this is medium at the cell layer, i.e. EC
+                                            ! = chemo(ichemo)%Cmedium(1)
 !	write(nflog,'(a,i3,5e12.3)') 'Cdrug: im: ',im,Cdrug(im,1:5)
 enddo
 write(*,'(a,4e12.3)') 'OGLSolver: Cex: ',chemo(1:GLUTAMINE)%Cmedium(1)
+write(*,'(a,f12.4)') 'after: Cex-CGln: ',chemo(GLUTAMINE)%Cmedium(1) - Caverage(GLUTAMINE)
 if (noSS) then
     mp%C_P = C(neqn)
 endif

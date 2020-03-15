@@ -957,7 +957,7 @@ padding: 8px
               <x>30</x>
               <y>10</y>
               <width>601</width>
-              <height>321</height>
+              <height>271</height>
              </rect>
             </property>
             <property name="title">
@@ -969,7 +969,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>581</width>
-               <height>301</height>
+               <height>251</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_GLGL3">
@@ -1086,7 +1086,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1099,7 +1099,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1112,7 +1112,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1125,7 +1125,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1204,7 +1204,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1217,7 +1217,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1250,7 +1250,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1263,7 +1263,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1289,7 +1289,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1302,7 +1302,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1328,7 +1328,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1341,7 +1341,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1354,7 +1354,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1367,7 +1367,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1435,7 +1435,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1448,7 +1448,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1461,7 +1461,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1474,7 +1474,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1487,7 +1487,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1500,7 +1500,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1513,7 +1513,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1631,7 +1631,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1644,7 +1644,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1657,7 +1657,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1670,7 +1670,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1683,7 +1683,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1696,7 +1696,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1709,7 +1709,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1742,7 +1742,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1755,7 +1755,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1768,7 +1768,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1781,7 +1781,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1813,7 +1813,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1883,7 +1883,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1896,7 +1896,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1909,7 +1909,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1922,7 +1922,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1935,7 +1935,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1948,7 +1948,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -1961,7 +1961,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>65</width>
-                  <height>16777215</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2090,7 +2090,7 @@ padding: 8px
               <x>650</x>
               <y>10</y>
               <width>361</width>
-              <height>571</height>
+              <height>491</height>
              </rect>
             </property>
             <property name="title">
@@ -2102,7 +2102,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>341</width>
-               <height>551</height>
+               <height>471</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -2124,7 +2124,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2137,7 +2137,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2150,7 +2150,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2184,7 +2184,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2197,7 +2197,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2210,7 +2210,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2251,7 +2251,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2277,7 +2277,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2297,7 +2297,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2313,7 +2313,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2339,7 +2339,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2365,7 +2365,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2388,7 +2388,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2408,7 +2408,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2428,7 +2428,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2441,7 +2441,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2475,7 +2475,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2501,7 +2501,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2514,7 +2514,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2543,7 +2543,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2575,7 +2575,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2617,7 +2617,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2664,9 +2664,9 @@ padding: 8px
             <property name="geometry">
              <rect>
               <x>190</x>
-              <y>340</y>
+              <y>280</y>
               <width>361</width>
-              <height>271</height>
+              <height>221</height>
              </rect>
             </property>
             <property name="title">
@@ -2678,7 +2678,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>341</width>
-               <height>255</height>
+               <height>201</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
@@ -2707,7 +2707,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2727,7 +2727,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2747,7 +2747,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2767,7 +2767,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2787,7 +2787,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2807,7 +2807,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2827,7 +2827,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2847,7 +2847,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2860,7 +2860,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
@@ -2887,7 +2887,7 @@ padding: 8px
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
-                  <height>18</height>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="alignment">
