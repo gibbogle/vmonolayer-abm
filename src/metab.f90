@@ -1014,7 +1014,7 @@ subroutine f_metab_ON(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
 integer :: res
-real(REAL_KIND) :: w, h, z, u, ulim, w1, f_cutoff, f0, f1
+real(REAL_KIND) :: w, h, z, u, ulim, w1, f_cutoff, f0, f1, f2, N_ONA
 real(REAL_KIND) :: C_GlnHi, r_Aw, r_Iw
 real(REAL_KIND) :: V, K1, K2, f_Gln
 real(REAL_KIND) :: Km_O2, Km_Gln, Km_ON, MM_O2, MM_Gln, MM_ON, MM_rGln, L_O2, L_Gln, L_ON, r_GlnON_I, Km_rGln, wlim, zterm
@@ -1032,9 +1032,10 @@ V = Vcell_cm3*average_volume
 K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
+N_ONA = 1
 
-!C_GlnLo = 0.02                      !!!!! was hard-coded
-C_GlnHi = C_GlnLo + 0.005
+!C_GlnLo = 0.02                      !!!!! was hard-coded 
+C_GlnHi = C_GlnLo + 0.01
 if (C_GlnEX > C_GlnHi) then
     f_cutoff = 1
 elseif (C_GlnEx < C_GlnLo) then
@@ -1042,10 +1043,15 @@ elseif (C_GlnEx < C_GlnLo) then
 else
     f_cutoff = (C_glnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
 endif
+
+f_cutoff = C_Gln/(C_GlnLo + C_Gln)
+
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
 !write(*,'(a,5e11.3)') 'r_G,H,C_G,C_Gln,r_O: ',r_G,mp%HIF1,C_G,C_Gln,mp%O_rate
 r_GlnON_I = Gln_maxrate*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
-f0 = f_cutoff*MM_Gln
+f0 = MM_Gln
+f2 = f_cutoff
+f0 = f2*f0
 r_Gln = f0*Gln_maxrate
 Km_rGln = 0.05*Gln_maxrate           !!!!! hard-coded
 MM_rGln = r_Gln/(Km_rGln + r_Gln)
@@ -1080,42 +1086,45 @@ do iw = Nw+1,2,-1
     if (r_Gln <= 0) then
         f1 = 0
     else
-        f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + f0*r_GlnON_I))/(r_Gln*(h*(1 - f0)*N_GlnI + N_GlnA))
+        f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + f0*r_GlnON_I) + (N_ONA/N_ONI)*f2*r_GlnON_I) &
+        /(r_Gln*(h*(1 - f0)*N_GlnI + N_GlnA + (N_GlnI*N_ONA/N_ONI)*f2))
     endif
 !    if (f1 < 0 .or. f1 > 1) then
 !        write(*,*) 'iw, f1: ',iw,f1
 !    endif
-    if (f1 > 1.0) cycle     ! is this necessary?
+!    if (f1 > 1.0) cycle     ! is this necessary?
     f1 = max(f1,0.0)
     f1 = min(f1,1.0)
-    r_ONI = f_cutoff*(r_GlnON_I - r_Gln*f1*N_GlnI)    ! need to check r_ON against MM_ON*ON_maxrate
+    r_ONI = f0*(r_GlnON_I - r_Gln*f1*N_GlnI)    ! need to check r_ON against MM_ON*ON_maxrate
     r_ONI = min(r_ONI,MM_ON*ON_maxrate*N_ONI)
     r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
     if (r_I > r_Imax) then
+!        write(nflog,'(a,2f8.3,e12.3)') 'w,f1,r_I: ',w,f1,r_I
         w_max = w
         r_Imax = r_I
         f1_max = f1
     endif
 enddo
 w = w_max
+f1 = f1_max
+!write(nflog,'(a,3f8.4)') 'w,f0,f1: ',w,f0,f1
 if (w < 0) then     ! no solution
     r_P = 0
     w = 0
 else
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
 endif
-f1 = f1_max
+r_ONI = f2*(r_GlnON_I - r_Gln*f1*N_GlnI)
 r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
 r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
-r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA
+r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA + r_ONI*N_ONA
 if (r_A > 10*r_Au) then
     write(*,*) 'r_A > 10*r_Au: ',r_A,r_Au 
     write(*,'(a,4e12.3)') 'r_Aw,r_Gln,(1 - f1),N_GlnA: ',r_Aw,r_Gln,(1 - f1),N_GlnA
     write(*,'(a,3e12.3)') 'w,r_G*(1 - w*f_Gu)*N_GA, r_P*(1 - w*f_Pu)*N_PA: ',w,r_G*(1 - w*f_Gu)*N_GA, r_P*(1 - w*f_Pu)*N_PA
     stop
 endif
-r_ONI = f_cutoff*(r_GlnON_I - r_Gln*f1*N_GlnI)
-r_ONI = min(r_ONI,MM_ON*ON_maxrate*N_ONI)
+!r_ONI = min(r_ONI,MM_ON*ON_maxrate*N_ONI)
 r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
 r_ON = r_ONI/N_ONI
 r_L = f_GL*r_G
