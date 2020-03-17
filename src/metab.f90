@@ -1120,10 +1120,10 @@ if (w < 0) then     ! no solution
 else
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
 endif
-r_ONI = f3*f0*(r_GlnON_I - r_Gln*f1*N_GlnI)
+r_ONI = fON*(r_GlnON_I - r_Gln*f1*N_GlnI)
 r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
 r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
-r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA + r_ONI*N_ONA
+r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA + r_ONI*N_ONA/N_ONI
 if (r_A > 10*r_Au) then
     write(*,*) 'r_A > 10*r_Au: ',r_A,r_Au 
     write(*,'(a,4e12.3)') 'r_Aw,r_Gln,(1 - f1),N_GlnA: ',r_Aw,r_Gln,(1 - f1),N_GlnA
