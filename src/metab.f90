@@ -1015,6 +1015,7 @@ type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
 integer :: res
 real(REAL_KIND) :: w, h, z, u, ulim, w1, f_cutoff, f0, f1, f2, N_ONA
+real(REAL_KIND) :: f3, f3min, CG3, fON
 real(REAL_KIND) :: C_GlnHi, r_Aw, r_Iw
 real(REAL_KIND) :: V, K1, K2, f_Gln
 real(REAL_KIND) :: Km_O2, Km_Gln, Km_ON, MM_O2, MM_Gln, MM_ON, MM_rGln, L_O2, L_Gln, L_ON, r_GlnON_I, Km_rGln, wlim, zterm
@@ -1053,6 +1054,11 @@ f0 = MM_Gln
 f2 = f_cutoff
 f0 = f2*f0
 r_Gln = f0*Gln_maxrate
+! just guesses
+f3min = 0.7
+CG3 = 0.6
+f3 = f3min + (1 - f3min)*CG3**2/(CG3**2 + C_G**2)
+fON = f2*f3     ! this is the factor multiplying r_ONI
 Km_rGln = 0.05*Gln_maxrate           !!!!! hard-coded
 MM_rGln = r_Gln/(Km_rGln + r_Gln)
 h = (r_Au - r_Ag)/r_Iu
@@ -1086,8 +1092,8 @@ do iw = Nw+1,2,-1
     if (r_Gln <= 0) then
         f1 = 0
     else
-        f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + f0*r_GlnON_I) + (N_ONA/N_ONI)*f2*r_GlnON_I) &
-        /(r_Gln*(h*(1 - f0)*N_GlnI + N_GlnA + (N_GlnI*N_ONA/N_ONI)*f2))
+        f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + fON*r_GlnON_I) + (N_ONA/N_ONI)*fON*r_GlnON_I) &
+        /(r_Gln*(h*(1 - fON)*N_GlnI + N_GlnA + (N_GlnI*N_ONA/N_ONI)*fON))
     endif
 !    if (f1 < 0 .or. f1 > 1) then
 !        write(*,*) 'iw, f1: ',iw,f1
@@ -1095,8 +1101,8 @@ do iw = Nw+1,2,-1
 !    if (f1 > 1.0) cycle     ! is this necessary?
     f1 = max(f1,0.0)
     f1 = min(f1,1.0)
-    r_ONI = f0*(r_GlnON_I - r_Gln*f1*N_GlnI)    ! need to check r_ON against MM_ON*ON_maxrate
-    r_ONI = min(r_ONI,MM_ON*ON_maxrate*N_ONI)
+    r_ONI = fON*(r_GlnON_I - r_Gln*f1*N_GlnI)    ! need to check r_ON against MM_ON*ON_maxrate
+!    r_ONI = min(r_ONI,MM_ON*ON_maxrate*N_ONI)
     r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
     if (r_I > r_Imax) then
 !        write(nflog,'(a,2f8.3,e12.3)') 'w,f1,r_I: ',w,f1,r_I
@@ -1114,7 +1120,7 @@ if (w < 0) then     ! no solution
 else
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
 endif
-r_ONI = f2*(r_GlnON_I - r_Gln*f1*N_GlnI)
+r_ONI = f3*f0*(r_GlnON_I - r_Gln*f1*N_GlnI)
 r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
 r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
 r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA + r_ONI*N_ONA
