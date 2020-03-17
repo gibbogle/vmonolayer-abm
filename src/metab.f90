@@ -1055,9 +1055,10 @@ f2 = f_cutoff
 f0 = f2*f0
 r_Gln = f0*Gln_maxrate
 ! just guesses
-f3min = 0.7
-CG3 = 0.6
-f3 = f3min + (1 - f3min)*CG3**2/(CG3**2 + C_G**2)
+!f3min = 0.7
+!CG3 = 0.6
+!f3 = f3min + (1 - f3min)*CG3**2/(CG3**2 + C_G**2)
+f3 = 1
 fON = f2*f3     ! this is the factor multiplying r_ONI
 Km_rGln = 0.05*Gln_maxrate           !!!!! hard-coded
 MM_rGln = r_Gln/(Km_rGln + r_Gln)
