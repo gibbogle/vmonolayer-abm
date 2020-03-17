@@ -1033,7 +1033,7 @@ V = Vcell_cm3*average_volume
 K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
-N_ONA = 1
+N_ONA = 0
 
 !C_GlnLo = 0.02                      !!!!! was hard-coded 
 C_GlnHi = C_GlnLo + 0.01
