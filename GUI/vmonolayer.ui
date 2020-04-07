@@ -957,7 +957,7 @@ padding: 8px
               <x>30</x>
               <y>10</y>
               <width>601</width>
-              <height>271</height>
+              <height>241</height>
              </rect>
             </property>
             <property name="title">
@@ -969,7 +969,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>581</width>
-               <height>251</height>
+               <height>231</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_GLGL3">
@@ -999,7 +999,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
+              <item row="3" column="0">
                <widget class="QMyLabel" name="label_OXYGEN_DIFF_COEF">
                 <property name="font">
                  <font>
@@ -1012,7 +1012,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="0">
+              <item row="7" column="0">
                <widget class="QMyLabel" name="label_OXYGEN_BDRY_CONC">
                 <property name="font">
                  <font>
@@ -1081,7 +1081,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="4">
+              <item row="7" column="4">
                <widget class="QLineEdit" name="line_GLUCOSE_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
@@ -1094,7 +1094,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="4">
+              <item row="3" column="4">
                <widget class="QLineEdit" name="line_GLUCOSE_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
@@ -1107,7 +1107,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="3">
+              <item row="3" column="3">
                <widget class="QLineEdit" name="line_OXYGEN_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
@@ -1120,7 +1120,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="3">
+              <item row="7" column="3">
                <widget class="QLineEdit" name="line_OXYGEN_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
@@ -1165,21 +1165,21 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
+              <item row="3" column="1">
                <widget class="QLabel" name="units_diffcoef">
                 <property name="text">
                  <string>cm2/s</string>
                 </property>
                </widget>
               </item>
-              <item row="9" column="1">
+              <item row="7" column="1">
                <widget class="QLabel" name="units_bdryconc">
                 <property name="text">
                  <string>mM</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
+              <item row="8" column="0">
                <widget class="QMyLabel" name="label_OXYGEN_CONSUMPTION">
                 <property name="font">
                  <font>
@@ -1192,14 +1192,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="10" column="1">
+              <item row="8" column="1">
                <widget class="QLabel" name="units_consumption">
                 <property name="text">
                  <string>mol/cell/s</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="3">
+              <item row="8" column="3">
                <widget class="QLineEdit" name="line_OXYGEN_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
@@ -1212,7 +1212,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="10" column="4">
+              <item row="8" column="4">
                <widget class="QLineEdit" name="line_GLUCOSE_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
@@ -1225,7 +1225,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="11" column="0">
+              <item row="9" column="0">
                <widget class="QMyLabel" name="label_OXYGEN_MM_KM">
                 <property name="font">
                  <font>
@@ -1238,14 +1238,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="11" column="1">
+              <item row="9" column="1">
                <widget class="QLabel" name="units_MM_Km">
                 <property name="text">
                  <string>uM</string>
                 </property>
                </widget>
               </item>
-              <item row="11" column="3">
+              <item row="9" column="3">
                <widget class="QLineEdit" name="line_OXYGEN_MM_KM">
                 <property name="maximumSize">
                  <size>
@@ -1258,7 +1258,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="11" column="4">
+              <item row="9" column="4">
                <widget class="QLineEdit" name="line_GLUCOSE_MM_KM">
                 <property name="maximumSize">
                  <size>
@@ -1271,7 +1271,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="0">
+              <item row="10" column="0">
                <widget class="QMyLabel" name="label_OXYGEN_HILL_N">
                 <property name="font">
                  <font>
@@ -1284,7 +1284,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="3">
+              <item row="10" column="3">
                <widget class="QLineEdit" name="line_OXYGEN_HILL_N">
                 <property name="maximumSize">
                  <size>
@@ -1297,7 +1297,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="4">
+              <item row="10" column="4">
                <widget class="QLineEdit" name="line_GLUCOSE_HILL_N">
                 <property name="maximumSize">
                  <size>
@@ -1310,7 +1310,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="7" column="0">
+              <item row="5" column="0">
                <widget class="QMyLabel" name="label_OXYGEN_CELL_DIFF_IN">
                 <property name="font">
                  <font>
@@ -1323,7 +1323,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="7" column="3">
+              <item row="5" column="3">
                <widget class="QLineEdit" name="line_OXYGEN_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
@@ -1336,7 +1336,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="7" column="4">
+              <item row="5" column="4">
                <widget class="QLineEdit" name="line_GLUCOSE_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
@@ -1349,7 +1349,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="3">
+              <item row="4" column="3">
                <widget class="QLineEdit" name="line_OXYGEN_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
@@ -1362,7 +1362,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="4">
+              <item row="4" column="4">
                <widget class="QLineEdit" name="line_GLUCOSE_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
@@ -1375,7 +1375,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="4" column="0">
                <widget class="QMyLabel" name="label_OXYGEN_MEDIUM_DIFF">
                 <property name="font">
                  <font>
@@ -1388,7 +1388,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="4" column="1">
                <widget class="QLabel" name="units_diffcoef_2">
                 <property name="text">
                  <string>cm2/s</string>
@@ -1430,7 +1430,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="6">
+              <item row="3" column="6">
                <widget class="QLineEdit" name="line_GLUTAMINE_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
@@ -1443,7 +1443,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="6">
+              <item row="4" column="6">
                <widget class="QLineEdit" name="line_GLUTAMINE_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
@@ -1456,7 +1456,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="7" column="6">
+              <item row="5" column="6">
                <widget class="QLineEdit" name="line_GLUTAMINE_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
@@ -1469,7 +1469,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="6">
+              <item row="7" column="6">
                <widget class="QLineEdit" name="line_GLUTAMINE_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
@@ -1482,7 +1482,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="10" column="6">
+              <item row="8" column="6">
                <widget class="QLineEdit" name="line_GLUTAMINE_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
@@ -1495,7 +1495,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="11" column="6">
+              <item row="9" column="6">
                <widget class="QLineEdit" name="line_GLUTAMINE_MM_KM">
                 <property name="maximumSize">
                  <size>
@@ -1508,7 +1508,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="6">
+              <item row="10" column="6">
                <widget class="QLineEdit" name="line_GLUTAMINE_HILL_N">
                 <property name="maximumSize">
                  <size>
@@ -1521,14 +1521,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
+              <item row="2" column="0">
                <widget class="QLabel" name="alabel_constant">
                 <property name="text">
                  <string>Constant</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="6">
+              <item row="2" column="6">
                <widget class="QMyCheckBox" name="cbox_GLUTAMINE_CONSTANT">
                 <property name="text">
                  <string/>
@@ -1538,78 +1538,24 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="4" column="4">
+              <item row="2" column="4">
                <widget class="QMyCheckBox" name="cbox_GLUCOSE_CONSTANT">
                 <property name="text">
                  <string/>
                 </property>
                </widget>
               </item>
-              <item row="4" column="3">
+              <item row="2" column="3">
                <widget class="QMyCheckBox" name="cbox_OXYGEN_CONSTANT">
                 <property name="text">
                  <string/>
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
+              <item row="5" column="1">
                <widget class="QLabel" name="units_O2_membrane_diff1">
                 <property name="text">
                  <string>/min</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="alabel_controls_growth">
-                <property name="text">
-                 <string>Controls growth</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="4">
-               <widget class="QMyCheckBox" name="cbox_GLUCOSE_GROWTH">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
-               <widget class="QMyCheckBox" name="cbox_OXYGEN_GROWTH">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="alabel_controls_death">
-                <property name="text">
-                 <string>Controls death</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="3">
-               <widget class="QMyCheckBox" name="cbox_OXYGEN_DEATH">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="4">
-               <widget class="QMyCheckBox" name="cbox_GLUCOSE_DEATH">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -1626,7 +1572,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="5">
+              <item row="3" column="5">
                <widget class="QLineEdit" name="line_LACTATE_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
@@ -1639,7 +1585,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="5">
+              <item row="4" column="5">
                <widget class="QLineEdit" name="line_LACTATE_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
@@ -1652,7 +1598,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="7" column="5">
+              <item row="5" column="5">
                <widget class="QLineEdit" name="line_LACTATE_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
@@ -1665,7 +1611,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="5">
+              <item row="7" column="5">
                <widget class="QLineEdit" name="line_LACTATE_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
@@ -1678,7 +1624,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="10" column="5">
+              <item row="8" column="5">
                <widget class="QLineEdit" name="line_LACTATE_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
@@ -1691,7 +1637,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="11" column="5">
+              <item row="9" column="5">
                <widget class="QLineEdit" name="line_LACTATE_MM_KM">
                 <property name="maximumSize">
                  <size>
@@ -1704,7 +1650,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="5">
+              <item row="10" column="5">
                <widget class="QLineEdit" name="line_LACTATE_HILL_N">
                 <property name="maximumSize">
                  <size>
@@ -1717,7 +1663,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="0">
+              <item row="6" column="0">
                <widget class="QMyLabel" name="label_OXYGEN_CELL_DIFF_OUT">
                 <property name="font">
                  <font>
@@ -1730,14 +1676,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="1">
+              <item row="6" column="1">
                <widget class="QLabel" name="units_O2_membrane_diff2">
                 <property name="text">
                  <string>/min</string>
                 </property>
                </widget>
               </item>
-              <item row="8" column="3">
+              <item row="6" column="3">
                <widget class="QLineEdit" name="line_OXYGEN_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
@@ -1750,7 +1696,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="4">
+              <item row="6" column="4">
                <widget class="QLineEdit" name="line_GLUCOSE_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
@@ -1763,7 +1709,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="5">
+              <item row="6" column="5">
                <widget class="QLineEdit" name="line_LACTATE_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
@@ -1776,7 +1722,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="6">
+              <item row="6" column="6">
                <widget class="QLineEdit" name="line_GLUTAMINE_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
@@ -1808,7 +1754,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="7">
+              <item row="3" column="7">
                <widget class="QLineEdit" name="line_OTHER_DIFF_COEF">
                 <property name="maximumSize">
                  <size>
@@ -1868,7 +1814,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="4" column="7">
+              <item row="2" column="7">
                <widget class="QMyCheckBox" name="cbox_OTHER_CONSTANT">
                 <property name="text">
                  <string/>
@@ -1878,7 +1824,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="7">
+              <item row="4" column="7">
                <widget class="QLineEdit" name="line_OTHER_MEDIUM_DIFF">
                 <property name="maximumSize">
                  <size>
@@ -1891,7 +1837,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="7" column="7">
+              <item row="5" column="7">
                <widget class="QLineEdit" name="line_OTHER_CELL_DIFF_IN">
                 <property name="maximumSize">
                  <size>
@@ -1904,7 +1850,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="7">
+              <item row="6" column="7">
                <widget class="QLineEdit" name="line_OTHER_CELL_DIFF_OUT">
                 <property name="maximumSize">
                  <size>
@@ -1917,7 +1863,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="7">
+              <item row="7" column="7">
                <widget class="QLineEdit" name="line_OTHER_BDRY_CONC">
                 <property name="maximumSize">
                  <size>
@@ -1930,7 +1876,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="10" column="7">
+              <item row="8" column="7">
                <widget class="QLineEdit" name="line_OTHER_CONSUMPTION">
                 <property name="maximumSize">
                  <size>
@@ -1943,7 +1889,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="11" column="7">
+              <item row="9" column="7">
                <widget class="QLineEdit" name="line_OTHER_MM_KM">
                 <property name="maximumSize">
                  <size>
@@ -1956,7 +1902,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="7">
+              <item row="10" column="7">
                <widget class="QLineEdit" name="line_OTHER_HILL_N">
                 <property name="maximumSize">
                  <size>
@@ -2102,7 +2048,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>341</width>
-               <height>471</height>
+               <height>499</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -2664,9 +2610,9 @@ padding: 8px
             <property name="geometry">
              <rect>
               <x>190</x>
-              <y>280</y>
+              <y>250</y>
               <width>361</width>
-              <height>221</height>
+              <height>271</height>
              </rect>
             </property>
             <property name="title">
@@ -2678,7 +2624,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>341</width>
-               <height>201</height>
+               <height>257</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
@@ -2755,14 +2701,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
+              <item row="6" column="0">
                <widget class="QMyLabel" name="label_N_GI_1">
                 <property name="text">
                  <string>Intermediate moles produced per glucose mole</string>
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
+              <item row="6" column="1">
                <widget class="QLineEdit" name="line_N_GI_1">
                 <property name="maximumSize">
                  <size>
@@ -2775,14 +2721,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="7" column="0">
                <widget class="QMyLabel" name="label_N_PI_1">
                 <property name="text">
                  <string>Intermediate moles produced per pyruvate mole</string>
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="7" column="1">
                <widget class="QLineEdit" name="line_N_PI_1">
                 <property name="maximumSize">
                  <size>
@@ -2795,14 +2741,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="7" column="0">
+              <item row="8" column="0">
                <widget class="QMyLabel" name="label_N_GLNI_1">
                 <property name="text">
                  <string>Intermediate moles produced per glutamine mole</string>
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
+              <item row="8" column="1">
                <widget class="QLineEdit" name="line_N_GLNI_1">
                 <property name="maximumSize">
                  <size>
@@ -2815,14 +2761,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="0">
+              <item row="10" column="0">
                <widget class="QMyLabel" name="label_N_PO_1">
                 <property name="text">
                  <string>Oxygen moles consumed per pyruvate mole</string>
                 </property>
                </widget>
               </item>
-              <item row="9" column="1">
+              <item row="10" column="1">
                <widget class="QLineEdit" name="line_N_PO_1">
                 <property name="maximumSize">
                  <size>
@@ -2835,14 +2781,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
+              <item row="11" column="0">
                <widget class="QMyLabel" name="label_N_GLNO_1">
                 <property name="text">
                  <string>Oxygen moles consumed per glutamine mole</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="1">
+              <item row="11" column="1">
                <widget class="QLineEdit" name="line_N_GLNO_1">
                 <property name="maximumSize">
                  <size>
@@ -2855,7 +2801,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="1">
+              <item row="9" column="1">
                <widget class="QLineEdit" name="line_N_ONI_1">
                 <property name="maximumSize">
                  <size>
@@ -2868,21 +2814,21 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="0">
+              <item row="9" column="0">
                <widget class="QMyLabel" name="label_N_ONI_1">
                 <property name="text">
                  <string>Intermediate moles produced per othernutrient mole</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
+              <item row="5" column="0">
                <widget class="QMyLabel" name="label_N_GP_1">
                 <property name="text">
                  <string>Pyruvate moles produced per glucose mole</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="5" column="1">
                <widget class="QLineEdit" name="line_N_GP_1">
                 <property name="maximumSize">
                  <size>
@@ -2892,6 +2838,26 @@ padding: 8px
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="line_N_ONA_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QMyLabel" name="label_N_ONA_1">
+                <property name="text">
+                 <string>ATP moles produced per othernutrient mole</string>
                 </property>
                </widget>
               </item>

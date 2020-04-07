@@ -393,6 +393,7 @@ real(REAL_KIND) :: N_PI		! number of intermediate molecules generated per pyruva
 real(REAL_KIND) :: N_PO		! number of O2 molecules consumed per pyruvate molecule in pyruvate oxidation
 real(REAL_KIND) :: N_GlnO	! number of O2 molecules consumed per glutamine molecule in glutamine oxidation
 real(REAL_KIND) :: N_ONI	! number of intermediate molecules generated per ON molecule
+real(REAL_KIND) :: N_ONA	! number of ATP molecules generated per ON molecule
 real(REAL_KIND) :: f_ATPg	! threshold ATP production rate fractions for cell growth
 real(REAL_KIND) :: f_ATPs	! threshold ATP production rate fractions for cell survival
 real(REAL_KIND) :: f_ATPramp ! multiplying factor for ramp start for reducing r_G, r_P

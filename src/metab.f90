@@ -1014,7 +1014,7 @@ subroutine f_metab_ON(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
 integer :: res
-real(REAL_KIND) :: w, h, z, u, ulim, w1, f_cutoff, f0, f1, f2, N_ONA
+real(REAL_KIND) :: w, h, z, u, ulim, w1, f_cutoff, f0, f1, f2
 real(REAL_KIND) :: f3, f3min, CG3, fON
 real(REAL_KIND) :: C_GlnHi, r_Aw, r_Iw
 real(REAL_KIND) :: V, K1, K2, f_Gln
@@ -1033,7 +1033,7 @@ V = Vcell_cm3*average_volume
 K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
-N_ONA = 2
+!N_ONA = 2   ! NESI-7c  now an input parameter
 
 !C_GlnLo = 0.02                      !!!!! was hard-coded 
 C_GlnHi = C_GlnLo + 0.01

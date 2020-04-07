@@ -104,7 +104,7 @@ call logger('did ArrayInitialisation')
 
 if (use_metabolism) then
 	use_cell_cycle = .true.
-	chemo(OXYGEN)%controls_growth = .false.
+	chemo(OXYGEN)%controls_growth = .false.     ! These are no longer used 
 	chemo(OXYGEN)%controls_death = .false.
 	chemo(GLUCOSE)%controls_growth = .false.
 	chemo(GLUCOSE)%controls_death = .false.
@@ -445,10 +445,10 @@ enddo
 read(nfcell,*) NT_GUI_OUT					! interval between GUI outputs (timesteps)
 read(nfcell,*) show_progeny                 ! if != 0, the number of the cell to show descendents of
 read(nfcell,*) iuse_oxygen		! chemo(OXYGEN)%used
-read(nfcell,*) ioxygengrowth
-chemo(OXYGEN)%controls_growth = (ioxygengrowth == 1)
-read(nfcell,*) ioxygendeath
-chemo(OXYGEN)%controls_death = (ioxygendeath == 1)
+!read(nfcell,*) ioxygengrowth
+!chemo(OXYGEN)%controls_growth = (ioxygengrowth == 1)
+!read(nfcell,*) ioxygendeath
+!chemo(OXYGEN)%controls_death = (ioxygendeath == 1)
 read(nfcell,*) chemo(OXYGEN)%diff_coef
 read(nfcell,*) chemo(OXYGEN)%medium_diff_coef
 read(nfcell,*) chemo(OXYGEN)%membrane_diff_in
@@ -461,10 +461,10 @@ read(nfcell,*) chemo(OXYGEN)%max_cell_rate
 read(nfcell,*) chemo(OXYGEN)%MM_C0
 read(nfcell,*) chemo(OXYGEN)%Hill_N
 read(nfcell,*) iuse_glucose		!chemo(GLUCOSE)%used
-read(nfcell,*) iglucosegrowth
-chemo(GLUCOSE)%controls_growth = (iglucosegrowth == 1)
-read(nfcell,*) iglucosedeath
-chemo(GLUCOSE)%controls_death = (iglucosedeath == 1)
+!read(nfcell,*) iglucosegrowth
+!chemo(GLUCOSE)%controls_growth = (iglucosegrowth == 1)
+!read(nfcell,*) iglucosedeath
+!chemo(GLUCOSE)%controls_death = (iglucosedeath == 1)
 read(nfcell,*) chemo(GLUCOSE)%diff_coef
 read(nfcell,*) chemo(GLUCOSE)%medium_diff_coef
 read(nfcell,*) chemo(GLUCOSE)%membrane_diff_in
@@ -903,6 +903,7 @@ read(nf,*) f_Glnu
 read(nf,*) N_GA
 read(nf,*) N_PA
 read(nf,*) N_GlnA
+read(nf,*) N_ONA
 read(nf,*) N_GP
 read(nf,*) N_GI
 read(nf,*) N_PI

@@ -204,13 +204,13 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "Use Oxygen?",
 "Oxygen is simulated"},
 
-{"OXYGEN_GROWTH", 1, 0, 1,
-"Oxygen growth?",
-"The rate of growth of a cell is the maximum rate multiplied by the fractional rates of metabolism of both O2 and glucose"},
+//{"OXYGEN_GROWTH", 1, 0, 1,
+//"Oxygen growth?",
+//"The rate of growth of a cell is the maximum rate multiplied by the fractional rates of metabolism of both O2 and glucose"},
 
-{"OXYGEN_DEATH", 1, 0, 1,
-"Anoxia death?",
-"Oxygen controls death by anoxia"},
+//{"OXYGEN_DEATH", 1, 0, 1,
+//"Anoxia death?",
+//"Oxygen controls death by anoxia"},
 
 {"OXYGEN_DIFF_COEF", 2.0e-5, 0, 0,
  "Spheroid diffusion coeff",
@@ -252,13 +252,13 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "Use Glucose?",
 "Glucose is simulated"},
 
-{"GLUCOSE_GROWTH", 1, 0, 1,
-"Glucose growth?",
-"The rate of growth of a cell is the maximum rate multiplied by the fractional rates of metabolism of both O2 and glucose"},
+//{"GLUCOSE_GROWTH", 1, 0, 1,
+//"Glucose growth?",
+//"The rate of growth of a cell is the maximum rate multiplied by the fractional rates of metabolism of both O2 and glucose"},
 
-{"GLUCOSE_DEATH", 1, 0, 1,
-"Aglucosia death?",
-"Glucose controls death by aglucosia"},
+//{"GLUCOSE_DEATH", 1, 0, 1,
+//"Aglucosia death?",
+//"Glucose controls death by aglucosia"},
 
 {"GLUCOSE_DIFF_COEF", 3.0e-7, 0, 0,
  "Spheroid diffusion coeff",
@@ -360,7 +360,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Boundary concentration",
  "Glutamine boundary concentration"},
 
-{"GLUTAMINE_CONSTANT", 1, 0, 1,
+{"GLUTAMINE_CONSTANT", 0, 0, 1,
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
@@ -400,7 +400,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Boundary concentration",
      "Other nutrient boundary concentration"},
 
-    {"OTHER_CONSTANT", 1, 0, 1,
+    {"OTHER_CONSTANT", 0, 0, 1,
      "Constant concentration",
      "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
@@ -701,6 +701,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        {"N_GLNA_1", 10, 0, 0,
        "ATP moles produced per glutamine mole",
        "Number of ATP moles produced by the oxidation of one glutamine mole"},
+
+       {"N_ONA_1", 2, 0, 0,
+       "ATP moles produced per othernutrient mole",
+       "Number of ATP moles produced by the oxidation of one othernutrient mole"},
 
        {"N_GP_1", 2, 0, 0,
        "Pyruvate moles produced per glucose mole",
