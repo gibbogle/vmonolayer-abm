@@ -1023,9 +1023,9 @@ real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r
 real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, f1_max
 integer :: iw, Nw, npp, ncp
 logical :: use_f_GL = .true.
-logical :: use_NO
+logical :: consuming_ON
     
-use_NO = (ON_maxrate > 0)
+consuming_ON = (ON_maxrate > 0)
 res = 0
 MM_O2 = f_MM(C_O2,Hill_Km_O2,int(Hill_N_O2))
 L_O2 = mp%PDK1*O2_maxrate*MM_O2
@@ -1051,7 +1051,7 @@ f_cutoff = C_Gln/(C_GlnLo + C_Gln)  ! an alternate way of cutting off consumptio
 
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
 !write(*,'(a,5e11.3)') 'r_G,H,C_G,C_Gln,r_O: ',r_G,mp%HIF1,C_G,C_Gln,mp%O_rate
-if (use_ON) then
+if (consuming_ON) then
     r_GlnON_I = Gln_maxrate*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
                                                       ! all Gln and ON, at maxrates, going to I
 else
@@ -1097,7 +1097,7 @@ do iw = Nw+1,2,-1
     if (r_Gln <= 0) then
         f1 = 0
     else
-        if (use_ON) then    ! check this
+        if (consuming_ON) then    ! check this
             f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + fON*r_GlnON_I) + (N_ONA/N_ONI)*fON*r_GlnON_I) &
             /(r_Gln*(h*(1 - fON)*N_GlnI + N_GlnA + (N_GlnI*N_ONA/N_ONI)*fON))
         else
@@ -1111,7 +1111,7 @@ do iw = Nw+1,2,-1
 !    if (f1 > 1.0) cycle     ! is this necessary?
     f1 = max(f1,0.0)
     f1 = min(f1,1.0)
-    if (use_ON) then
+    if (consuming_ON) then
         r_ONI = fON*(r_GlnON_I - r_Gln*f1*N_GlnI)    ! need to check r_ON against MM_ON*ON_maxrate
     else
         r_ONI = 0
@@ -1133,7 +1133,7 @@ if (w < 0) then     ! no solution
 else
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
 endif
-if (use_ON) then
+if (consuming_ON) then
     r_ONI = fON*(r_GlnON_I - r_Gln*f1*N_GlnI)
 else
     r_ONI = 0
@@ -1163,6 +1163,10 @@ mp%ON_rate = r_ON
 mp%C_P = C_P
 mp%f_G = w*f_Gu
 mp%f_P = w*f_Pu
+if (.not.consuming_ON .and. r_ON > 0) then
+    write(nflog,*) 'ERROR: not consuming_ON but r_ON: ',r_ON
+    stop
+endif
 end subroutine
 
 !==================================================================================================
