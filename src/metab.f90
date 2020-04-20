@@ -929,8 +929,10 @@ subroutine get_unconstrained_rates_ON(res)
 integer :: res
 type(metabolism_type), target :: metab
 type(metabolism_type), pointer :: mp
-real(REAL_KIND) :: C(NUTS), C_GlnEx, r_P, r_G, MM_Gln, MM_ON, f_Gln, r_Gln, r_ON, r_GlnI, r_ONI, r_I, r_Pc, w, h,hp
+real(REAL_KIND) :: C(NUTS), C_GlnEx, r_P, r_G, MM_Gln, MM_ON, f_Gln, r_Gln, r_ON, r_GlnI, r_ONI, r_I, r_Pc
+real(REAL_KIND) :: w, h, hp, f1, r_A
 integer :: k
+logical :: iter = .false.
 
 mp => metab
 mp%HIF1 = get_HIF1steadystate(C_O2_norm)
@@ -954,15 +956,7 @@ r_ON = MM_Gln*MM_ON*ON_maxrate
 r_ONI = r_ON*N_ONI
 r_G = get_glycosis_rate(mp%HIF1,C_G_norm,C_Gln_norm,O2_maxrate)
 
-!write(nflog,*) 'r_Pc is the amount by which r_I exceeds the I contributions from G, Gln and ON'
-!w = 0
-!r_Pc = r_I - w*f_Gu*r_G*N_GI - r_GlnI - r_ONI
-!write(nflog,'(a,f8.3,6e12.3)') 'w,r_I, w*f_Gu*r_G*N_GI, r_GlnI, r_ONI, r_Pc: ',w,r_I, w*f_Gu*r_G*N_GI, r_GlnI, r_ONI,r_Pc
-!w = 1
-!r_Pc = r_I - w*f_Gu*r_G*N_GI - r_GlnI - r_ONI
-!write(nflog,'(a,f8.3,6e12.3)') 'w,r_I, w*f_Gu*r_G*N_GI, r_GlnI, r_ONI, r_Pc: ',w,r_I, w*f_Gu*r_G*N_GI, r_GlnI, r_ONI,r_Pc
-! r_I - w*f_Gu*r_G*N_GI - r_GlnI - r_ONI = 0
-
+if (iter) then
 ! Initial guess: use w = 1, r_L = 0, C_P = C_L_norm 
 w = 0.5
 r_P = r_G*(1 - w*f_Gu)*N_GA
@@ -979,7 +973,7 @@ do k = 1,10
         write(nflog,*) 'f_metab failed'
         return
     endif
-! r_Ou = r_Pu*N_PO + r_Glnu*N_GlnO  (assuming that ON utilisation does not consume O2)
+! r_Ou = r_Pu*N_PO + r_Glnu*N_GlnO  (assuming that ON utilisation does not consume O2) 
 ! Set Gln_maxrate = r_Glnu
 !    Gln_maxrate = (mp%O_rate - mp%P_rate*N_PO)/N_GlnO
 ! oops! drives Gln_maxrate -> 0 
@@ -997,12 +991,34 @@ do k = 1,10
 enddo
 r_Gu = mp%G_rate
 r_Glnu = mp%Gln_rate
-r_Onu = mp%On_rate
+r_ONu = mp%ON_rate
 r_Lu = mp%L_rate
 r_Pu = mp%P_rate
 r_Iu = mp%I_rate
 r_Au = mp%A_rate
 r_Ou = mp%O_rate
+else    ! Try ON6
+    f1 = f_Gln
+    w = 0
+    r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
+    r_A = r_G*(1 - w*f_Gu)* N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - f1)*N_GlnA
+    r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_Gln*f1*N_GlnI
+    r_Au = r_A
+    r_Iu = r_I
+    r_Ag = f_ATPg*r_Au
+    h = (r_Au - r_Ag)/r_Iu
+    write(nflog,'(a,3e12.3)') 'r_Au,r_Iu,h: ',r_Au,r_Iu,h
+!    stop
+    r_Gu = r_G
+    r_Glnu = r_Gln
+    r_ONu = 0
+    r_Lu = f_GL*r_Gu
+    r_Pu = r_P
+    r_Iu = r_I
+    r_Au = r_A
+    r_Ou = 0
+    res = 0
+endif
 write(nflog,'(a10,8a12)') 'rates: ','r_G', 'r_Gln', 'r_ON', 'r_L', 'r_P', 'r_I', 'r_A', 'r_O2'
 write(nflog,'(a10,8e12.3)') 'unconstr: ',r_Gu,r_Glnu,r_Onu,r_Lu,r_Pu,r_Iu,r_Au,r_Ou
 write(nflog,'(a,f8.3)') 'C_P: ',mp%C_P
@@ -1088,7 +1104,7 @@ dw = 1.0/Nw
 npp = 0
 ncp = 0
 ulim = 1.2                          !!!!! hard-coded
-do iw = Nw+1,2,-1
+do iw = Nw+1,1,-1
     w = (iw-1)*dw
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
     if (r_P < 0) cycle
@@ -1110,14 +1126,20 @@ do iw = Nw+1,2,-1
 !        write(*,*) 'iw, f1: ',iw,f1
 !    endif
 !    if (f1 > 1.0) cycle     ! is this necessary?
-    f1 = max(f1,0.0)
-    f1 = min(f1,1.0)
+!    f1 = max(f1,0.0)
+!    f1 = min(f1,1.0)
+    if (f1 < 0 .or. f1 > 1) cycle
     if (consuming_ON) then
         r_ONI = fON*(r_GlnON_I - r_Gln*f1*N_GlnI)    ! need to check r_ON against MM_ON*ON_maxrate
     else
         r_ONI = 0
     endif
     r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
+    
+    ! checking only
+!    r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA
+!    write(nflog,'(a,4f8.3,2e12.3)') 'w,f1,hcalc,h,r_A,r_I: ',w,f1,(r_A - r_Ag)/r_I,h,r_A,r_I
+    
     if (r_I > r_Imax) then
 !        write(nflog,'(a,2f8.3,e12.3)') 'w,f1,r_I: ',w,f1,r_I
         w_max = w
@@ -1127,7 +1149,7 @@ do iw = Nw+1,2,-1
 enddo
 w = w_max
 f1 = f1_max
-!write(nflog,'(a,3f8.4)') 'w,f0,f1: ',w,f0,f1
+write(nflog,'(a,3f8.4)') '=============  w,f0,f1: ',w,f0,f1
 if (w < 0) then     ! no solution
     r_P = 0
     w = 0
