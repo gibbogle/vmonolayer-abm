@@ -1023,9 +1023,10 @@ real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r
 real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, f1_max
 integer :: iw, Nw, npp, ncp
 logical :: use_f_GL = .true.
-logical :: consuming_ON
+logical :: consuming_ON, making_ONA
     
 consuming_ON = (ON_maxrate > 0)
+making_ONA = consuming_ON .and. (N_ONA > 0)
 res = 0
 MM_O2 = f_MM(C_O2,Hill_Km_O2,int(Hill_N_O2))
 L_O2 = mp%PDK1*O2_maxrate*MM_O2
@@ -1101,8 +1102,8 @@ do iw = Nw+1,2,-1
             f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + fON*r_GlnON_I) + (N_ONA/N_ONI)*fON*r_GlnON_I) &
             /(r_Gln*(h*(1 - fON)*N_GlnI + N_GlnA + (N_GlnI*N_ONA/N_ONI)*fON))
         else
-             f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + f0*r_GlnON_I)) &
-            /(r_Gln*(h*(1 - f0)*N_GlnI + N_GlnA))
+             f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*r_Iw) &
+            /(r_Gln*(h*N_GlnI + N_GlnA))
         endif
     endif
 !    if (f1 < 0 .or. f1 > 1) then
