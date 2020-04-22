@@ -276,7 +276,7 @@ if (ndoublings > 0) then
 else
     doubling_time = 0
 endif
-write(nflog,'(a,3e12.3)') 'get_summary: C_P: ',mp%C_P,r_P,r_A
+write(nflog,'(a,3e12.3)') 'get_summary: r_Gln,r_ON: ',r_Gln,r_ON
 
 summaryData(1:75) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
 	rint(TNATP_dead), rint(TNdrug_dead(1)), rint(TNdrug_dead(2)), rint(TNradiation_dead), rint(TNdead), &

@@ -1000,9 +1000,9 @@ r_Pu = mp%P_rate
 r_Iu = mp%I_rate
 r_Au = mp%A_rate
 r_Ou = mp%O_rate
-else    ! Try direct solution for r_Au, r_Iu, h
+else    ! Try direct solution for r_Au, r_Iu, h 
     f1 = 1  !f_Gln
-    w = 0
+    w = 0.5
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
     r_A = r_G*(1 - w*f_Gu)* N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - f1)*N_GlnA
     r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_Gln*f1*N_GlnI + r_ON*N_ONI
@@ -1013,7 +1013,7 @@ else    ! Try direct solution for r_Au, r_Iu, h
     write(nflog,'(a,3e12.3)') 'r_Au,r_Iu,h: ',r_Au,r_Iu,h
     r_Gu = r_G
     r_Glnu = r_Gln
-    r_ONu = 0
+    r_ONu = r_ON
     r_Lu = f_GL*r_Gu
     r_Pu = r_P
     r_Iu = r_I
@@ -1038,8 +1038,8 @@ real(REAL_KIND) :: C_GlnHi, r_Aw, r_Iw
 real(REAL_KIND) :: V, K1, K2, f_Gln
 real(REAL_KIND) :: Km_O2, Km_Gln, Km_ON, MM_O2, MM_Gln, MM_ON, MM_rGln, L_O2, L_Gln, L_ON, r_GlnON_I, Km_rGln, wlim, zterm
 real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r_GlnI, r_ONI, ONfactor
-real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, f1_max
-integer :: iw, Nw, npp, ncp
+real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, f1_max, a, b, c
+integer :: iw, Nw, nf1_lt, nf1_gt
 logical :: use_f_GL = .true.
 logical :: consuming_ON
     
@@ -1053,8 +1053,8 @@ V = Vcell_cm3*average_volume
 K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
-!N_ONA = 2   ! NESI-7c  now an input parameter
 
+C_GlnEX = C_Gln     ! needed?
 C_GlnHi = C_GlnLo + 0.01
 if (C_GlnEX > C_GlnHi) then
     f_cutoff = 1
@@ -1064,28 +1064,20 @@ else
     f_cutoff = (C_glnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
 endif
 
-f_cutoff = C_Gln/(C_GlnLo + C_Gln)  ! an alternate way of cutting off consumption of Gln as it goes low
+!f_cutoff = C_Gln/(C_GlnLo + C_Gln)  ! an alternate way of cutting off consumption of Gln as it goes low
 
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
-!write(*,'(a,5e11.3)') 'r_G,H,C_G,C_Gln,r_O: ',r_G,mp%HIF1,C_G,C_Gln,mp%O_rate
-!if (consuming_ON) then
-!    r_GlnON_I = Gln_maxrate*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
-!                                                      ! all Gln and ON, at maxrates, going to I
-!else
-!    r_GlnON_I = Gln_maxrate*N_GlnI      ! r_Imax in the notebook
-!endif
 f0 = f_cutoff*MM_Gln
 r_Gln = f0*Gln_maxrate
-!fON = f0     ! this is the factor multiplying r_ONI
 Km_rGln = 0.05*Gln_maxrate              !!!!! hard-coded !!!!!
 MM_rGln = r_Gln/(Km_rGln + r_Gln)       ! Suppresses r_ON at low r_Gln
+!write(nflog,'(a,3e12.3)') 'r_Gln,Km_rGln,MM_rGln: ',r_Gln,Km_rGln,MM_rGln
 r_ON = MM_rGln*MM_ON*ON_maxrate      ! Note: = 0 if ON_maxrate = 0.
 r_ONI = r_ON*N_ONI
 h = (r_Au - r_Ag)/r_Iu
-!write(nflog,'(a,5e11.3)') 'r_G, r_Gln, r_GlnI, r_ONI: ',r_G, r_Gln, r_GlnI, r_ONI
 
 if (use_f_GL) then
-    ! Note: f_GL (input parameter) = fixed ratio = r_L/r_G = (rate of L production)/(rate of G consumption)
+    ! Note: f_GL (input parameter) = fixed ratio = r_L/r_G = (rate of L production)/(rate of G consumption) 
     wlim = (1 - f_GL/N_GP)/f_Gu
 !    write(nflog,'(a,f8.4)') 'wlim: ',wlim
     if (wlim < 0) then
@@ -1100,9 +1092,8 @@ r_IAmax = 0
 w_max = -1
 Nw = 100
 dw = 1.0/Nw
-npp = 0
-ncp = 0
-ulim = 1.2                          !!!!! hard-coded
+nf1_lt = 0
+nf1_gt = 0
 do iw = Nw+1,1,-1
     w = (iw-1)*dw
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
@@ -1113,33 +1104,18 @@ do iw = Nw+1,1,-1
     if (r_Gln <= 0) then
         f1 = 0
     else
-!        if (consuming_ON) then    ! check this
-!            f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + fON*r_GlnON_I) + (N_ONA/N_ONI)*fON*r_GlnON_I) &
-!            /(r_Gln*(h*(1 - fON)*N_GlnI + N_GlnA + (N_GlnI*N_ONA/N_ONI)*fON))
-!        else
-             f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + r_ONI))/(r_Gln*(h*N_GlnI + N_GlnA))
-!        endif
+        f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + r_ONI))/(r_Gln*(h*N_GlnI + N_GlnA))
     endif
-!    if (f1 < 0 .or. f1 > 1) then
-!        write(*,*) 'iw, f1: ',iw,f1
-!    endif
-!    if (f1 > 1.0) cycle     ! is this necessary?
-!    f1 = max(f1,0.0)
-!    f1 = min(f1,1.0)
-    if (f1 < 0 .or. f1 > 1) cycle
-!    if (consuming_ON) then
-!        r_ONI = fON*(r_GlnON_I - r_Gln*f1*N_GlnI)    ! need to check r_ON against MM_ON*ON_maxrate
-!    else
-!        r_ONI = 0
-!    endif
+    if (f1 < 0) then
+        nf1_lt = nf1_lt + 1
+        cycle
+    elseif (f1 > 1) then
+        nf1_gt = nf1_gt + 1
+        cycle
+    endif
     r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
     
-    ! checking only
-!    r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA
-!    write(nflog,'(a,4f8.3,2e12.3)') 'w,f1,hcalc,h,r_A,r_I: ',w,f1,(r_A - r_Ag)/r_I,h,r_A,r_I
-    
     if (r_I > r_Imax) then
-!        write(nflog,'(a,2f8.3,e12.3)') 'w,f1,r_I: ',w,f1,r_I
         w_max = w
         r_Imax = r_I
         f1_max = f1
@@ -1147,29 +1123,44 @@ do iw = Nw+1,1,-1
 enddo
 w = w_max
 f1 = f1_max
-write(nflog,'(a,3f8.4)') '=============  w,f0,f1: ',w,f0,f1
-if (w < 0) then     ! no solution
-    r_P = 0
-    w = 0
+!write(nflog,'(a,3f8.4)') '=============  w,f0,f1: ',w,f0,f1
+if (w < 0) then     ! no solution, either w = f1 = 0 or w = f1 = 1
+!    write(nflog,*) 'nf1_lt, nf1_gt: ',nf1_lt,nf1_gt
+    if (nf1_lt < nf1_gt) then   ! need to reduce r_A to make (r_A - r_Ag)/r_I = h, by reducing r_G
+        w = 1
+        f1 = 1 
+        c = (1 - f_Gu)*N_GP - f_GL
+        a = (1 - f_Gu)*N_GA + (1 - f_Pu)*N_PA*c
+        b = f_Gu*N_GI + f_Pu*N_PI*c
+        if (a - b*h < 0) then
+            write(nflog,*) 'ERROR: a - bh < 0'
+            stop
+        endif
+        r_G = (r_Ag + h*(r_Gln*N_GlnI + r_ONI))/(a - b*h)
+        r_P = r_G*c
+    else    ! need to reduce r_I to make (r_A - r_Ag)/r_I = h, by reducing r_ON
+        w = 0
+        f1 = 0
+        r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
+        r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
+        r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA
+        if (r_A < r_Ag) then    ! no growth
+            r_ON = 0
+            r_ONI = 0
+        else                    ! no Gln -> I, reduce r_ON to match h
+            r_ONI = (r_A - r_Ag)/h
+            r_ON = r_ONI/N_ONI
+        endif
+    endif
 else
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
 endif
-!if (consuming_ON) then
-!    r_ONI = fON*(r_GlnON_I - r_Gln*f1*N_GlnI)
-!else
-!    r_ONI = 0
-!endif
 r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
 r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
-r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA  !+ r_ONI*N_ONA/N_ONI
-if (r_A > 10*r_Au) then
-    write(*,*) 'r_A > 10*r_Au: ',r_A,r_Au 
-    write(*,'(a,4e12.3)') 'r_Aw,r_Gln,(1 - f1),N_GlnA: ',r_Aw,r_Gln,(1 - f1),N_GlnA
-    write(*,'(a,3e12.3)') 'w,r_G*(1 - w*f_Gu)*N_GA, r_P*(1 - w*f_Pu)*N_PA: ',w,r_G*(1 - w*f_Gu)*N_GA, r_P*(1 - w*f_Pu)*N_PA
-    stop
-endif
+r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA
 r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
-!r_ON = r_ONI/N_ONI
+!write(nflog,'(a,2e12.3)') 'r_G, r_P: ',r_G,r_P
+!write(nflog,'(a,5e11.3)') 'r_Gln, r_ON, hactual: ',r_Gln, r_ON, (r_A - r_Ag)/r_I
 r_L = f_GL*r_G
 C_P = (r_L + V*K2*C_L)/(V*K1) 
 r_O = r_P*N_PO + r_Gln*N_GlnO

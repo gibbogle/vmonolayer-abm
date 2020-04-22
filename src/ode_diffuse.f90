@@ -1011,8 +1011,8 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
                                             ! = chemo(ichemo)%Cmedium(1)
 !	write(nflog,'(a,i3,5e12.3)') 'Cdrug: im: ',im,Cdrug(im,1:5)
 enddo
-write(*,'(a,4e12.3)') 'OGLSolver: Cex: ',chemo(1:GLUTAMINE)%Cmedium(1)
-write(*,'(a,f12.4)') 'after: Cex-CGln: ',chemo(GLUTAMINE)%Cmedium(1) - Caverage(GLUTAMINE)
+!write(*,'(a,4e12.3)') 'OGLSolver: Cex: ',chemo(1:GLUTAMINE)%Cmedium(1)
+!write(*,'(a,f12.4)') 'after: Cex-CGln: ',chemo(GLUTAMINE)%Cmedium(1) - Caverage(GLUTAMINE)
 if (noSS) then
     mp%C_P = C(neqn)
 endif
