@@ -930,7 +930,7 @@ integer :: res
 type(metabolism_type), target :: metab
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C(NUTS), C_GlnEx, r_P, r_G, MM_Gln, MM_ON, f_Gln, r_Gln, r_ON, r_GlnI, r_ONI, r_I, r_Pc
-real(REAL_KIND) :: w, h, hp, f1, f0, f_cutoff, MM_rGln, r_A
+real(REAL_KIND) :: w, h, hp, f1, f0, f_cutoff, MM_rGln, r_A, ratio
 integer :: k
 logical :: iter = .false.
 
@@ -950,12 +950,14 @@ write(nflog,'(a,5f8.3)') 'C: ', C
 f_Gln = f_Glnu
 MM_Gln = f_MM(C_Gln_norm,Hill_Km_Gln,int(Hill_N_Gln))
 MM_ON = f_MM(C_ON_norm,Hill_Km_ON,int(Hill_N_ON))
+ratio = (C_Gln_norm/C_ON_norm)    ! ratio of r_Gln/r_ON
 f_cutoff = 1
 MM_rGln = 1
 f0 = f_cutoff*MM_Gln
 r_Gln = f0*Gln_maxrate
 r_GlnI = r_Gln*f_Gln*N_GlnI
-r_ON = MM_rGln*MM_ON*ON_maxrate      ! Note: = 0 if ON_maxrate = 0.
+!r_ON = MM_rGln*MM_ON*ON_maxrate      ! Note: = 0 if ON_maxrate = 0.
+r_ON = r_Gln/ratio
 r_ONI = r_ON*N_ONI
 r_G = get_glycosis_rate(mp%HIF1,C_G_norm,C_Gln_norm,O2_maxrate)
 
@@ -1001,8 +1003,8 @@ r_Iu = mp%I_rate
 r_Au = mp%A_rate
 r_Ou = mp%O_rate
 else    ! Try direct solution for r_Au, r_Iu, h 
-    f1 = 1  !f_Gln
-    w = 0.5
+    f1 = 0.0
+    w = 0.0
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
     r_A = r_G*(1 - w*f_Gu)* N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - f1)*N_GlnA
     r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_Gln*f1*N_GlnI + r_ON*N_ONI
@@ -1037,8 +1039,8 @@ real(REAL_KIND) :: f3, f3min, CG3, fON
 real(REAL_KIND) :: C_GlnHi, r_Aw, r_Iw
 real(REAL_KIND) :: V, K1, K2, f_Gln
 real(REAL_KIND) :: Km_O2, Km_Gln, Km_ON, MM_O2, MM_Gln, MM_ON, MM_rGln, L_O2, L_Gln, L_ON, r_GlnON_I, Km_rGln, wlim, zterm
-real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r_GlnI, r_ONI, ONfactor
-real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, f1_max, a, b, c
+real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON0, r_ON, r_A, r_I, r_L, r_GI, r_PI, r_GlnI, r_ONI, ONfactor
+real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, f1_max, a, b, c, ratio
 integer :: iw, Nw, nf1_lt, nf1_gt
 logical :: use_f_GL = .true.
 logical :: consuming_ON
@@ -1054,7 +1056,9 @@ K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
 
-C_GlnEX = C_Gln     ! needed?
+ratio = (C_Gln/C_ON)    ! ratio of r_Gln/r_ON
+
+!C_GlnEX = C_Gln     ! needed?
 C_GlnHi = C_GlnLo + 0.01
 if (C_GlnEX > C_GlnHi) then
     f_cutoff = 1
@@ -1069,10 +1073,34 @@ endif
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
 f0 = f_cutoff*MM_Gln
 r_Gln = f0*Gln_maxrate
+if (r_Gln == 0) then
+    write(nflog,*) 'No growth'
+    r_L = f_GL*r_G  !???????
+    C_P = (r_L + V*K2*C_L)/(V*K1)
+    r_P = 0
+    r_O = 0
+    r_I = 0
+    r_A = r_G*N_GA
+    mp%P_rate = r_P
+    mp%G_rate = r_G
+    mp%Gln_rate = r_Gln
+    mp%I_rate = r_I
+    mp%A_rate = r_A
+    mp%O_rate = r_O
+    mp%L_rate = r_L
+    mp%ON_rate = r_ON
+    mp%C_P = C_P
+    mp%f_G = 0
+    mp%f_P = 0
+    return
+endif
+
 Km_rGln = 0.05*Gln_maxrate              !!!!! hard-coded !!!!!
 MM_rGln = r_Gln/(Km_rGln + r_Gln)       ! Suppresses r_ON at low r_Gln
 !write(nflog,'(a,3e12.3)') 'r_Gln,Km_rGln,MM_rGln: ',r_Gln,Km_rGln,MM_rGln
-r_ON = MM_rGln*MM_ON*ON_maxrate      ! Note: = 0 if ON_maxrate = 0.
+r_ON0 = MM_ON*ON_maxrate      ! Note: = 0 if ON_maxrate = 0.
+!r_ON = MM_rGln*r_ON0
+r_ON = r_Gln/ratio
 r_ONI = r_ON*N_ONI
 h = (r_Au - r_Ag)/r_Iu
 
@@ -1097,11 +1125,15 @@ nf1_gt = 0
 do iw = Nw+1,1,-1
     w = (iw-1)*dw
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
-    if (r_P < 0) cycle
+    if (r_P < 0) then
+        write(nflog,*) 'ERROR: r_P < 0'
+        cycle
+    endif
     r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
     r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
     ! Note: f1 is the fraction of r_Gln that goes to I
     if (r_Gln <= 0) then
+        write(nflog,*) 'ERROR: r_Gln <= 0'
         f1 = 0
     else
         f1 = (r_Aw + r_Gln*N_GlnA - r_Ag - h*(r_Iw + r_ONI))/(r_Gln*(h*N_GlnI + N_GlnA))
@@ -1123,22 +1155,30 @@ do iw = Nw+1,1,-1
 enddo
 w = w_max
 f1 = f1_max
-!write(nflog,'(a,3f8.4)') '=============  w,f0,f1: ',w,f0,f1
-if (w < 0) then     ! no solution, either w = f1 = 0 or w = f1 = 1
-!    write(nflog,*) 'nf1_lt, nf1_gt: ',nf1_lt,nf1_gt
+write(nflog,'(a,3f8.4)') '=============  w,f0,f1: ',w,f0,f1
+if (w < 0) then     ! no solution, either w = f1 = 0 or w = f1 = 1 
+    write(nflog,*) 'nf1_lt, nf1_gt: ',nf1_lt,nf1_gt
     if (nf1_lt < nf1_gt) then   ! need to reduce r_A to make (r_A - r_Ag)/r_I = h, by reducing r_G
         w = 1
         f1 = 1 
         c = (1 - f_Gu)*N_GP - f_GL
         a = (1 - f_Gu)*N_GA + (1 - f_Pu)*N_PA*c
         b = f_Gu*N_GI + f_Pu*N_PI*c
-        if (a - b*h < 0) then
-            write(nflog,*) 'ERROR: a - bh < 0'
-            stop
+        if (1 == 2) then
+            if (a - b*h < 0) then
+                write(nflog,*) 'ERROR: a - bh < 0'
+                stop
+            endif
+            r_G = (r_Ag + h*(r_Gln*N_GlnI + r_ONI))/(a - b*h)
+            r_P = r_G*c
+        else
+            r_GlnON_I = (r_G*(a - b*h) - r_Ag)/h
+            r_ON = r_GlnON_I/(ratio*N_GlnI + N_ONI)
+            r_Gln = ratio*r_ON
+            r_ONI = r_ON*N_ONI
+            r_P = r_G*((1 - f_Gu)*N_GP - f_GL)
         endif
-        r_G = (r_Ag + h*(r_Gln*N_GlnI + r_ONI))/(a - b*h)
-        r_P = r_G*c
-    else    ! need to reduce r_I to make (r_A - r_Ag)/r_I = h, by reducing r_ON
+    else    ! need to reduce r_I to make (r_A - r_Ag)/r_I = h, by reducing r_ON 
         w = 0
         f1 = 0
         r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
@@ -1159,8 +1199,8 @@ r_Aw = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA
 r_Iw = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI
 r_A = r_Aw + r_Gln*(1 - f1)*N_GlnA
 r_I = r_Iw + r_Gln*f1*N_GlnI + r_ONI
-!write(nflog,'(a,2e12.3)') 'r_G, r_P: ',r_G,r_P
-!write(nflog,'(a,5e11.3)') 'r_Gln, r_ON, hactual: ',r_Gln, r_ON, (r_A - r_Ag)/r_I
+write(nflog,'(a,4e12.3)') 'r_G, r_P, r_A, r_I: ',r_G,r_P,r_A,r_I
+write(nflog,'(a,5e11.3)') 'r_Gln, r_ON, hactual: ',r_Gln, r_ON, (r_A - r_Ag)/r_I
 r_L = f_GL*r_G
 C_P = (r_L + V*K2*C_L)/(V*K1) 
 r_O = r_P*N_PO + r_Gln*N_GlnO
@@ -1207,7 +1247,7 @@ K2 = K_LP
 f_Gln = f_Glnu
 
 !C_GlnLo = 0.02                      !!!!! was hard-coded
-C_GlnHi = C_GlnLo + 0.005
+C_GlnHi = C_GlnLo + 0.01
 if (C_GlnEX > C_GlnHi) then
     f_cutoff = 1
 elseif (C_GlnEx < C_GlnLo) then
