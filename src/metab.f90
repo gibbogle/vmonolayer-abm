@@ -77,7 +77,7 @@ real(REAL_KIND) :: K_PL			! P -> L
 real(REAL_KIND) :: K_LP			! L -> P
 real(REAL_KIND) :: r_Pu, r_Gu, r_Glnu, r_Au, r_Iu, r_Ou, r_Lu, r_Onu, C_Pu   ! unconstrained conditions
 real(REAL_KIND) :: G_maxrate, O2_maxrate, Gln_maxrate, ON_maxrate
-real(REAL_KIND) :: f_N, f_NG, r_Abase, r_Ibase, C_GlnLo
+real(REAL_KIND) :: f_N, f_NG, r_Abase, r_Ibase, C_GlnLo, Km_rGln_factor
 integer :: fgp_solver
 
 type param_set_type
@@ -1262,7 +1262,8 @@ r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previo
 r_GlnON_I = Gln_maxrate*f_Gln*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
 r_Gln = f_cutoff*MM_Gln*Gln_maxrate
 !r_GlnI = r_Gln*f_Gln*N_GlnI
-Km_rGln = 0.05*Gln_maxrate           !!!!! hard-coded
+!Km_rGln = 0.02*Gln_maxrate           !!!!! hard-coded
+Km_rGln = Km_rGln_factor*Gln_maxrate
 MM_rGln = r_Gln/(Km_rGln + r_Gln)
 ONfactor = MM_rGln  !MM_ON    !f_cutoff*MM_ON   !*MM_rGln 
 ! Using f_cutoff makes hactual much too big, without it hactual is too small. Try MM_rGln
@@ -1296,13 +1297,9 @@ ncp = 0
 ulim = 1.2                          !!!!! hard-coded
 w1 = 1
 Nwmax = Nw+1
-if (f_cutoff < 1) Nwmax = 1
+!if (f_cutoff < 1) Nwmax = 1
 do iw = Nwmax,1,-1
     w = (iw-1)*dw
-!    if (1-w > f_cutoff + 0.0001) then
-!        write(nflog,'(a,i4,2f10.4)') 'iw, 1-w, f_cutoff: ',iw,1-w, f_cutoff+0.0001
-!        cycle
-!    endif
     w1 = w
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
     if (r_P < 0) cycle

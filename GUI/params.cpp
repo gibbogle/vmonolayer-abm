@@ -819,6 +819,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Lactate:glucose rate factor",
         "The factor f_GL is the ratio of the rate of lactate production from pyruvate to the glucose consumption rate."},
 
+        {"KM_RGLN_1", 0.02, 0, 0,
+        "Glutamine rate Km factor",
+        "The factor Km_rGln_factor multiplies Vmax_Gln to give Km for the MM function of r_Gln used to compute r_ON."},
+
        {"F_GP_SOLVER",1,0,0,
         "f_GP solver (1,2,3)",
         "Choices for f_GP solver: 1 = max ATP (tandem), 2 = max ATP (staged), 3 = survival (staged)"},

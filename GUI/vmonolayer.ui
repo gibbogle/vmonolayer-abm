@@ -2036,7 +2036,7 @@ padding: 8px
               <x>650</x>
               <y>10</y>
               <width>361</width>
-              <height>491</height>
+              <height>511</height>
              </rect>
             </property>
             <property name="title">
@@ -2048,7 +2048,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>341</width>
-               <height>499</height>
+               <height>521</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -2455,7 +2455,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="20" column="1">
+              <item row="21" column="1">
                <widget class="QLineEdit" name="line_PASTEUR_MM_KM_1">
                 <property name="maximumSize">
                  <size>
@@ -2468,7 +2468,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="20" column="0">
+              <item row="21" column="0">
                <widget class="QMyLabel" name="label_PASTEUR_MM_KM_1">
                 <property name="font">
                  <font>
@@ -2481,7 +2481,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="21" column="1">
+              <item row="22" column="1">
                <widget class="QLineEdit" name="line_GLUTAMINE_BASERATE_1">
                 <property name="enabled">
                  <bool>false</bool>
@@ -2497,7 +2497,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="22" column="0">
+              <item row="23" column="0">
                <widget class="QMyLabel" name="label_F_GL_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2513,7 +2513,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="22" column="1">
+              <item row="23" column="1">
                <widget class="QLineEdit" name="line_F_GL_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2529,7 +2529,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="21" column="0">
+              <item row="22" column="0">
                <widget class="QMyLabel" name="label_GLUTAMINE_BASERATE_1">
                 <property name="enabled">
                  <bool>false</bool>
@@ -2568,6 +2568,32 @@ padding: 8px
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="20" column="1">
+               <widget class="QLineEdit" name="line_KM_RGLN_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="20" column="0">
+               <widget class="QMyLabel" name="label_KM_RGLN_1">
+                <property name="font">
+                 <font>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Glutamine rate Km factor</string>
                 </property>
                </widget>
               </item>

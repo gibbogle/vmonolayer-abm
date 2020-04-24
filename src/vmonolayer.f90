@@ -930,6 +930,7 @@ read(nf,*) C_GlnLo  !Hill_Km_P
 read(nf,*) Hill_Km_C
 read(nf,*) Gln_baserate
 read(nf,*) f_GL     ! was f_N
+read(nf,*) Km_rGln_factor
 read(nf,*) fgp_solver
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM
