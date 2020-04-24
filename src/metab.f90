@@ -1247,7 +1247,7 @@ K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
 
-write(nflog,'(a,f8.4)') 'C_GlnEx: ',C_GlnEx
+write(nflog,'(a,2f8.4)') 'C_GlnEx, C_GlnLO: ',C_GlnEx,C_GlnLo
 !C_GlnLo = 0.02                      !!!!! was hard-coded
 C_GlnHi = C_GlnLo + 0.01
 if (C_GlnEX > C_GlnHi) then
@@ -1255,7 +1255,7 @@ if (C_GlnEX > C_GlnHi) then
 elseif (C_GlnEx < C_GlnLo) then
     f_cutoff = 0
 else
-    f_cutoff = (C_glnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
+    f_cutoff = (C_GlnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
 endif
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
 !write(*,'(a,5e11.3)') 'r_G,H,C_G,C_Gln,r_O: ',r_G,mp%HIF1,C_G,C_Gln,mp%O_rate
@@ -1339,9 +1339,9 @@ do iw = Nwmax,1,-1
     r_L = f_GL*r_G
     C_P = (r_L + V*K2*C_L)/(V*K1) 
     
-    if (f_cutoff < 1) then
-        write(nflog,'(a,2f8.3,3e12.3)') 'f_cutoff,w,r_GlnI,r_ONI,r_I: ',f_cutoff,w,r_GlnI,r_ONI,r_I
-    endif
+!    if (f_cutoff < 1) then
+!        write(nflog,'(a,2f8.3,3e12.3)') 'f_cutoff,w,r_GlnI,r_ONI,r_I: ',f_cutoff,w,r_GlnI,r_ONI,r_I
+!    endif
 !    if (z < 1) write(nflog,'(a,2f8.3,3e12.3)') 'w,z,r_I,r_A,r_IA: ',w,z,r_I,r_A,z*r_I + (1-z)*r_A
 !    if (z*r_I + (1-z)*r_A > r_IAmax) then
 !        w_max = w
@@ -1365,7 +1365,6 @@ if (w < 0) then
     return
 endif
 w1 = w
-!r_Gln = f_cutoff*r_Gln
 r_GlnI = r_Gln*w1*f_Gln*N_GlnI
 
 write(nflog,'(a,5f8.3)') 'z,MM_ON,MM_rGln,f_cutoff,ONfactor: ',z,MM_ON,MM_rGln,f_cutoff,ONfactor
@@ -1380,7 +1379,6 @@ r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
 C_P = (r_L + V*K2*C_L)/(V*K1)
 if (C_P < 1.0e-6) C_P = 0
 r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI + r_ONI
-!if (C_Gln < 0.04) then
 !if (f_cutoff == 0) then
 !    r_I = 0
 !    r_A = r_Ag
@@ -1397,7 +1395,7 @@ else
 endif
 write(nflog,'(a,5e12.3)') 'r_P,w,f_Pu,N_PA,(1 - w*f_Pu): ',r_P,w,f_Pu,N_PA,(1 - w*f_Pu)
 write(nflog,'(a,3f8.4)') 'r_A fractions: G, P, Gln: ',r_G*(1 - w*f_Gu)*N_GA/r_Au, r_P*(1 - w*f_Pu)*N_PA/r_Au, r_Gln*(1 - f_Gln)*N_GlnA/r_Au
-write(nflog,'(a,2f8.3,4e12.3)') 'MM_Gln, ONfactor, r_GlnON_I, r_GlnI, r_ONI, r_I: ',MM_Gln,ONfactor, r_GlnON_I, r_GlnI, r_ONI, r_I
+write(nflog,'(a,3f8.3,5e12.3)') 'f_cutoff, MM_Gln, ONfactor, r_Gln, r_GlnON_I, r_GlnI, r_ONI, r_I: ',f_cutoff,MM_Gln,ONfactor, r_Gln,r_GlnON_I, r_GlnI, r_ONI, r_I
 write(nflog,*)
 mp%P_rate = r_P
 mp%G_rate = r_G
