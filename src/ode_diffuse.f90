@@ -393,7 +393,10 @@ mp => phase_metabolic(1)
 !if (mod(knt,10) == 1) then      ! solve for rates every 10th time
 if (knt == 1) then              ! solve for rates only once at the start of the main time step
     call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
-    if (res /= 0) stop
+    if (res /= 0) then
+        write(nflog,*) 'Error: get_metab_rates: res: ',res
+        stop
+    endif
     write(nflog,'(a,6e12.3)') 'rates: ',mp%O_rate,mp%G_rate,mp%L_rate,mp%Gln_rate,mp%ON_rate,mp%P_rate*N_PO + mp%Gln_rate*N_GlnO
 endif
 k = 0
@@ -926,6 +929,10 @@ do ichemo = 1,NUTS     ! 4 = glutamine
 		C(k) = C_OGL(ichemo,i)	! EC
 	enddo
 enddo
+! Locations of Cin and Cex:
+! Cin = C(ichemo + (ichemo-1)*N1D) = Caverage(ichemo)
+! Cex = C_OGL(ichemo,1)
+!
 !write(nflog,'(10e12.3)') C(1:N1D+1)
 !write(nflog,'(a,7f8.3)') 'OGLsolver: Cin, tstart, dt (h): ',Caverage(1:NUTS),tstart/3600,dt/3600
 !write(nflog,'(a,f6.3)') 'OGLsolver: glutamine: IC: ',C(3*(N1D+1) + 1)

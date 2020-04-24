@@ -932,7 +932,7 @@ type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C(NUTS), C_GlnEx, r_P, r_G, MM_Gln, MM_ON, f_Gln, r_Gln, r_ON, r_GlnI, r_ONI, r_I, r_Pc
 real(REAL_KIND) :: w, h, hp, f1, f0, f_cutoff, MM_rGln, r_A, ratio
 integer :: k
-logical :: iter = .false.
+logical :: iter = .true.
 
 mp => metab
 mp%HIF1 = get_HIF1steadystate(C_O2_norm)
@@ -1030,7 +1030,7 @@ end subroutine
 
 !==================================================================================================
 !==================================================================================================
-subroutine f_metab_ON(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
+subroutine f_metab_ON6(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
 integer :: res
@@ -1222,8 +1222,9 @@ mp%f_P = w*f_Pu
 end subroutine
 
 !==================================================================================================
+! f_metab_ON5
 !==================================================================================================
-subroutine f_metab_ON5(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
+subroutine f_metab_ON(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
 integer :: res
@@ -1232,8 +1233,8 @@ real(REAL_KIND) :: C_GlnHi, f_cutoff
 real(REAL_KIND) :: V, K1, K2, f_Gln
 real(REAL_KIND) :: Km_O2, Km_Gln, Km_ON, MM_O2, MM_Gln, MM_ON, MM_rGln, L_O2, L_Gln, L_ON, r_GlnON_I, Km_rGln, wlim, zterm
 real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r_GlnI, r_ONI, ONfactor
-real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max
-integer :: iw, Nw, npp, ncp
+real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, hactual
+integer :: iw, Nw, npp, ncp, Nwmax
 logical :: use_f_GL = .true.
     
 res = 0
@@ -1246,6 +1247,7 @@ K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
 
+write(nflog,'(a,f8.4)') 'C_GlnEx: ',C_GlnEx
 !C_GlnLo = 0.02                      !!!!! was hard-coded
 C_GlnHi = C_GlnLo + 0.01
 if (C_GlnEX > C_GlnHi) then
@@ -1262,6 +1264,9 @@ r_Gln = f_cutoff*MM_Gln*Gln_maxrate
 !r_GlnI = r_Gln*f_Gln*N_GlnI
 Km_rGln = 0.05*Gln_maxrate           !!!!! hard-coded
 MM_rGln = r_Gln/(Km_rGln + r_Gln)
+ONfactor = MM_rGln  !MM_ON    !f_cutoff*MM_ON   !*MM_rGln 
+! Using f_cutoff makes hactual much too big, without it hactual is too small. Try MM_rGln
+
 !r_ON = MM_Gln*MM_ON*ON_maxrate
 !r_ONI = r_ON*N_ONI
 !r_ONI = (r_GlnON_I - r_GlnI)*MM_rGln ! r_ONI compensates for drop in r_GlnI, but ultimately is suppressed by low r_Gln
@@ -1280,9 +1285,9 @@ if (use_f_GL) then
         return
     endif
 endif
-r_Imax = 0
-r_Amax = 0
-r_IAmax = 0
+r_Imax = -1
+r_Amax = -1
+r_IAmax = -1
 w_max = -1
 Nw = 100
 dw = 1.0/Nw
@@ -1290,8 +1295,14 @@ npp = 0
 ncp = 0
 ulim = 1.2                          !!!!! hard-coded
 w1 = 1
-do iw = Nw+1,2,-1
+Nwmax = Nw+1
+if (f_cutoff < 1) Nwmax = 1
+do iw = Nwmax,1,-1
     w = (iw-1)*dw
+!    if (1-w > f_cutoff + 0.0001) then
+!        write(nflog,'(a,i4,2f10.4)') 'iw, 1-w, f_cutoff: ',iw,1-w, f_cutoff+0.0001
+!        cycle
+!    endif
     w1 = w
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
     if (r_P < 0) cycle
@@ -1321,22 +1332,30 @@ do iw = Nw+1,2,-1
         z = (u-1)/(ulim-1)
     endif
     r_GlnI = r_Gln*w1*f_Gln*N_GlnI
-    ONfactor = f_cutoff*MM_ON*MM_rGln
-    r_ONI = (r_GlnON_I - r_GlnI)
+    r_ONI = ONfactor*(r_GlnON_I - r_GlnI)
+! Try setting r_ONI to ensure that hactual = h
+! r_A - r_Ag = h*r_I = h*(r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI) + h*r_ONI
+!    r_ONI = (r_A - r_Ag)/h - (r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI)
+!    r_ONI = f_cutoff*r_ONI
+!    r_ONI = max(r_ONI,0.0)
     r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI + r_ONI
     r_L = f_GL*r_G
     C_P = (r_L + V*K2*C_L)/(V*K1) 
-!    if (z < 1) write(nflog,'(a,2f8.3,3e12.3)') 'w,z,r_I,r_A,r_IA: ',w,z,r_I,r_A,z*r_I + (1-z)*r_A
-    if (z*r_I + (1-z)*r_A > r_IAmax) then
-        w_max = w
-        z_max = z
-        r_IAmax = z*r_I + (1-z)*r_A
+    
+    if (f_cutoff < 1) then
+        write(nflog,'(a,2f8.3,3e12.3)') 'f_cutoff,w,r_GlnI,r_ONI,r_I: ',f_cutoff,w,r_GlnI,r_ONI,r_I
     endif
-!    if (r_I > r_Imax) then 
+!    if (z < 1) write(nflog,'(a,2f8.3,3e12.3)') 'w,z,r_I,r_A,r_IA: ',w,z,r_I,r_A,z*r_I + (1-z)*r_A
+!    if (z*r_I + (1-z)*r_A > r_IAmax) then
 !        w_max = w
 !        z_max = z
-!        r_Imax = r_I
+!        r_IAmax = z*r_I + (1-z)*r_A
 !    endif
+    if (r_I > r_Imax) then 
+        w_max = w
+        z_max = z
+        r_Imax = r_I
+    endif
 !        if (r_A > r_Amax) then
 !            w_max = w
 !            r_Amax = r_A
@@ -1344,22 +1363,26 @@ do iw = Nw+1,2,-1
 enddo
 w = w_max
 if (w < 0) then
+    write(nflog,*) 'Error: f_metab_ON: w < 0'
     res = 1
     return
 endif
 w1 = w
 !r_Gln = f_cutoff*r_Gln
 r_GlnI = r_Gln*w1*f_Gln*N_GlnI
-ONfactor = f_cutoff*MM_ON   !*MM_rGln
+
 write(nflog,'(a,5f8.3)') 'z,MM_ON,MM_rGln,f_cutoff,ONfactor: ',z,MM_ON,MM_rGln,f_cutoff,ONfactor
+r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w1*f_Gln)*N_GlnA
 r_ONI = ONfactor*(r_GlnON_I - r_GlnI)
+!r_ONI = (r_A - r_Ag)/h - (r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI)
+!r_ONI = max(r_ONI, 0.0)
+!r_ONI = f_cutoff*r_ONI
 r_ON = r_ONI/N_ONI
 r_L = f_GL*r_G
 r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
 C_P = (r_L + V*K2*C_L)/(V*K1)
 if (C_P < 1.0e-6) C_P = 0
 r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI + r_ONI
-r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w1*f_Gln)*N_GlnA
 !if (C_Gln < 0.04) then
 !if (f_cutoff == 0) then
 !    r_I = 0
@@ -1369,7 +1392,12 @@ r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w1*f_Gln)*N_Gln
 !endif
 r_O = r_P*N_PO + r_Gln*N_GlnO
 !write(nflog,'(a,3f8.3,5e12.3)') 'w,C_P,C_L,r_P,r_L,r_A,r_I,r_O: ',w,C_P,C_L,r_P,r_L,r_A,r_I,r_O
-write(nflog,'(a,2f8.3,2e12.3,f8.3)') 'w, z, r_P, r_L, r_A/r_Ag: ',w,z,r_P,r_L,r_A/r_Ag
+if (r_I > 0) then
+    hactual = (r_A - r_Ag)/r_I
+    write(nflog,'(a,5f8.3)') 'w, z, r_A/r_Ag, h, hactual: ',w,z,r_A/r_Ag,h,hactual
+else
+    write(nflog,*) 'No growth'
+endif
 write(nflog,'(a,5e12.3)') 'r_P,w,f_Pu,N_PA,(1 - w*f_Pu): ',r_P,w,f_Pu,N_PA,(1 - w*f_Pu)
 write(nflog,'(a,3f8.4)') 'r_A fractions: G, P, Gln: ',r_G*(1 - w*f_Gu)*N_GA/r_Au, r_P*(1 - w*f_Pu)*N_PA/r_Au, r_Gln*(1 - f_Gln)*N_GlnA/r_Au
 write(nflog,'(a,2f8.3,4e12.3)') 'MM_Gln, ONfactor, r_GlnON_I, r_GlnI, r_ONI, r_I: ',MM_Gln,ONfactor, r_GlnON_I, r_GlnI, r_ONI, r_I
