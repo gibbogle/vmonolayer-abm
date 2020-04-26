@@ -1236,8 +1236,10 @@ real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r
 real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, z_max, hactual
 integer :: iw, Nw, npp, ncp, Nwmax
 logical :: use_f_GL = .true.
+logical :: using_ON = .true.
     
 res = 0
+using_ON = (ON_maxrate > 0)
 MM_O2 = f_MM(C_O2,Hill_Km_O2,int(Hill_N_O2))
 L_O2 = mp%PDK1*O2_maxrate*MM_O2
 MM_Gln = f_MM(C_Gln,Hill_Km_Gln,int(Hill_N_Gln))
@@ -1267,6 +1269,7 @@ Km_rGln = Km_rGln_factor*Gln_maxrate
 MM_rGln = r_Gln/(Km_rGln + r_Gln)
 ONfactor = MM_rGln  !MM_ON    !f_cutoff*MM_ON   !*MM_rGln 
 ! Using f_cutoff makes hactual much too big, without it hactual is too small. Try MM_rGln
+if (.not.using_ON) ONfactor = 0
 
 !r_ON = MM_Gln*MM_ON*ON_maxrate
 !r_ONI = r_ON*N_ONI
