@@ -2349,23 +2349,10 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="16" column="1">
-               <widget class="QLineEdit" name="line_ATP_RAMP_1">
-                <property name="maximumSize">
-                 <size>
-                  <width>50</width>
-                  <height>16</height>
-                 </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
               <item row="16" column="0">
-               <widget class="QMyLabel" name="label_ATP_RAMP_1">
+               <widget class="QMyLabel" name="label_F_GL_1">
                 <property name="text">
-                 <string>Ramp factor for reducing r_G, r_P based on ATP</string>
+                 <string>Lactate moles produced per glucose mole</string>
                 </property>
                </widget>
               </item>
@@ -2497,38 +2484,6 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="23" column="0">
-               <widget class="QMyLabel" name="label_F_GL_1">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="font">
-                 <font>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Lactate:Glucose factor</string>
-                </property>
-               </widget>
-              </item>
-              <item row="23" column="1">
-               <widget class="QLineEdit" name="line_F_GL_1">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>50</width>
-                  <height>16</height>
-                 </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
               <item row="22" column="0">
                <widget class="QMyLabel" name="label_GLUTAMINE_BASERATE_1">
                 <property name="enabled">
@@ -2594,6 +2549,19 @@ padding: 8px
                 </property>
                 <property name="text">
                  <string>Glutamine rate Km factor</string>
+                </property>
+               </widget>
+              </item>
+              <item row="16" column="1">
+               <widget class="QLineEdit" name="line_F_GL_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>

@@ -923,19 +923,20 @@ read(nf,*) C_Gln_norm
 read(nf,*) C_ON_norm
 read(nf,*) f_ATPs
 read(nf,*) f_ATPg
-read(nf,*) f_ATPramp
+!read(nf,*) f_ATPramp    ! not used
 read(nf,*) K_PL
 read(nf,*) K_LP
-read(nf,*) C_GlnLo  !Hill_Km_P
-read(nf,*) Hill_Km_C
+read(nf,*) C_GlnLo
+read(nf,*) Hill_Km_C    ! Pasteur effect
 read(nf,*) Gln_baserate
 read(nf,*) f_GL     ! was f_N
 read(nf,*) Km_rGln_factor
 read(nf,*) fgp_solver
 Hill_N_P = 1
-Hill_Km_P = Hill_Km_P/1000		! uM -> mM
+Hill_Km_P = Hill_Km_P/1000		! uM -> mM  ! not used
 !ATP_Km = ATP_Km/1000			! uM -> mM 
 !N_GP = N_GA     ! this should be a separate input parameter
+f_ATPramp = 1.3    ! not used
 end subroutine
 
 !-----------------------------------------------------------------------------------------

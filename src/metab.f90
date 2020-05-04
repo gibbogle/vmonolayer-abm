@@ -1029,6 +1029,143 @@ write(nflog,'(a,f8.3)') 'C_P: ',mp%C_P
 end subroutine
 
 !==================================================================================================
+! f_metab_ON5 cleaned up
+!==================================================================================================
+subroutine f_metab_ON(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
+type(metabolism_type), pointer :: mp
+real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
+integer :: res
+real(REAL_KIND) :: w, h
+real(REAL_KIND) :: C_GlnHi, f_cutoff
+real(REAL_KIND) :: V, K1, K2, f_Gln
+real(REAL_KIND) :: Km_O2, Km_Gln, Km_ON, MM_O2, MM_Gln, MM_ON, MM_rGln, L_O2, L_Gln, L_ON, r_GlnON_I, Km_rGln, wlim, zterm
+real(REAL_KIND) :: C_P, r_G, r_P, r_O, r_Gln, r_ON, r_A, r_I, r_L, r_GI, r_PI, r_GlnI, r_ONI, ONfactor
+real(REAL_KIND) :: dw, w_max, r_Imax, r_Amax, r_IAmax, hactual
+integer :: iw, Nw, npp, ncp, Nwmax
+logical :: use_f_GL = .true.
+logical :: using_ON = .true.
+    
+res = 0
+using_ON = (ON_maxrate > 0)
+MM_O2 = f_MM(C_O2,Hill_Km_O2,int(Hill_N_O2))
+L_O2 = mp%PDK1*O2_maxrate*MM_O2
+MM_Gln = f_MM(C_Gln,Hill_Km_Gln,int(Hill_N_Gln))
+MM_ON = f_MM(C_ON,Hill_Km_ON,int(Hill_N_ON))
+V = Vcell_cm3*average_volume
+K1 = K_PL
+K2 = K_LP
+f_Gln = f_Glnu
+
+write(nflog,'(a,2f8.4)') 'C_GlnEx, C_GlnLO: ',C_GlnEx,C_GlnLo
+C_GlnHi = C_GlnLo + 0.01
+if (C_GlnEX > C_GlnHi) then
+    f_cutoff = 1
+elseif (C_GlnEx < C_GlnLo) then
+    f_cutoff = 0
+else
+    f_cutoff = (C_GlnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
+endif
+r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
+r_GlnON_I = Gln_maxrate*f_Gln*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
+r_Gln = f_cutoff*MM_Gln*Gln_maxrate
+Km_rGln = Km_rGln_factor*Gln_maxrate
+MM_rGln = r_Gln/(Km_rGln + r_Gln)
+ONfactor = MM_rGln  !MM_ON    !f_cutoff*MM_ON   !*MM_rGln 
+! Using f_cutoff makes hactual much too big, without it hactual is too small. Try MM_rGln
+if (.not.using_ON) ONfactor = 0
+
+h = (r_Au - r_Ag)/r_Iu
+
+!if (use_f_GL) then
+!    wlim = (1 - f_GL/N_GP)/f_Gu
+!    if (wlim < 0) then
+!        write(nflog,*) 'No solution possible since wlim < 0: ',wlim
+!        res = 1
+!        return
+!    endif
+!endif
+r_Imax = -1
+r_Amax = -1
+r_IAmax = -1
+w_max = -1
+Nw = 100
+dw = 1.0/Nw
+npp = 0
+ncp = 0
+Nwmax = Nw+1
+!if (f_cutoff < 1) Nwmax = 1
+do iw = Nwmax,1,-1
+    w = (iw-1)*dw
+    r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)    ! Note: this means that f_GL must satisfy: f_GL < (1 - f_Gu)*N_GP ??
+    if (r_P < 0) cycle
+    r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w*f_Gln)*N_GlnA
+    r_GlnI = r_Gln*w*f_Gln*N_GlnI
+    r_ONI = ONfactor*(r_GlnON_I - r_GlnI)
+! Try setting r_ONI to ensure that hactual = h  DROPPED
+! r_A - r_Ag = h*r_I = h*(r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI) + h*r_ONI
+!    r_ONI = (r_A - r_Ag)/h - (r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI)
+!    r_ONI = f_cutoff*r_ONI
+!    r_ONI = max(r_ONI,0.0)
+    r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI + r_ONI
+    r_L = f_GL*r_G
+    C_P = (r_L + V*K2*C_L)/(V*K1) 
+    
+    if (r_I > r_Imax) then 
+        w_max = w
+        r_Imax = r_I
+    endif
+!        if (r_A > r_Amax) then
+!            w_max = w
+!            r_Amax = r_A
+!        endif
+enddo
+w = w_max
+if (w < 0) then     ! There is no value of w for which r_P > 0.  We need to invent a solution for this case
+!    write(nflog,*) 'Error: f_metab_ON: w < 0'
+!    res = 1
+!    return
+!endif
+    w = 0
+    r_P = 0
+else  
+    r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
+endif
+r_GlnI = r_Gln*w*f_Gln*N_GlnI
+r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w*f_Gln)*N_GlnA
+r_ONI = ONfactor*(r_GlnON_I - r_GlnI)
+!r_ONI = (r_A - r_Ag)/h - (r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI)  DROPPED
+!r_ONI = max(r_ONI, 0.0)
+!r_ONI = f_cutoff*r_ONI
+r_ON = r_ONI/N_ONI
+r_L = f_GL*r_G
+C_P = (r_L + V*K2*C_L)/(V*K1)
+if (C_P < 1.0e-6) C_P = 0
+r_I = r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI + r_ONI
+r_O = r_P*N_PO + r_Gln*N_GlnO
+if (r_I > 0) then
+    hactual = (r_A - r_Ag)/r_I
+    write(nflog,'(a,5f8.3)') 'w, r_A/r_Ag, h, hactual: ',w,r_A/r_Ag,h,hactual
+else
+    write(nflog,*) 'No growth'
+endif
+write(nflog,'(a,5e12.3)') 'r_P,w,f_Pu,N_PA,(1 - w*f_Pu): ',r_P,w,f_Pu,N_PA,(1 - w*f_Pu)
+write(nflog,'(a,3f8.4)') 'r_A fractions: G, P, Gln: ',r_G*(1 - w*f_Gu)*N_GA/r_Au, r_P*(1 - w*f_Pu)*N_PA/r_Au, r_Gln*(1 - f_Gln)*N_GlnA/r_Au
+write(nflog,'(a,3f8.3,5e12.3)') 'f_cutoff, MM_Gln, ONfactor, r_Gln, r_GlnON_I, r_GlnI, r_ONI, r_I: ',f_cutoff,MM_Gln,ONfactor, r_Gln,r_GlnON_I, r_GlnI, r_ONI, r_I
+write(nflog,*)
+mp%P_rate = r_P
+mp%G_rate = r_G
+mp%Gln_rate = r_Gln
+mp%I_rate = r_I
+mp%A_rate = r_A
+mp%O_rate = r_O
+mp%L_rate = r_L
+mp%ON_rate = r_ON
+mp%C_P = C_P
+mp%f_G = w*f_Gu
+mp%f_P = w*f_Pu
+end subroutine
+
+!==================================================================================================
 !==================================================================================================
 subroutine f_metab_ON6(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
 type(metabolism_type), pointer :: mp
@@ -1224,7 +1361,7 @@ end subroutine
 !==================================================================================================
 ! f_metab_ON5
 !==================================================================================================
-subroutine f_metab_ON(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
+subroutine f_metab_ON5(mp, C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx, res)
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON, C_GlnEx
 integer :: res
@@ -1304,7 +1441,7 @@ Nwmax = Nw+1
 do iw = Nwmax,1,-1
     w = (iw-1)*dw
     w1 = w
-    r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)
+    r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)    ! Note: this means that f_GL must satisfy: f_GL < (1 - f_Gu)*N_GP ??
     if (r_P < 0) cycle
     r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w1*f_Gln)*N_GlnA
 !    zterm = (r_A - r_Ag)/h - w*(r_G*f_Gu*N_GI + r_P*f_Pu*N_PI + r_Gln*f_Gln*N_GlnI)
@@ -1362,7 +1499,7 @@ do iw = Nwmax,1,-1
 !        endif
 enddo
 w = w_max
-if (w < 0) then
+if (w < 0) then     ! There is no value of w for which r_P > 0.  We need to invent a solution for this case
     write(nflog,*) 'Error: f_metab_ON: w < 0'
     res = 1
     return

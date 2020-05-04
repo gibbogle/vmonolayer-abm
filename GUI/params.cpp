@@ -785,12 +785,12 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Cell growth stops when the ATP production rate falls below the fraction ATP_G of the maximum (no nutrient constraints) production rate.\n\
         Intermediates production from glycolysis and pyruvate ramps down when ATP rate is below ATPramp*ATP_G, to 0 when ATP rate = ATP_G."},
 
-      {"ATP_RAMP_1", 1.3, 0, 0,
-        "Ramp factor for reducing r_G, r_P based on ATP",
-       "Fractional rates of production of intermediates from glycolysis (r_G) and pyruvate (r_P) are reduced as ATP production rate falls.\n\
-        If the normal ATP rate is r_An, and the current rate is r_A, then the fractional production rate f_A = r_A/r_An.\n\
-        A multiplying factor on both r_G and r_P, f, is calculated as a ramp from 0 - 1 as f_A varies from ATP_G - ATPramp*ATP_G\n\
-        i.e. the reduction starts when f_A = ATPramp*ATP_G (f = 1), and when f_A = ATP_G, f = 0.  f_G = f*f_Gn, f_P = f*f_Pn"},
+//      {"ATP_RAMP_1", 1.3, 0, 0,
+//        "Ramp factor for reducing r_G, r_P based on ATP",
+//       "Fractional rates of production of intermediates from glycolysis (r_G) and pyruvate (r_P) are reduced as ATP production rate falls.\n\
+//        If the normal ATP rate is r_An, and the current rate is r_A, then the fractional production rate f_A = r_A/r_An.\n\
+//        A multiplying factor on both r_G and r_P, f, is calculated as a ramp from 0 - 1 as f_A varies from ATP_G - ATPramp*ATP_G\n\
+//        i.e. the reduction starts when f_A = ATPramp*ATP_G (f = 1), and when f_A = ATP_G, f = 0.  f_G = f*f_Gn, f_P = f*f_Pn"},
 
        {"K_PL_1", 0.1, 0, 0,
        "Pyruvate -> lactate rate constant",
@@ -817,7 +817,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 
        {"F_GL_1", 1.5, 0, 0,
        "Lactate:glucose rate factor",
-        "The factor f_GL is the ratio of the rate of lactate production from pyruvate to the glucose consumption rate."},
+       "The factor f_GL is the ratio of the rate of lactate production from pyruvate to the glucose consumption rate."},
 
         {"KM_RGLN_1", 0.02, 0, 0,
         "Glutamine rate Km factor",
