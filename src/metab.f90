@@ -1098,9 +1098,10 @@ do iw = Nwmax,1,-1
     w = (iw-1)*dw
     r_P = r_G*((1 - w*f_Gu)*N_GP - f_GL)    ! Note: this means that f_GL must satisfy: f_GL < (1 - f_Gu)*N_GP ??
     if (r_P < 0) cycle
-    r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w*f_Gln)*N_GlnA
     r_GlnI = r_Gln*w*f_Gln*N_GlnI
     r_ONI = ONfactor*(r_GlnON_I - r_GlnI)
+    r_ON = r_ONI/N_ONI
+    r_A = r_G*(1 - w*f_Gu)*N_GA + r_P*(1 - w*f_Pu)*N_PA + r_Gln*(1 - w*f_Gln)*N_GlnA + r_ON*N_ONA
 ! Try setting r_ONI to ensure that hactual = h  DROPPED
 ! r_A - r_Ag = h*r_I = h*(r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI) + h*r_ONI
 !    r_ONI = (r_A - r_Ag)/h - (r_G*w*f_Gu*N_GI + r_P*w*f_Pu*N_PI + r_GlnI)
@@ -1137,6 +1138,7 @@ r_ONI = ONfactor*(r_GlnON_I - r_GlnI)
 !r_ONI = max(r_ONI, 0.0)
 !r_ONI = f_cutoff*r_ONI
 r_ON = r_ONI/N_ONI
+r_A = r_A + r_ON*N_ONA
 r_L = f_GL*r_G
 C_P = (r_L + V*K2*C_L)/(V*K1)
 if (C_P < 1.0e-6) C_P = 0
