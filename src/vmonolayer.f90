@@ -926,11 +926,11 @@ read(nf,*) f_ATPg
 !read(nf,*) f_ATPramp    ! not used
 read(nf,*) K_PL
 read(nf,*) K_LP
-read(nf,*) C_GlnLo
+read(nf,*) C_GlnLo          !*** simple model -> C_Gln_min in subroutine metab
 read(nf,*) Hill_Km_C    ! Pasteur effect
 read(nf,*) Gln_baserate
 read(nf,*) f_GL     ! was f_N
-read(nf,*) Km_rGln_factor
+read(nf,*) Km_rGln_factor   !*** simple model -> f_Gln_max in subroutine metab
 read(nf,*) fgp_solver
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM  ! not used

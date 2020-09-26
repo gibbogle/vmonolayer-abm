@@ -246,12 +246,16 @@ do ityp = 1,Ncelltypes
 	Tplate_eff = Tplate_eff + plate_eff(ityp)*celltype_fraction(ityp)
 enddo
 
-! Metabolism state variables
+! Metabolism state variables 
 !mp => metabolic
 mp => phase_metabolic(1)
 r_G = mp%G_rate/r_Gu
 r_Gln = mp%Gln_rate/r_Glnu
-r_ON = mp%ON_rate/r_ONu
+if (r_ONu > 0) then
+    r_ON = mp%ON_rate/r_ONu
+else
+    r_ON = 0
+endif
 r_P = mp%P_rate/r_Pu
 r_A = mp%A_rate/r_Au
 !write(nflog,'(a,4e12.3)') 'r_G, r_A, mp%A_rate, r_Au: ',r_G,r_A,mp%A_rate,r_Au
@@ -276,7 +280,6 @@ if (ndoublings > 0) then
 else
     doubling_time = 0
 endif
-write(nflog,'(a,3e12.3)') 'get_summary: r_Gln,r_ON: ',r_Gln,r_ON
 
 summaryData(1:75) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
 	rint(TNATP_dead), rint(TNdrug_dead(1)), rint(TNdrug_dead(2)), rint(TNradiation_dead), rint(TNdead), &

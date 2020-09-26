@@ -103,7 +103,7 @@ logical :: use_wxfGlnu = .false.
 logical :: use_nitrogen = .true.
 logical :: use_ON = .true.
 integer :: knt
-
+logical :: hyper_simple = .true.
 contains
 
 !--------------------------------------------------------------------------
@@ -205,7 +205,9 @@ call analyticSetPDK1(H, fPDK, 1.0d10)
 mp%HIF1 = H
 mp%PDK1 = fPDK
 
-if (use_ON) then
+if (hyper_simple) then
+    call get_unconstrained_rates_simple(res)
+elseif (use_ON) then
     r_Glnu = Gln_maxrate
     call get_unconstrained_rates_ON(res)
 !    call set_param_set_ON(r_Gu,C_L_norm)
@@ -256,6 +258,10 @@ endif
 r_Ag = f_ATPg*r_Au
 r_As = f_ATPs*r_Au
 write(nflog,'(a,e12.3)') 'r_Ag: ',r_Ag
+rIA = r_Iu/r_Au
+write(nflog,'(a,2e12.3)') 'Unconstrained: r_G, r_Gln: ',r_Gu,r_Glnu
+write(nflog,'(a,2e12.3,f8.4)') 'r_I, r_A, r_I/r_A: ',r_Iu,r_Au,rIA
+write(nflog,'(a,f8.4)') 'f_Gln with only Gln to preserve rIA: ',N_GlnA*rIA/(N_GlnI + N_GlnA*rIA)
 mp%recalcable = -1
 knt = 0
 end subroutine
@@ -371,6 +377,117 @@ real(REAL_KIND) :: Cin(:), C_GlnEx
 end subroutine
 
 !--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+subroutine get_unconstrained_rates_simple(res)
+integer :: res
+real(REAL_KIND) :: r_GP, r_GIu, r_PIu, r_GlnIu
+type(metabolism_type), target :: metab
+type(metabolism_type), pointer :: mp
+
+write(nflog,*) 'get_unconstrained_rates_simple'
+mp => metab
+mp%HIF1 = get_HIF1steadystate(C_O2_norm)
+call analyticSetPDK1(mp%HIF1, mp%PDK1, 1.0d10)
+r_Ou = O2_maxrate
+r_Gu = get_glycosis_rate(mp%HIF1,C_G_norm,C_Gln_norm,O2_maxrate)
+r_Glnu = Gln_maxrate
+r_GP = (1 - f_Gu)*r_Gu*N_GP
+r_Pu = (5./85.)*r_GP
+r_Lu = (80./85.)*r_GP
+r_GIu = r_Gu*f_Gu*N_GI
+r_PIu = r_Pu*f_Pu*N_PI
+r_GlnIu = r_Glnu*f_Glnu*N_GlnI
+r_Iu = r_GIu + r_PIu + r_GlnIu
+r_Au = r_Gu*(1 - f_Gu)*N_GA + r_Pu*(1 - f_Pu)*N_PA + r_Glnu*(1 - f_Glnu)*N_GlnA
+write(nflog,'(a,4e12.3)') 'r_GIu, r_PIu, r_GlnIu, r_Iu: ',r_GIu, r_PIu, r_GlnIu, r_Iu
+write(nflog,'(a)') '----------------------------------------------------------------------------'
+res = 0
+end subroutine
+
+!--------------------------------------------------------------------------
+! Test new simple model 22/09/2020
+!--------------------------------------------------------------------------
+subroutine f_metab(mp, Cin, C_GlnEx, res)
+integer :: res
+real(REAL_KIND) :: Cin(:), C_GlnEx
+type(metabolism_type), pointer :: mp
+real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln
+real(REAL_KIND) :: r_G, fPDK, w
+real(REAL_KIND) :: f_G, f_P, f_Gln, r_P, r_A, r_I, r_L, r_Gln
+real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2
+real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_O2
+integer :: N_O2, N_Gln
+real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, f_Gln_max
+
+r_Glnu = Gln_maxrate
+C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc
+f_Gln_C0 = 0.5
+f_Gln_max = Km_rGln_factor  !2.0
+C0 = f_Gln_C0*C_Gln_min
+N_Gln = 1
+r_Gln_max = f_Gln_max*r_Glnu
+
+res = 0
+C_O2 = max(0.0,Cin(OXYGEN))
+C_G = max(0.0,Cin(GLUCOSE))
+C_L = max(0.0,Cin(LACTATE))
+C_Gln = max(0.0,Cin(GLUTAMINE))
+C = C_Gln - C_Gln_min
+
+N_O2 = Hill_N_O2
+Km_O2 = Hill_Km_O2
+r_O2 = mp%O_rate
+mp%G_rate = get_glycosis_rate(mp%HIF1,C_G,C_Gln,r_O2)	! Note: r_O2 is the previous O_rate - not used
+                                                        ! dependence on C_Gln not wanted now - not used
+r_G = mp%G_rate
+fPDK = mp%PDK1
+MM_O2 = f_MM(C_O2,Km_O2,N_O2)
+
+if (C < 0) then
+    w = 0
+else
+    w = C**N_Gln/(C0**N_Gln + C**N_Gln)
+endif
+f_G = w*f_Gu
+f_P = w*f_Pu
+f_Gln = f_Glnu
+
+r_GI = f_G*r_G*N_GI
+r_GA = (1 - f_G)*r_G*N_GA
+r_GP = (1 - f_G)*r_G*N_GP
+r_P = (5./85.)*r_GP
+r_L = (80./85.)*r_GP
+r_PI = f_P*r_P*N_PI
+r_PA = (1 - f_P)*r_P*N_PA
+
+r_Gln = Min(r_Gln_max, (r_Iu - r_GI - r_PI)/(f_Gln*N_GlnI))
+!write(nflog,'(a,5e12.3)') 'r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI: ',r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI
+!write(nflog,'(a,e12.3)') 'r_Gln: ',r_Gln
+r_Gln = w*fPDK*r_Gln
+!write(nflog,'(a,2e12.3)') 'w, r_Gln: ',w,r_Gln
+
+r_GlnI = f_Gln*r_Gln*N_GlnI
+r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
+r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
+
+r_I = r_GI + r_PI + r_GlnI
+r_A = r_GA + r_PA + r_GlnA
+!write(nflog,'(a,4e12.3)') 'r_GI, r_PI, r_GlnI, r_I: ',r_GI, r_PI, r_GlnI, r_I
+!write(nflog,'(a)') '----------------------------------------------------------------------------'
+
+mp%f_G = f_G
+mp%f_P = f_P
+mp%f_Gln = f_Gln
+mp%A_rate = r_A									! production
+mp%I_rate = r_I									! production
+mp%P_rate = r_P									! utilisation
+mp%O_rate = r_O2								! consumption
+mp%Gln_rate = r_Gln								! consumption
+mp%L_rate = r_L									! production
+!write(nflog,'(a,5e12.3)') 'r_G, r_Gln, r_Glnu, r_I, r_A: ',r_G,r_Gln,r_Glnu,r_I,r_A
+end subroutine
+
+!--------------------------------------------------------------------------
 ! Use:
 !	r_G for dG/dt, the rate of glycolysis = rate of glucose consumption
 !	f_G for N_GI, the fraction of dG/dt that goes to intermediates
@@ -404,7 +521,7 @@ end subroutine
 ! (Note that this assumes that C_Gn is given by C_Gn_norm - no longer)
 !--------------------------------------------------------------------------
 !subroutine f_metab(mp, C_O2_, C_G_, C_L_, C_Gln_)
-subroutine f_metab(mp, Cin, C_GlnEx, res)
+subroutine f_metab7(mp, Cin, C_GlnEx, res)
 integer :: res
 real(REAL_KIND) :: Cin(:), C_GlnEx
 type(metabolism_type), pointer :: mp
@@ -947,7 +1064,18 @@ write(nflog,'(a,5f8.3)') 'C: ', C
 !Gln_maxrate = (O2_maxrate - r_P*N_PO)/N_GlnO
 !write(nflog,'(a,e12.3)') 'Gln_maxrate computed from r_O: ',Gln_maxrate
 
+r_G = get_glycosis_rate(mp%HIF1,C_G_norm,C_Gln_norm,O2_maxrate)
 f_Gln = f_Glnu
+if (hyper_simple) then
+    r_Gu = r_G
+    r_Glnu = Gln_maxrate
+    r_P = r_G*(1 - f_Gu)*N_GA
+    r_GlnI = r_Gln*f_Glnu*N_GlnI
+    r_Iu = r_G*f_Gu*N_GI + r_P*f_Pu*N_PI + r_GlnI
+    r_Au = r_G*(1 - f_Gu)*N_GA + r_P*(1 - f_Pu)*N_PA + r_Gln*(1 - f_Glnu)*N_GlnA
+    res = 0
+    return
+endif
 MM_Gln = f_MM(C_Gln_norm,Hill_Km_Gln,int(Hill_N_Gln))
 MM_ON = f_MM(C_ON_norm,Hill_Km_ON,int(Hill_N_ON))
 ratio = (C_Gln_norm/C_ON_norm)    ! ratio of r_Gln/r_ON
@@ -959,7 +1087,6 @@ r_GlnI = r_Gln*f_Gln*N_GlnI
 !r_ON = MM_rGln*MM_ON*ON_maxrate      ! Note: = 0 if ON_maxrate = 0.
 r_ON = r_Gln/ratio
 r_ONI = r_ON*N_ONI
-r_G = get_glycosis_rate(mp%HIF1,C_G_norm,C_Gln_norm,O2_maxrate)
 
 if (iter) then
 ! Initial guess: use w = 1, r_L = 0, C_P = C_L_norm 

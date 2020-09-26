@@ -402,6 +402,7 @@ real(REAL_KIND) :: r_As		! threshold ATP production rates for cell survival
 real(REAL_KIND) :: CO_H		! threshold O2 for Ofactor
 real(REAL_KIND) :: CG_H		! threshold glucose for Gfactor
 real(REAL_KIND) :: I_rate_max   ! = r_Iu
+real(REAL_KIND) :: rIA      ! = r_Iu/r_Au
 ! By cell
 type(metabolism_type), target :: phase_metabolic(3)
 
