@@ -406,26 +406,30 @@ end subroutine
 
 !--------------------------------------------------------------------------
 ! Test new simple model 22/09/2020
+! Try adding in N-intermediates from glutamine
 !--------------------------------------------------------------------------
 subroutine f_metab(mp, Cin, C_GlnEx, res)
 integer :: res
 real(REAL_KIND) :: Cin(:), C_GlnEx
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln
-real(REAL_KIND) :: r_G, fPDK, w
+real(REAL_KIND) :: r_G, fPDK, w, q
 real(REAL_KIND) :: f_G, f_P, f_Gln, r_P, r_A, r_I, r_L, r_Gln
 real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2
-real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_O2
+real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_O2
 integer :: N_O2, N_Gln
-real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, f_Gln_max
+real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, f_Gln_max
 
+q = 0.1
 r_Glnu = Gln_maxrate
 C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc
 f_Gln_C0 = 0.5
 f_Gln_max = Km_rGln_factor  !2.0
 C0 = f_Gln_C0*C_Gln_min
 N_Gln = 1
-r_Gln_max = f_Gln_max*r_Glnu
+fPDK = mp%PDK1
+r_Gln_max = fPDK*f_Gln_max*r_Glnu
+r_GlnI_max = r_Gln_max*f_Gln*N_GlnI
 
 res = 0
 C_O2 = max(0.0,Cin(OXYGEN))
@@ -440,7 +444,6 @@ r_O2 = mp%O_rate
 mp%G_rate = get_glycosis_rate(mp%HIF1,C_G,C_Gln,r_O2)	! Note: r_O2 is the previous O_rate - not used
                                                         ! dependence on C_Gln not wanted now - not used
 r_G = mp%G_rate
-fPDK = mp%PDK1
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
 
 if (C < 0) then
@@ -450,6 +453,7 @@ else
 endif
 f_G = w*f_Gu
 f_P = w*f_Pu
+r_GlnI_max = w*r_GlnI_max
 f_Gln = f_Glnu
 
 r_GI = f_G*r_G*N_GI
@@ -459,18 +463,45 @@ r_P = (5./85.)*r_GP
 r_L = (80./85.)*r_GP
 r_PI = f_P*r_P*N_PI
 r_PA = (1 - f_P)*r_P*N_PA
+r_GPI = r_GI + r_PI
 
-r_Gln = Min(r_Gln_max, (r_Iu - r_GI - r_PI)/(f_Gln*N_GlnI))
+! Note: 
+!   r_GI = f_G*N_GI*r_G
+!   r_PI = f_P*N_PI*r_P = f_P*N_PI*(5./85.)*r_GP = f_P*N_PI*(5./85.)*(1 - f_G)*N_GP*r_G
+! therefore:
+!   r_GPI = (f_G*N_GI + f_P*N_PI*(5./85.)*(1 - f_G)*N_GP)*r_G
+
+!r_Gln = Min(r_Gln_max, (r_Iu - r_GI - r_PI)/(f_Gln*N_GlnI))
+r_GlnI = Min(r_GlnI_max, r_Iu - r_GPI)
 !write(nflog,'(a,5e12.3)') 'r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI: ',r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI
 !write(nflog,'(a,e12.3)') 'r_Gln: ',r_Gln
-r_Gln = w*fPDK*r_Gln
-!write(nflog,'(a,2e12.3)') 'w, r_Gln: ',w,r_Gln
+!r_Gln = w*fPDK*r_Gln
+!r_GlnI = f_Gln*r_Gln*N_GlnI
 
-r_GlnI = f_Gln*r_Gln*N_GlnI
+! Now account for N-intermediates r_NI fraction q of total r_I
+if (r_GlnI < r_GPI*q/(1-q)) then
+    if (r_GlnI_max > r_GPI*q/(1-q)) then
+        r_GlnI = r_GPI*q/(1-q)
+    else    ! reduce r_G
+        r_GlnI = r_GlnI_max
+        r_GPI = r_GlnI*(1-q)/q
+        r_G = r_GPI/(f_G*N_GI + f_P*N_PI*(5./85.)*(1 - f_G)*N_GP)
+        r_GI = f_G*r_G*N_GI
+        r_GA = (1 - f_G)*r_G*N_GA
+        r_GP = (1 - f_G)*r_G*N_GP
+        r_P = (5./85.)*r_GP
+        r_L = (80./85.)*r_GP
+        r_PI = f_P*r_P*N_PI
+        r_PA = (1 - f_P)*r_P*N_PA
+    endif
+endif
+
+r_Gln = r_GlnI/(f_Gln*N_GlnI)
 r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
 r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
 
 r_I = r_GI + r_PI + r_GlnI
+r_NI = q*r_I
 r_A = r_GA + r_PA + r_GlnA
 !write(nflog,'(a,4e12.3)') 'r_GI, r_PI, r_GlnI, r_I: ',r_GI, r_PI, r_GlnI, r_I
 !write(nflog,'(a)') '----------------------------------------------------------------------------'
