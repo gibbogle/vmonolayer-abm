@@ -380,11 +380,12 @@ end subroutine
 !--------------------------------------------------------------------------
 subroutine get_unconstrained_rates_simple(res)
 integer :: res
-real(REAL_KIND) :: r_GP, r_GIu, r_PIu, r_GlnIu
+real(REAL_KIND) :: r_GP, r_GIu, r_PIu, r_GlnIu, f_PP
 type(metabolism_type), target :: metab
 type(metabolism_type), pointer :: mp
 
 write(nflog,*) 'get_unconstrained_rates_simple'
+f_PP = 5./85.   ! needs to be a parameter
 mp => metab
 mp%HIF1 = get_HIF1steadystate(C_O2_norm)
 call analyticSetPDK1(mp%HIF1, mp%PDK1, 1.0d10)
@@ -392,8 +393,8 @@ r_Ou = O2_maxrate
 r_Gu = get_glycosis_rate(mp%HIF1,C_G_norm,C_Gln_norm,O2_maxrate)
 r_Glnu = Gln_maxrate
 r_GP = (1 - f_Gu)*r_Gu*N_GP
-r_Pu = (5./85.)*r_GP
-r_Lu = (80./85.)*r_GP
+r_Pu = f_PP*r_GP
+r_Lu = (1 - f_PP)*r_GP
 r_GIu = r_Gu*f_Gu*N_GI
 r_PIu = r_Pu*f_Pu*N_PI
 r_GlnIu = r_Glnu*f_Glnu*N_GlnI
@@ -405,28 +406,67 @@ res = 0
 end subroutine
 
 !--------------------------------------------------------------------------
+! Determine q to make r_NI a fraction f of r_GlnI in unconstrained situation
+! r_NIu = q*(r_GIu + r_PIu + r_GlnIu) = f*r_GlnIu
+! q = f*r_GlnIu/(r_GPIu + r_GlnIu)
+!f, q:  0.100 0.046
+!f, q:  0.300 0.139
+!f, q:  0.400 0.185
+!f, q:  0.500 0.231
+!f, q:  0.600 0.277
+!f, q:  0.700 0.323
+!f, q:  0.800 0.369
+!--------------------------------------------------------------------------
+subroutine getq(f, q)
+real(REAL_KIND) :: f, q
+real(REAL_KIND) :: r_GlnIu, r_GPIu, f_PP
+
+f_PP = 5./85.   ! needs to be a parameter
+r_Glnu = Gln_maxrate
+r_GPIu = (f_Gu*N_GI + f_Pu*N_PI*f_PP*(1 - f_Gu)*N_GP)*r_Gu
+r_GlnIu = f_Glnu*N_GlnI*r_Glnu
+q = f*r_GlnIu/(r_GPIu + r_GlnIu)
+end subroutine
+
+!--------------------------------------------------------------------------
 ! Test new simple model 22/09/2020
-! Try adding in N-intermediates from glutamine
+! Try adding in N-intermediates from glutamine, fraction q of total intermediates
+! Need to make r_I -> 0 as r_A -> r_Ag
+! Crude method: if r_A < r_Ag, adjust all f_G, f_P, f_Gln 
+! to bring r_A up to r_Ag, reducing r_GI, r_PI, r_GlnI accordingly.
 !--------------------------------------------------------------------------
 subroutine f_metab(mp, Cin, C_GlnEx, res)
 integer :: res
 real(REAL_KIND) :: Cin(:), C_GlnEx
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln
-real(REAL_KIND) :: r_G, fPDK, w, q
+real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP
 real(REAL_KIND) :: f_G, f_P, f_Gln, r_P, r_A, r_I, r_L, r_Gln
 real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2
-real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_O2
-integer :: N_O2, N_Gln
+real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GPA, r_O2
+real(REAL_KIND) :: a, b, cc, d, e, dw, r_Atest, r_Atestq, w1, w2
+integer :: N_O2, N_Gln, k, Nw, iw
 real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, f_Gln_max
 
-q = 0.1
+!do k = 1,8
+!    f = k*0.1
+!    call getq(f,q)
+!    write(nflog,*)
+!    write(nflog,'(a,2f6.3)') 'f, q: ',f,q
+!enddo
+!res = 1
+!return
+
+f_PP = 5./85.   ! needs to be an input parameter !!!!!!!!!!!!!!!!!!!!!
+q = 0.1         ! needs to be an input parameter !!!!!!!!!!!!!!!!!!!!!
+f_Gln = f_Glnu
 r_Glnu = Gln_maxrate
 C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc
-f_Gln_C0 = 0.5
+f_Gln_C0 = 1.0      !0.5
+C0 = f_Gln_C0*C_Gln_min     ! need to make C0 independent of C_Gln_min, another input parameter !!!!!!!!!!!!!
 f_Gln_max = Km_rGln_factor  !2.0
-C0 = f_Gln_C0*C_Gln_min
-N_Gln = 1
+write(nflog,'(a,2f8.4)') 'DEBUG: C_GlnEx, C_Gln_min: ',C_GlnEx,C_Gln_min
+N_Gln = 2
 fPDK = mp%PDK1
 r_Gln_max = fPDK*f_Gln_max*r_Glnu
 r_GlnI_max = r_Gln_max*f_Gln*N_GlnI
@@ -436,7 +476,7 @@ C_O2 = max(0.0,Cin(OXYGEN))
 C_G = max(0.0,Cin(GLUCOSE))
 C_L = max(0.0,Cin(LACTATE))
 C_Gln = max(0.0,Cin(GLUTAMINE))
-C = C_Gln - C_Gln_min
+C = C_GlnEx - C_Gln_min
 
 N_O2 = Hill_N_O2
 Km_O2 = Hill_Km_O2
@@ -451,58 +491,127 @@ if (C < 0) then
 else
     w = C**N_Gln/(C0**N_Gln + C**N_Gln)
 endif
+!write(nflog,'(a,4f8.4)') 'DEBUG: C_Gln, C_Gln_min, C, w: ',C_Gln, C_Gln_min, C, w
+
 f_G = w*f_Gu
 f_P = w*f_Pu
-r_GlnI_max = w*r_GlnI_max
+!r_GlnI_max = w*r_GlnI_max      ! try this
 f_Gln = f_Glnu
 
 r_GI = f_G*r_G*N_GI
 r_GA = (1 - f_G)*r_G*N_GA
 r_GP = (1 - f_G)*r_G*N_GP
-r_P = (5./85.)*r_GP
-r_L = (80./85.)*r_GP
+r_P = f_PP*r_GP
+r_L = (1 - f_PP)*r_GP
 r_PI = f_P*r_P*N_PI
 r_PA = (1 - f_P)*r_P*N_PA
 r_GPI = r_GI + r_PI
+!write(nflog,'(a,3e12.3)') 'DEBUG: r_G, r_P, r_GPI: ',r_G, r_P, r_GPI
 
 ! Note: 
 !   r_GI = f_G*N_GI*r_G
-!   r_PI = f_P*N_PI*r_P = f_P*N_PI*(5./85.)*r_GP = f_P*N_PI*(5./85.)*(1 - f_G)*N_GP*r_G
+!   r_PI = f_P*N_PI*r_P = f_P*N_PI*f_PP*r_GP = f_P*N_PI*f_PP*(1 - f_G)*N_GP*r_G
 ! therefore:
-!   r_GPI = (f_G*N_GI + f_P*N_PI*(5./85.)*(1 - f_G)*N_GP)*r_G
+!   r_GPI = (f_G*N_GI + f_P*N_PI*f_PP*(1 - f_G)*N_GP)*r_G
+!
+!   r_GA = (1-f_G)*N_GA*r_G
+!   r_PA = (1-f_P)*N_PA*r_P = (1-f_P)*N_PA*f_PP*r_GP = (1-f_P)*N_PA*f_PP*(1-f_G)*N_GP*r_G
+! therefore:
+!   r_GPA = ((1-f_G)*N_GA + (1-f_P)*N_PA*f_PP*(1-f_G)*N_GP)*r_G
 
 !r_Gln = Min(r_Gln_max, (r_Iu - r_GI - r_PI)/(f_Gln*N_GlnI))
-r_GlnI = Min(r_GlnI_max, r_Iu - r_GPI)
+
+r_GlnI = Min(r_GlnI_max, w*(r_Iu - r_GPI))
+write(nflog,'(a,4e12.3)') 'DEBUG: r_G,r_GPI,r_GlnI,r_GlnI_max: ',r_G,r_GPI,r_GlnI,r_GlnI_max
 !write(nflog,'(a,5e12.3)') 'r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI: ',r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI
 !write(nflog,'(a,e12.3)') 'r_Gln: ',r_Gln
-!r_Gln = w*fPDK*r_Gln
+!r_Gln = w*fPDK*r_Gln'
 !r_GlnI = f_Gln*r_Gln*N_GlnI
 
 ! Now account for N-intermediates r_NI fraction q of total r_I
 if (r_GlnI < r_GPI*q/(1-q)) then
     if (r_GlnI_max > r_GPI*q/(1-q)) then
         r_GlnI = r_GPI*q/(1-q)
+        write(nflog,'(a,e12.3)') 'DEBUG: r_GlnI: ',r_GlnI
     else    ! reduce r_G
         r_GlnI = r_GlnI_max
         r_GPI = r_GlnI*(1-q)/q
-        r_G = r_GPI/(f_G*N_GI + f_P*N_PI*(5./85.)*(1 - f_G)*N_GP)
+        r_G = r_GPI/(f_G*N_GI + f_P*N_PI*f_PP*(1 - f_G)*N_GP)
         r_GI = f_G*r_G*N_GI
         r_GA = (1 - f_G)*r_G*N_GA
         r_GP = (1 - f_G)*r_G*N_GP
-        r_P = (5./85.)*r_GP
-        r_L = (80./85.)*r_GP
+        r_P = f_PP*r_GP
+        r_L = (1 - f_PP)*r_GP
         r_PI = f_P*r_P*N_PI
         r_PA = (1 - f_P)*r_P*N_PA
+        write(nflog,'(a,3e12.3)') 'DEBUG: reduce r_G: r_GlnI,r_G,r_GPI: ',r_GlnI,r_G,r_GPI
     endif
 endif
 
 r_Gln = r_GlnI/(f_Gln*N_GlnI)
 r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
-r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
 
+r_A = r_GA + r_PA + r_GlnA
+if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_Ag
+!   r_A = (1 - w*f_Gln)*N_GlnA*r_Gln + ((1-w*f_G)*N_GA + (1-w*f_P)*N_PA*f_PP*(1-w*f_G)*N_GP)*r_G
+! => quadratic in w
+    e = N_PA*f_PP*N_GP*r_G
+    a = e*f_P*f_G
+    b = -(f_Gln*N_GlnA*r_Gln + f_G*N_GA*r_G + e*(f_G+f_P))
+    cc = N_GlnA*r_Gln + N_GA*r_G + e - r_Ag
+    if (.true.) then
+    d = sqrt(b*b - 4*a*cc) 
+    w1 = (-b + d)/(2*a)
+    w2 = (-b - d)/(2*a)
+!    write(nflog,'(a,6e11.3)') 'a,b,cc,d,w: ',a,b,cc,d,w1,w2
+    if (w2 < 0) then
+        w = 0
+    elseif (w2 > 1) then
+        write(nflog,*) 'ERROR: w to adjust r_A > 1: ',w2
+        res = 1
+        return
+    else
+        w = w2
+    endif
+    endif
+    
+!    Nw = 10
+!    dw = 1.0/Nw
+!    do iw = Nw,0,-1
+!        w = iw*dw
+!        r_Atest = (1 - w*f_Gln)*N_GlnA*r_Gln + ((1-w*f_G)*N_GA + (1-w*f_P)*N_PA*f_PP*(1-w*f_G)*N_GP)*r_G
+!        r_Atestq = a*w*w + b*w + cc + r_Ag
+!        write(nflog,'(a,i4,f8.3,3e12.3)') 'iw,w,r_Atestq,r_Atest,r_Ag: ',iw,w,r_Atestq,r_Atest,r_Ag
+!        if (r_Atest > r_Ag) exit
+!    enddo
+
+    write(nflog,'(a,f8.3)') 'Adjusting r_A: w: ',w
+    f_G = w*f_G
+    f_P = w*f_P
+    f_Gln = w*f_Gln
+    
+    r_GI = f_G*r_G*N_GI
+    r_GA = (1 - f_G)*r_G*N_GA
+    r_GP = (1 - f_G)*r_G*N_GP
+    r_P = f_PP*r_GP
+    r_L = (1 - f_PP)*r_GP
+    r_PI = f_P*r_P*N_PI
+    r_PA = (1 - f_P)*r_P*N_PA
+    r_GlnI = r_Gln*f_Gln*N_GlnI
+    r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
+endif
+
+r_A = r_GA + r_PA + r_GlnA
+write(nflog,'(a,2e12.3)') 'Checking r_A, r_Ag: ',r_A,r_Ag
 r_I = r_GI + r_PI + r_GlnI
 r_NI = q*r_I
-r_A = r_GA + r_PA + r_GlnA
+r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
+
+!if (r_I == 0) then
+!    write(nflog,*) 'r_I = 0: STOPPING'
+!    res = 1
+!    return
+!endif
 !write(nflog,'(a,4e12.3)') 'r_GI, r_PI, r_GlnI, r_I: ',r_GI, r_PI, r_GlnI, r_I
 !write(nflog,'(a)') '----------------------------------------------------------------------------'
 

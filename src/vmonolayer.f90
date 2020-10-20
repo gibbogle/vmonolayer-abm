@@ -2431,7 +2431,7 @@ end subroutine
 subroutine Execute(ncpu,infile_array,inbuflen,outfile_array,outbuflen,res) BIND(C) 
 !DEC$ ATTRIBUTES DLLEXPORT :: execute
 use, intrinsic :: iso_c_binding
-character(c_char) :: infile_array(*), outfile_array(*)
+character(c_char), intent(in) :: infile_array(*), outfile_array(*)
 integer(c_int) :: ncpu, inbuflen, outbuflen, res
 character*(2048) :: infile, outfile
 logical :: ok, success, isopen

@@ -802,7 +802,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 
        {"C_GLN_LO_1", 0.02, 0, 0,
        "Glutamine cutoff concentration (mM)",
-       "When extracellular glutamine concentration falls below this value consumption of glutamine and other nutrient ceases"},
+       "When extracellular glutamine concentration falls below this value consumption of glutamine and other nutrient ceases.\n\
+        In the simple model, this is C_Gln_min. Using the factor f_Gln_C0 (by default=1), C0 = f_Gln_C0*C_Gln_min\n\
+        and with C = C_GlnEx - C_Gln_min, w = C^2/(C0^2 + C^2) is the factor that multiplies f_Gu, f_Pu\n\
+        and determines r_GlnI = Min(r_GlnI_max, w*(r_Iu - r_GI - r_PI))"},
 
        {"PASTEUR_MM_KM_1", 0.02, 0, 0,
        "Pasteur Effect Michaelis-Menten Km (normalised)",

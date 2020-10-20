@@ -735,7 +735,7 @@ if (use_cell_cycle .and. .not.(cp%phase == G1_phase .or. cp%phase == S_phase .or
 endif
 if (use_metabolism .and. cp%metab%A_rate < r_Ag) then
 	cp%dVdt = 0
-!	write(*,*) 'A_rate < ATPg: ', kcell_now
+!	if (kcell_now == 1) write(nflog,'(a,i8,2e12.3)') 'A_rate < ATPg: ', kcell_now, cp%metab%A_rate, r_Ag
 	return
 endif
 ityp = cp%celltype
@@ -743,7 +743,7 @@ ityp = cp%celltype
 !if (tagged) then
 if (cp%state == DYING) then
 	cp%dVdt = 0
-	write(*,*) 'tagged: ',kcell_now
+!	write(*,*) 'tagged: ',kcell_now
 	return
 endif
 if (colony_simulation) then

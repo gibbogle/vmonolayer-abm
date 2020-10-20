@@ -149,8 +149,8 @@ void ExecThread::run()
 	LOG_MSG("Invoking DLL...");
 	int res=0;
     double hour;
-//	const char *infile, *outfile;
-    char *infile, *outfile;
+    const char *infile, *outfile;
+//    char *infile, *outfile;
     char version[12];
 	QString infile_path, outfile_path;
 	int len_infile, len_outfile;
@@ -182,13 +182,20 @@ void ExecThread::run()
 //    outfile = std_outfile.c_str();
 //    execute(&ncpu,const_cast<char *>(infile),&len_infile,const_cast<char *>(outfile),&len_outfile,&res);
 
-    QByteArray ba = infile_path.toLocal8Bit();
-    infile = ba.data();
-    ba = outfile_path.toLocal8Bit();
-    outfile = ba.data();
+    LOG_QMSG("infile_path: " + infile_path);
+    QByteArray ba1 = infile_path.toLocal8Bit();
+    infile = ba1.data();
+//    LOG_MSG(infile);
+    LOG_MSG(const_cast<char *>(infile));
+    LOG_QMSG("outfile_path: " + outfile_path);
+    QByteArray ba2 = outfile_path.toLocal8Bit();
+    outfile = ba2.data();
+//    LOG_MSG(outfile);
+    LOG_MSG(const_cast<char *>(outfile));
 
     LOG_MSG("call execute");
-    execute(&ncpu,infile,&len_infile,outfile,&len_outfile,&res);
+//    execute(&ncpu,infile,&len_infile,outfile,&len_outfile,&res);
+    execute(&ncpu,const_cast<char *>(infile),&len_infile,const_cast<char *>(outfile),&len_outfile,&res);
     LOG_MSG("did execute");
     if (res) {
         terminate_run(&res);
