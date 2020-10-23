@@ -379,7 +379,9 @@ real(REAL_KIND) :: total_dMdt
 real(REAL_KIND) :: start_wtime
 
 ! Metabolism parameters
-real(REAL_KIND) :: f_GL     ! ratio of lactate production to glucose consumption
+real(REAL_KIND) :: f_GL     ! ratio of lactate production to glucose consumption (not used in simple metab)
+real(REAL_KIND) :: f_IN     ! fraction of total intermediates rate that is N-type (from glutamine only)
+real(REAL_KIND) :: f_PPu    ! normal fraction of pyruvate that is processed by the TCA (rest -> lactate)
 real(REAL_KIND) :: f_Gu     ! normal fraction of glycosis (r_G) going to make intermediates
 real(REAL_KIND) :: f_Glnu   ! normal fraction of glutamine (r_Gn) going to make intermediates
 real(REAL_KIND) :: f_Pu     ! normal fraction of pyruvates (r_P) going to make intermediates

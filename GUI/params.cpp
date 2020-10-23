@@ -56,11 +56,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "DLL0.00",
  "DLL version number."},
 
-{"INITIAL_COUNT", 1000, 0, 0,
+{"INITIAL_COUNT", 2000, 0, 0,
 "Initial number of tumour cells",
 "Initial number of tumour cells"},
 
-{"USE_LOGNORMAL_DIST", 0, 0, 1,
+{"USE_LOGNORMAL_DIST", 1, 0, 1,
 "Use lognormal distribution",
 "The divide time will be a random variate from a log-normal distribution. \n\
  Otherwise checkpoint times are exponentially distributed and base phase times are fixed"},
@@ -91,7 +91,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "Randomise initial cell volumes",
 "The volumes of the initial cell population are randomised."},
 
-{"NDAYS", 20.0, 0.0, 30.0,
+{"NDAYS", 4.0, 0.0, 30.0,
 "Number of days",
 "Length of the simulation.\n\
 [days]"},
@@ -364,11 +364,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-{"GLUTAMINE_CONSUMPTION", 0.85e-16, 0, 0,
+{"GLUTAMINE_CONSUMPTION", 0.40e-16, 0, 0,
  "Consumption rate",
  "Glutamine consumption rate"},
 
-{"GLUTAMINE_MM_KM", 200, 0, 0,
+{"GLUTAMINE_MM_KM", 50, 0, 0,
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
@@ -678,7 +678,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Use glucose metabolism",
        "If metabolism is turned on, cell cycle is used, and lactate is simulated.  If metabolism is turned off, lactate is not simulated"},
 
-       {"F_GNORM_1", 0.5, 0, 0,
+       {"F_GNORM_1", 0.15, 0, 0,
        "Normal fraction of glycolysis -> intermediates",
        "Fraction of glycolysis (r_G) going to make intermediates under conditions of full nutrition"},
 
@@ -773,15 +773,15 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         "Nominal normal IC glutamine concentration, used to set normal metabolic rates for unconstrained growth"},
 
         {"C_ON_NORM_1", 4.0, 0, 0,
-        "Nominal normal IC othernutrient concentration",
+        "Nominal normal IC ON concentration",
         "Nominal normal IC other nutrient concentration, used to set normal metabolic rates for unconstrained growth"},
 
       {"ATP_S_1", 0.1, 0, 0,
-      "ATP production threshold for survival (fraction of peak)",
+      "ATP survival threshold (fraction of peak)",
       "Cell death occurs when the ATP production rate falls below the fraction ATP_S of the maximum (no nutrient constraints) production rate"},
 
       {"ATP_G_1", 0.3, 0, 0,
-       "ATP production threshold for growth (fraction of peak)",
+       "ATP growth threshold (fraction of peak)",
        "Cell growth stops when the ATP production rate falls below the fraction ATP_G of the maximum (no nutrient constraints) production rate.\n\
         Intermediates production from glycolysis and pyruvate ramps down when ATP rate is below ATPramp*ATP_G, to 0 when ATP rate = ATP_G."},
 
@@ -800,17 +800,17 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Lactate -> pyruvate rate constant",
       "The reverse rate constant K_LP of the pyruvate-lactate reaction, i.e. the rate constant for conversion of lactate to pyruvate"},
 
-       {"C_GLN_LO_1", 0.02, 0, 0,
+       {"C_GLN_LO_1", 0.0, 0, 0,
        "Glutamine cutoff concentration (mM)",
        "When extracellular glutamine concentration falls below this value consumption of glutamine and other nutrient ceases.\n\
-        In the simple model, this is C_Gln_min. Using the factor f_Gln_C0 (by default=1), C0 = f_Gln_C0*C_Gln_min\n\
+        In the simple model, this is C_Gln_min. With C0 = MM_KM for glutamine\n\
         and with C = C_GlnEx - C_Gln_min, w = C^2/(C0^2 + C^2) is the factor that multiplies f_Gu, f_Pu\n\
         and determines r_GlnI = Min(r_GlnI_max, w*(r_Iu - r_GI - r_PI))"},
 
        {"PASTEUR_MM_KM_1", 0.02, 0, 0,
-       "Pasteur Effect Michaelis-Menten Km (normalised)",
+       "Pasteur Effect M-M Km (normalised)",
        "The glycolysis rate is multiplied by cfactor, which is a function of the glucose concentration.\n\
-        ..."},
+        (remove it) ..."},
 
        {"GLUTAMINE_BASERATE_1", 0, 0, 0,
        "Glutamine base consumption rate",
@@ -818,18 +818,23 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        With fbase = r_base/Vmax, and gfactor = fbase + (1 - fbase)**Km_GG/(Km_GG + C_G), where Km_GG = 0.2*Km_G,\n\
        the glutamine rate becomes: r_Gln = fPDK*Vmax*gfactor*C_Gln/(Km_Gln + C_Gln)"},
 
-       {"F_GL_1", 1.5, 0, 0,
-       "Lactate:glucose rate factor",
-       "The factor f_GL is the ratio of the rate of lactate production from pyruvate to the glucose consumption rate."},
+       {"F_PP_1", 0.056, 0, 0,
+       "Pyruvate fraction -> TCA",
+       "The factor f_PP is the fraction of the rate of pyruvate production that goes to processing by TCA. Rest goes to lactate."},
 
         {"KM_RGLN_1", 2.0, 0, 0,
-        "Glutamine rate Km factor",
-        "The factor Km_rGln_factor multiplies Vmax_Gln to give Km for the MM function of r_Gln used to compute r_ON (0.02)\n\
-         In the simple model, this is the factor multiplying the nominal glutamine max rate when glutamine is replacing glucose."},
+        "Glutamine max rate factor",
+        "The factor multiplying the nominal glutamine max rate when glutamine is replacing glucose.\n\
+        (was the factor Km_rGln_factor multiplies Vmax_Gln to give Km for the MM function of r_Gln used to compute r_ON (0.02))"},
+
+         {"F_IN_1",0.1,0,0,
+          "N-type fraction of intermediates",
+          "Fraction of intermediates rate that is N-type (from glutamine only)"},
 
        {"F_GP_SOLVER",1,0,0,
         "f_GP solver (1,2,3)",
         "Choices for f_GP solver: 1 = max ATP (tandem), 2 = max ATP (staged), 3 = survival (staged)"},
+
 
 {"HYPOXIA_1", 0.1, 0, 0,
 "Hypoxia threshold 1",

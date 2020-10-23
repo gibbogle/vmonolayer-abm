@@ -385,7 +385,7 @@ type(metabolism_type), target :: metab
 type(metabolism_type), pointer :: mp
 
 write(nflog,*) 'get_unconstrained_rates_simple'
-f_PP = 5./85.   ! needs to be a parameter
+f_PP = f_PPu    ! was 5./85.
 mp => metab
 mp%HIF1 = get_HIF1steadystate(C_O2_norm)
 call analyticSetPDK1(mp%HIF1, mp%PDK1, 1.0d10)
@@ -421,7 +421,7 @@ subroutine getq(f, q)
 real(REAL_KIND) :: f, q
 real(REAL_KIND) :: r_GlnIu, r_GPIu, f_PP
 
-f_PP = 5./85.   ! needs to be a parameter
+f_PP = f_PPu    ! was 5./85.
 r_Glnu = Gln_maxrate
 r_GPIu = (f_Gu*N_GI + f_Pu*N_PI*f_PP*(1 - f_Gu)*N_GP)*r_Gu
 r_GlnIu = f_Glnu*N_GlnI*r_Glnu
@@ -457,13 +457,14 @@ real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, f_Gln_max
 !res = 1
 !return
 
-f_PP = 5./85.   ! needs to be an input parameter !!!!!!!!!!!!!!!!!!!!!
-q = 0.1         ! needs to be an input parameter !!!!!!!!!!!!!!!!!!!!!
+f_PP = f_PPu    ! was 5./85.
+q = f_IN
 f_Gln = f_Glnu
 r_Glnu = Gln_maxrate
 C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc
-f_Gln_C0 = 1.0      !0.5
-C0 = f_Gln_C0*C_Gln_min     ! need to make C0 independent of C_Gln_min, another input parameter !!!!!!!!!!!!!
+!f_Gln_C0 = 1.0      !0.5
+!C0 = f_Gln_C0*C_Gln_min     ! need to make C0 independent of C_Gln_min, another input parameter !!!!!!!!!!!!!
+C0 = chemo(GLUTAMINE)%MM_C0
 f_Gln_max = Km_rGln_factor  !2.0
 write(nflog,'(a,2f8.4)') 'DEBUG: C_GlnEx, C_Gln_min: ',C_GlnEx,C_Gln_min
 N_Gln = 2
