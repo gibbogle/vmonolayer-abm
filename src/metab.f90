@@ -545,11 +545,11 @@ if (use_ON) then
 !    r_GlnI = z*r_GlnONI
 !    r_ONI = (1-z)*r_GlnONI
     r_ON = r_ONI/(f_ON*N_ONI)
-    write(nflog,'(a,4e12.3)') 'r_G, r_P, r_GI, r_PI: ',r_G, r_P, r_GI, r_PI
-    write(nflog,'(a,4e12.3)') 'r_ONI, r_ON, r_ONu, r_ON/r_ONu: ',r_ONI, r_ON, r_ONu, r_ON/r_ONu
+!    write(nflog,'(a,4e12.3)') 'r_G, r_P, r_GI, r_PI: ',r_G, r_P, r_GI, r_PI
+!    write(nflog,'(a,4e12.3)') 'r_ONI, r_ON, r_ONu, r_ON/r_ONu: ',r_ONI, r_ON, r_ONu, r_ON/r_ONu
     r_ONA = (1 - f_ON)*r_ON*N_ONA
     r_I = r_GPI + r_GlnI + r_ONI
-    write(nflog,'(a,4e12.3)') 'r_GPI, r_GlnI, r_ONI, r_I: ',r_GPI, r_GlnI, r_ONI, r_I
+!    write(nflog,'(a,4e12.3)') 'r_GPI, r_GlnI, r_ONI, r_I: ',r_GPI, r_GlnI, r_ONI, r_I
 else
     r_GlnI = Min(r_GlnI_max, r_GlnONI)
     r_ONI = 0
@@ -557,7 +557,7 @@ else
     r_ONA = 0
 endif
 
-write(nflog,'(a,4e12.3,f8.3)') 'r_Iu, r_GPI, r_GlnI, r_I, w: ',r_Iu, r_GPI, r_GlnI, r_GPI + r_GlnI, w
+!write(nflog,'(a,4e12.3,f8.3)') 'r_Iu, r_GPI, r_GlnI, r_I, w: ',r_Iu, r_GPI, r_GlnI, r_GPI + r_GlnI, w
 if (r_GlnI >= r_GlnI_max) write(nflog,'(a,4e12.3)') 'DEBUG: r_G,r_GPI,r_GlnI,r_GlnI_max: ',r_G,r_GPI,r_GlnI,r_GlnI_max
 !write(nflog,'(a,5e12.3)') 'r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI: ',r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI
 !write(nflog,'(a,e12.3)') 'r_Gln: ',r_Gln
@@ -662,7 +662,7 @@ mp%O_rate = r_O2								! consumption
 mp%Gln_rate = r_Gln								! consumption
 mp%ON_rate = r_ON								! consumption
 mp%L_rate = r_L									! production
-!write(nflog,'(a,5e12.3)') 'r_G, r_Gln, r_Glnu, r_I, r_A: ',r_G,r_Gln,r_Glnu,r_I,r_A
+!write(nflog,'(a,5e12.3)') 'r_G, r_Gln, r_Glnu, r_I, r_A: ',r_G,r_Gln,r_Glnu,r_I,r_A 
 end subroutine
 
 !--------------------------------------------------------------------------

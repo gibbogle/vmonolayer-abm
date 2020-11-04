@@ -268,6 +268,7 @@ else
 endif
 C_A_norm = 1
 !An = mp%C_A/C_A_norm	! normalised ATP level
+An = 1
 
 call getMediumConc(EC,cmedium)
 
