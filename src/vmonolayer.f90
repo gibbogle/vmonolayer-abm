@@ -900,6 +900,7 @@ integer :: ityp
 read(nf,*) f_Gu
 read(nf,*) f_Pu
 read(nf,*) f_Glnu
+read(nf,*) f_ONu
 read(nf,*) N_GA
 read(nf,*) N_PA
 read(nf,*) N_GlnA

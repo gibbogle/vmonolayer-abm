@@ -2048,7 +2048,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>301</width>
-               <height>499</height>
+               <height>491</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
@@ -2065,7 +2065,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="5" column="1">
                <widget class="QLineEdit" name="line_K_H1_1">
                 <property name="maximumSize">
                  <size>
@@ -2078,7 +2078,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
+              <item row="6" column="1">
                <widget class="QLineEdit" name="line_K_H2_1">
                 <property name="maximumSize">
                  <size>
@@ -2091,7 +2091,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="7" column="1">
                <widget class="QLineEdit" name="line_K_HB_1">
                 <property name="maximumSize">
                  <size>
@@ -2104,28 +2104,28 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
+              <item row="5" column="0">
                <widget class="QMyLabel" name="label_K_H1_1">
                 <property name="text">
                  <string>N_H</string>
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
+              <item row="6" column="0">
                <widget class="QMyLabel" name="label_K_H2_1">
                 <property name="text">
                  <string>K_H</string>
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="7" column="0">
                <widget class="QMyLabel" name="label_K_HB_1">
                 <property name="text">
                  <string>K_HB</string>
                 </property>
                </widget>
               </item>
-              <item row="14" column="1">
+              <item row="15" column="1">
                <widget class="QLineEdit" name="line_ATP_S_1">
                 <property name="maximumSize">
                  <size>
@@ -2138,7 +2138,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="17" column="1">
+              <item row="18" column="1">
                <widget class="QLineEdit" name="line_K_PL_1">
                 <property name="enabled">
                  <bool>false</bool>
@@ -2154,7 +2154,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="18" column="1">
+              <item row="19" column="1">
                <widget class="QLineEdit" name="line_K_LP_1">
                 <property name="enabled">
                  <bool>false</bool>
@@ -2170,14 +2170,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="14" column="0">
+              <item row="15" column="0">
                <widget class="QMyLabel" name="label_ATP_S_1">
                 <property name="text">
                  <string>ATP survival threshold  (fraction of peak)</string>
                 </property>
                </widget>
               </item>
-              <item row="17" column="0">
+              <item row="18" column="0">
                <widget class="QMyLabel" name="label_K_PL_1">
                 <property name="enabled">
                  <bool>false</bool>
@@ -2187,7 +2187,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="18" column="0">
+              <item row="19" column="0">
                <widget class="QMyLabel" name="label_K_LP_1">
                 <property name="enabled">
                  <bool>false</bool>
@@ -2197,14 +2197,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="7" column="0">
+              <item row="8" column="0">
                <widget class="QMyLabel" name="label_K_PDK_1">
                 <property name="text">
                  <string>K_PDK</string>
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
+              <item row="8" column="1">
                <widget class="QLineEdit" name="line_K_PDK_1">
                 <property name="maximumSize">
                  <size>
@@ -2217,7 +2217,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="19" column="0">
+              <item row="20" column="0">
                <widget class="QMyLabel" name="label_C_GLN_LO_1">
                 <property name="font">
                  <font>
@@ -2230,7 +2230,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="19" column="1">
+              <item row="20" column="1">
                <widget class="QLineEdit" name="line_C_GLN_LO_1">
                 <property name="maximumSize">
                  <size>
@@ -2243,14 +2243,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="8" column="0">
+              <item row="9" column="0">
                <widget class="QMyLabel" name="label_PDKMIN_1">
                 <property name="text">
                  <string>PDKmin</string>
                 </property>
                </widget>
               </item>
-              <item row="8" column="1">
+              <item row="9" column="1">
                <widget class="QLineEdit" name="line_PDKMIN_1">
                 <property name="maximumSize">
                  <size>
@@ -2263,7 +2263,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="1">
+              <item row="10" column="1">
                <widget class="QLineEdit" name="line_C_O2_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2279,7 +2279,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="9" column="0">
+              <item row="10" column="0">
                <widget class="QMyLabel" name="label_C_O2_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2289,7 +2289,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="10" column="1">
+              <item row="11" column="1">
                <widget class="QLineEdit" name="line_C_G_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2305,7 +2305,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
+              <item row="11" column="0">
                <widget class="QMyLabel" name="label_C_G_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2315,7 +2315,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="11" column="1">
+              <item row="12" column="1">
                <widget class="QLineEdit" name="line_C_L_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2331,7 +2331,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="11" column="0">
+              <item row="12" column="0">
                <widget class="QMyLabel" name="label_C_L_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2341,7 +2341,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="15" column="1">
+              <item row="16" column="1">
                <widget class="QLineEdit" name="line_ATP_G_1">
                 <property name="maximumSize">
                  <size>
@@ -2354,14 +2354,14 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="15" column="0">
+              <item row="16" column="0">
                <widget class="QMyLabel" name="label_ATP_G_1">
                 <property name="text">
                  <string>ATP growth threshold  (fraction of peak)</string>
                 </property>
                </widget>
               </item>
-              <item row="16" column="0">
+              <item row="17" column="0">
                <widget class="QMyLabel" name="label_F_PP_1">
                 <property name="text">
                  <string>Pyruvate fraction -&gt; TCA</string>
@@ -2428,7 +2428,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="0">
+              <item row="13" column="0">
                <widget class="QMyLabel" name="label_C_GLN_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2438,7 +2438,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="12" column="1">
+              <item row="13" column="1">
                <widget class="QLineEdit" name="line_C_GLN_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2454,7 +2454,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="21" column="1">
+              <item row="22" column="1">
                <widget class="QLineEdit" name="line_F_IN_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2470,7 +2470,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="21" column="0">
+              <item row="22" column="0">
                <widget class="QMyLabel" name="label_F_IN_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2486,7 +2486,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="22" column="1">
+              <item row="23" column="1">
                <widget class="QLineEdit" name="line_GLUTAMINE_BASERATE_1">
                 <property name="enabled">
                  <bool>false</bool>
@@ -2502,7 +2502,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="22" column="0">
+              <item row="23" column="0">
                <widget class="QMyLabel" name="label_GLUTAMINE_BASERATE_1">
                 <property name="enabled">
                  <bool>false</bool>
@@ -2518,7 +2518,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="13" column="0">
+              <item row="14" column="0">
                <widget class="QMyLabel" name="label_C_ON_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2528,7 +2528,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="13" column="1">
+              <item row="14" column="1">
                <widget class="QLineEdit" name="line_C_ON_NORM_1">
                 <property name="enabled">
                  <bool>true</bool>
@@ -2544,7 +2544,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="20" column="1">
+              <item row="21" column="1">
                <widget class="QLineEdit" name="line_KM_RGLN_1">
                 <property name="maximumSize">
                  <size>
@@ -2557,7 +2557,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="20" column="0">
+              <item row="21" column="0">
                <widget class="QMyLabel" name="label_KM_RGLN_1">
                 <property name="font">
                  <font>
@@ -2570,7 +2570,7 @@ padding: 8px
                 </property>
                </widget>
               </item>
-              <item row="16" column="1">
+              <item row="17" column="1">
                <widget class="QLineEdit" name="line_F_PP_1">
                 <property name="maximumSize">
                  <size>
@@ -2580,6 +2580,26 @@ padding: 8px
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="line_F_ONNORM_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_F_ONNORM_1">
+                <property name="text">
+                 <string>Normal fraction of ON -&gt; intermediates</string>
                 </property>
                </widget>
               </item>

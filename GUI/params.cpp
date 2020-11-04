@@ -686,9 +686,13 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Normal fraction of pyruvate -> intermediates",
         "Fraction of pyruvate (r_P) going to make intermediates under conditions of full nutrition"},
 
-       {"F_GLNNORM_1", 0.5, 0, 0,
+       {"F_GLNNORM_1", 0.25, 0, 0,
        "Normal fraction of glutamine -> intermediates",
         "Fraction of glutamine (r_Gn) going to make intermediates under conditions of full nutrition"},
+
+       {"F_ONNORM_1", 0.25, 0, 0,
+       "Normal fraction of ON -> intermediates",
+        "Fraction of other nutrients ON (r_ONn) going to make intermediates under conditions of full nutrition"},
 
       {"N_GA_1", 2, 0, 0,
       "ATP moles produced per glucose mole",
@@ -777,13 +781,13 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         "Nominal normal IC other nutrient concentration, used to set normal metabolic rates for unconstrained growth"},
 
       {"ATP_S_1", 0.1, 0, 0,
-      "ATP survival threshold (fraction of peak)",
-      "Cell death occurs when the ATP production rate falls below the fraction ATP_S of the maximum (no nutrient constraints) production rate"},
+      "ATP survival threshold (fraction of normal)",
+      "Cell death occurs when the ATP production rate falls below the fraction ATP_S of the normal (unconstrainted) production rate"},
 
       {"ATP_G_1", 0.3, 0, 0,
-       "ATP growth threshold (fraction of peak)",
-       "Cell growth stops when the ATP production rate falls below the fraction ATP_G of the maximum (no nutrient constraints) production rate.\n\
-        Intermediates production from glycolysis and pyruvate ramps down when ATP rate is below ATPramp*ATP_G, to 0 when ATP rate = ATP_G."},
+       "ATP growth threshold (fraction of normal)",
+       "Cell growth stops when the ATP production rate falls below the fraction ATP_G of the normal (unconstrainted) production rate"},
+//        Intermediates production from glycolysis and pyruvate ramps down when ATP rate is below ATPramp*ATP_G, to 0 when ATP rate = ATP_G."},
 
 //      {"ATP_RAMP_1", 1.3, 0, 0,
 //        "Ramp factor for reducing r_G, r_P based on ATP",
@@ -802,7 +806,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 
        {"C_GLN_LO_1", 0.0, 0, 0,
        "Glutamine cutoff concentration (mM)",
-       "When extracellular glutamine concentration falls below this value consumption of glutamine and other nutrient ceases.\n\
+       "When extracellular glutamine concentration falls below this value consumption of glutamine ceases.\n\
         In the simple model, this is C_Gln_min. With C0 = MM_KM for glutamine\n\
         and with C = C_GlnEx - C_Gln_min, w = C^2/(C0^2 + C^2) is the factor that multiplies f_Gu, f_Pu\n\
         and determines r_GlnI = Min(r_GlnI_max, w*(r_Iu - r_GI - r_PI))"},
@@ -820,16 +824,16 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 
        {"F_PP_1", 0.056, 0, 0,
        "Pyruvate fraction -> TCA",
-       "The factor f_PP is the fraction of the rate of pyruvate production that goes to processing by TCA. Rest goes to lactate."},
+       "The factor f_PP is the fraction of pyruvate production that goes to processing by TCA. Rest goes to lactate."},
 
         {"KM_RGLN_1", 2.0, 0, 0,
         "Glutamine max rate factor",
-        "The factor multiplying the nominal glutamine max rate when glutamine is replacing glucose.\n\
-        (was the factor Km_rGln_factor multiplies Vmax_Gln to give Km for the MM function of r_Gln used to compute r_ON (0.02))"},
+        "The factor multiplying the nominal glutamine max rate when glutamine is replacing glucose."},
+//        (was the factor Km_rGln_factor multiplies Vmax_Gln to give Km for the MM function of r_Gln used to compute r_ON (0.02))"},
 
          {"F_IN_1",0.1,0,0,
           "N-type fraction of intermediates",
-          "Fraction of intermediates rate that is N-type (from glutamine only)"},
+          "Fraction of total intermediates rate that is N-type (which comes from glutamine only)"},
 
        {"F_GP_SOLVER",1,0,0,
         "f_GP solver (1,2,3)",

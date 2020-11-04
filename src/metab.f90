@@ -380,7 +380,7 @@ end subroutine
 !--------------------------------------------------------------------------
 subroutine get_unconstrained_rates_simple(res)
 integer :: res
-real(REAL_KIND) :: r_GP, r_GIu, r_PIu, r_GlnIu, f_PP
+real(REAL_KIND) :: r_GP, r_GIu, r_PIu, r_GPIu, r_GlnIu, r_ONIu, f_PP
 type(metabolism_type), target :: metab
 type(metabolism_type), pointer :: mp
 
@@ -392,16 +392,23 @@ call analyticSetPDK1(mp%HIF1, mp%PDK1, 1.0d10)
 r_Ou = O2_maxrate
 r_Gu = get_glycosis_rate(mp%HIF1,C_G_norm,C_Gln_norm,O2_maxrate)
 r_Glnu = Gln_maxrate
+r_ONu = ON_maxrate
 r_GP = (1 - f_Gu)*r_Gu*N_GP
 r_Pu = f_PP*r_GP
 r_Lu = (1 - f_PP)*r_GP
 r_GIu = r_Gu*f_Gu*N_GI
 r_PIu = r_Pu*f_Pu*N_PI
+r_GPIu = r_GIu + r_PIu
 r_GlnIu = r_Glnu*f_Glnu*N_GlnI
-r_Iu = r_GIu + r_PIu + r_GlnIu
-r_Au = r_Gu*(1 - f_Gu)*N_GA + r_Pu*(1 - f_Pu)*N_PA + r_Glnu*(1 - f_Glnu)*N_GlnA
-write(nflog,'(a,4e12.3)') 'r_GIu, r_PIu, r_GlnIu, r_Iu: ',r_GIu, r_PIu, r_GlnIu, r_Iu
-write(nflog,'(a)') '----------------------------------------------------------------------------'
+r_ONIu = r_ONu*f_ONu*N_ONI
+r_Iu = r_GPIu + r_GlnIu + r_ONIu
+r_Au = r_Gu*(1 - f_Gu)*N_GA + r_Pu*(1 - f_Pu)*N_PA + r_Glnu*(1 - f_Glnu)*N_GlnA + r_ONu*(1 - f_ONu)*N_ONA
+write(nflog,'(a,4e12.3)') 'r_Gu, r_Pu, r_GIu, r_PIu: ',r_Gu, r_Pu, r_GIu, r_PIu
+write(nflog,'(a,4e12.3)') 'r_GPIu, r_GlnIu, r_ONIu, r_Iu: ',r_GPIu, r_GlnIu, r_ONIu, r_Iu
+write(nflog,'(a)') '---------------------------------------------------------------'
+write(nflog,'(a,3f6.3)') 'fractions of ATP from: G, P, Gln: ', &
+            r_Gu*(1 - f_Gu)*N_GA/r_Au, r_Pu*(1 - f_Pu)*N_PA/r_Au, r_Glnu*(1 - f_Glnu)*N_GlnA/r_Au
+write(nflog,'(a)') '---------------------------------------------------------------'
 res = 0
 end subroutine
 
@@ -440,13 +447,14 @@ integer :: res
 real(REAL_KIND) :: Cin(:), C_GlnEx
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln
-real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP
-real(REAL_KIND) :: f_G, f_P, f_Gln, r_P, r_A, r_I, r_L, r_Gln
+real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP, v, z
+real(REAL_KIND) :: f_G, f_P, f_Gln, f_ON, r_P, r_A, r_I, r_L, r_Gln
 real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2
-real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GPA, r_O2
+real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ON, r_ONA, r_GPA, r_O2
 real(REAL_KIND) :: a, b, cc, d, e, dw, r_Atest, r_Atestq, w1, w2
 integer :: N_O2, N_Gln, k, Nw, iw
-real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, f_Gln_max
+real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, r_GlnIu, f_Gln_max, r_ON_max, r_ONI_max
+logical :: use_ON = .true.
 
 !do k = 1,8
 !    f = k*0.1
@@ -457,20 +465,23 @@ real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, f_Gln_max
 !res = 1
 !return
 
+f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
 q = f_IN
 f_Gln = f_Glnu
-r_Glnu = Gln_maxrate
 C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc
 !f_Gln_C0 = 1.0      !0.5
 !C0 = f_Gln_C0*C_Gln_min     ! need to make C0 independent of C_Gln_min, another input parameter !!!!!!!!!!!!!
 C0 = chemo(GLUTAMINE)%MM_C0
 f_Gln_max = Km_rGln_factor  !2.0
-write(nflog,'(a,2f8.4)') 'DEBUG: C_GlnEx, C_Gln_min: ',C_GlnEx,C_Gln_min
+!write(nflog,'(a,2f8.4)') 'DEBUG: C_GlnEx, C_Gln_min: ',C_GlnEx,C_Gln_min
 N_Gln = 2
 fPDK = mp%PDK1
 r_Gln_max = fPDK*f_Gln_max*r_Glnu
 r_GlnI_max = r_Gln_max*f_Gln*N_GlnI
+r_GlnIu = r_Glnu*f_Gln*N_GlnI   ! no fPDK!
+r_ON_max = f_Gln_max*r_ONu      ! use same max rate factor as for Gln
+r_ONI_max = r_ON_max*f_ON*N_ONI
 
 res = 0
 C_O2 = max(0.0,Cin(OXYGEN))
@@ -485,6 +496,7 @@ r_O2 = mp%O_rate
 mp%G_rate = get_glycosis_rate(mp%HIF1,C_G,C_Gln,r_O2)	! Note: r_O2 is the previous O_rate - not used
                                                         ! dependence on C_Gln not wanted now - not used
 r_G = mp%G_rate
+v = min(1.0,r_G/r_Gu)
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
 
 if (C < 0) then
@@ -522,15 +534,38 @@ r_GPI = r_GI + r_PI
 
 !r_Gln = Min(r_Gln_max, (r_Iu - r_GI - r_PI)/(f_Gln*N_GlnI))
 
-r_GlnI = Min(r_GlnI_max, w*(r_Iu - r_GPI))
-write(nflog,'(a,4e12.3)') 'DEBUG: r_G,r_GPI,r_GlnI,r_GlnI_max: ',r_G,r_GPI,r_GlnI,r_GlnI_max
+!r_GlnONI = min(1.0,w+0.2)*(r_Iu - r_GPI)     ! to share between r_GlnI and r_ONI if use_ON
+!r_GlnONI = min(1.0,0.6+v)*w*(r_Iu - r_GPI)     ! to share between r_GlnI and r_ONI if use_ON
+! This uses too much ON, when C_Gln doesn't go low the growth is independent of C_G.
+!r_GlnONI = max(0.0,w*r_Iu - r_GPI)     ! to share between r_GlnI and r_ONI if use_ON 
+if (use_ON) then
+    r_GlnI = min(r_Iu - r_GPI, w*r_GlnIu)   !w*r_GlnI_max)
+    r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max)
+!    z = w*min(1.0,0.2+v)
+!    r_GlnI = z*r_GlnONI
+!    r_ONI = (1-z)*r_GlnONI
+    r_ON = r_ONI/(f_ON*N_ONI)
+    write(nflog,'(a,4e12.3)') 'r_G, r_P, r_GI, r_PI: ',r_G, r_P, r_GI, r_PI
+    write(nflog,'(a,4e12.3)') 'r_ONI, r_ON, r_ONu, r_ON/r_ONu: ',r_ONI, r_ON, r_ONu, r_ON/r_ONu
+    r_ONA = (1 - f_ON)*r_ON*N_ONA
+    r_I = r_GPI + r_GlnI + r_ONI
+    write(nflog,'(a,4e12.3)') 'r_GPI, r_GlnI, r_ONI, r_I: ',r_GPI, r_GlnI, r_ONI, r_I
+else
+    r_GlnI = Min(r_GlnI_max, r_GlnONI)
+    r_ONI = 0
+    r_ON = 0
+    r_ONA = 0
+endif
+
+write(nflog,'(a,4e12.3,f8.3)') 'r_Iu, r_GPI, r_GlnI, r_I, w: ',r_Iu, r_GPI, r_GlnI, r_GPI + r_GlnI, w
+if (r_GlnI >= r_GlnI_max) write(nflog,'(a,4e12.3)') 'DEBUG: r_G,r_GPI,r_GlnI,r_GlnI_max: ',r_G,r_GPI,r_GlnI,r_GlnI_max
 !write(nflog,'(a,5e12.3)') 'r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI: ',r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI
 !write(nflog,'(a,e12.3)') 'r_Gln: ',r_Gln
 !r_Gln = w*fPDK*r_Gln'
 !r_GlnI = f_Gln*r_Gln*N_GlnI
 
 ! Now account for N-intermediates r_NI fraction q of total r_I
-if (r_GlnI < r_GPI*q/(1-q)) then
+if (.not.use_ON .and. r_GlnI < r_GPI*q/(1-q)) then
     if (r_GlnI_max > r_GPI*q/(1-q)) then
         r_GlnI = r_GPI*q/(1-q)
         write(nflog,'(a,e12.3)') 'DEBUG: r_GlnI: ',r_GlnI
@@ -600,11 +635,12 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
     r_PA = (1 - f_P)*r_P*N_PA
     r_GlnI = r_Gln*f_Gln*N_GlnI
     r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
+    r_GPI = r_GI + r_PI
 endif
 
-r_A = r_GA + r_PA + r_GlnA
+r_A = r_GA + r_PA + r_GlnA + r_ONA
 write(nflog,'(a,2e12.3)') 'Checking r_A, r_Ag: ',r_A,r_Ag
-r_I = r_GI + r_PI + r_GlnI
+r_I = r_GPI + r_GlnI + r_ONI
 r_NI = q*r_I
 r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
 
@@ -624,6 +660,7 @@ mp%I_rate = r_I									! production
 mp%P_rate = r_P									! utilisation
 mp%O_rate = r_O2								! consumption
 mp%Gln_rate = r_Gln								! consumption
+mp%ON_rate = r_ON								! consumption
 mp%L_rate = r_L									! production
 !write(nflog,'(a,5e12.3)') 'r_G, r_Gln, r_Glnu, r_I, r_A: ',r_G,r_Gln,r_Glnu,r_I,r_A
 end subroutine
@@ -1182,7 +1219,7 @@ end subroutine
 #endif
 
 !=====================================================================================================
-
+! Not used
 subroutine get_unconstrained_rates_ON(res)
 integer :: res
 type(metabolism_type), target :: metab
@@ -1210,8 +1247,9 @@ f_Gln = f_Glnu
 if (hyper_simple) then
     r_Gu = r_G
     r_Glnu = Gln_maxrate
+    r_ONu = ON_maxrate
     r_P = r_G*(1 - f_Gu)*N_GA
-    r_GlnI = r_Gln*f_Glnu*N_GlnI
+    r_GlnI = r_Glnu*f_Glnu*N_GlnI
     r_Iu = r_G*f_Gu*N_GI + r_P*f_Pu*N_PI + r_GlnI
     r_Au = r_G*(1 - f_Gu)*N_GA + r_P*(1 - f_Pu)*N_PA + r_Gln*(1 - f_Glnu)*N_GlnA
     res = 0

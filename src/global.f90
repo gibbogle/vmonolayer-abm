@@ -384,6 +384,7 @@ real(REAL_KIND) :: f_IN     ! fraction of total intermediates rate that is N-typ
 real(REAL_KIND) :: f_PPu    ! normal fraction of pyruvate that is processed by the TCA (rest -> lactate)
 real(REAL_KIND) :: f_Gu     ! normal fraction of glycosis (r_G) going to make intermediates
 real(REAL_KIND) :: f_Glnu   ! normal fraction of glutamine (r_Gn) going to make intermediates
+real(REAL_KIND) :: f_ONu    ! normal fraction of ON (r_ONn) going to make intermediates
 real(REAL_KIND) :: f_Pu     ! normal fraction of pyruvates (r_P) going to make intermediates
 real(REAL_KIND) :: N_GA		! number of ATP molecules generated per glucose molecule in glycosis
 real(REAL_KIND) :: N_GI		! number of intermediate molecules generated per glucose molecule in glycosis
