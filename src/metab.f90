@@ -450,7 +450,7 @@ real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln
 real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP, v, z
 real(REAL_KIND) :: f_G, f_P, f_Gln, f_ON, r_P, r_A, r_I, r_L, r_Gln
 real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2
-real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ON, r_ONA, r_GPA, r_O2
+real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ONIu, r_ON, r_ONA, r_GPA, r_O2
 real(REAL_KIND) :: a, b, cc, d, e, dw, r_Atest, r_Atestq, w1, w2
 integer :: N_O2, N_Gln, k, Nw, iw
 real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, r_GlnIu, f_Gln_max, r_ON_max, r_ONI_max
@@ -482,6 +482,7 @@ r_GlnI_max = r_Gln_max*f_Gln*N_GlnI
 r_GlnIu = r_Glnu*f_Gln*N_GlnI   ! no fPDK!
 r_ON_max = f_Gln_max*r_ONu      ! use same max rate factor as for Gln
 r_ONI_max = r_ON_max*f_ON*N_ONI
+r_ONIu = r_ONu*f_ON*N_ONI
 
 res = 0
 C_O2 = max(0.0,Cin(OXYGEN))
@@ -539,11 +540,8 @@ r_GPI = r_GI + r_PI
 ! This uses too much ON, when C_Gln doesn't go low the growth is independent of C_G.
 !r_GlnONI = max(0.0,w*r_Iu - r_GPI)     ! to share between r_GlnI and r_ONI if use_ON 
 if (use_ON) then
-    r_GlnI = min(r_Iu - r_GPI, w*r_GlnIu)   !w*r_GlnI_max)
-    r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max)
-!    z = w*min(1.0,0.2+v)
-!    r_GlnI = z*r_GlnONI
-!    r_ONI = (1-z)*r_GlnONI
+    r_GlnI = min(r_Iu - r_GPI, w*r_GlnIu)       !w*r_GlnI_max)
+    r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max) ! effectively, f_Gln_max = 1
     r_ON = r_ONI/(f_ON*N_ONI)
 !    write(nflog,'(a,4e12.3)') 'r_G, r_P, r_GI, r_PI: ',r_G, r_P, r_GI, r_PI
 !    write(nflog,'(a,4e12.3)') 'r_ONI, r_ON, r_ONu, r_ON/r_ONu: ',r_ONI, r_ON, r_ONu, r_ON/r_ONu
@@ -587,17 +585,18 @@ endif
 r_Gln = r_GlnI/(f_Gln*N_GlnI)
 r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
 
-r_A = r_GA + r_PA + r_GlnA
+r_A = r_GA + r_PA + r_GlnA + r_ONA
 if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_Ag
 !   r_A = (1 - w*f_Gln)*N_GlnA*r_Gln + ((1-w*f_G)*N_GA + (1-w*f_P)*N_PA*f_PP*(1-w*f_G)*N_GP)*r_G
+!   now have added in (1 - w*f_ON)*N_ONA*r_ON
 ! => quadratic in w
     write(nflog,'(a,3e12.3)') 'r_GA, r_PA, r_GlnA: ',r_GA, r_PA, r_GlnA
     write(nflog,'(a,f8.3,2e12.3)') 'w, r_A, r_Ag: ',w, r_A, r_Ag
     if (w > 0) then
         e = N_PA*f_PP*N_GP*r_G
         a = e*f_P*f_G
-        b = -(f_Gln*N_GlnA*r_Gln + f_G*N_GA*r_G + e*(f_G+f_P))
-        cc = N_GlnA*r_Gln + N_GA*r_G + e - r_Ag
+        b = -(f_Gln*N_GlnA*r_Gln + f_ON*N_ONA*r_ON + f_G*N_GA*r_G + e*(f_G+f_P))
+        cc = N_GlnA*r_Gln + N_ONA*r_ON + N_GA*r_G + e - r_Ag
         if (.true.) then
         d = sqrt(b*b - 4*a*cc) 
         w1 = (-b + d)/(2*a)
@@ -615,7 +614,7 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
     endif
     endif
     
-!    Nw = 10
+!    Nw = 10 
 !    dw = 1.0/Nw
 !    do iw = Nw,0,-1
 !        w = iw*dw
@@ -629,6 +628,7 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
     f_G = w*f_G
     f_P = w*f_P
     f_Gln = w*f_Gln
+    f_ON = w*f_ON   ! added
     
     r_GI = f_G*r_G*N_GI
     r_GA = (1 - f_G)*r_G*N_GA
@@ -639,6 +639,8 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
     r_PA = (1 - f_P)*r_P*N_PA
     r_GlnI = r_Gln*f_Gln*N_GlnI
     r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
+    r_ONI = r_ON*f_ON*N_ONI         ! added
+    r_ONA = (1 - f_ON)*r_ON*N_ONA   ! added
     r_GPI = r_GI + r_PI
 endif
 
