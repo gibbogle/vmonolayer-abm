@@ -591,23 +591,27 @@ r_A = r_GA + r_PA + r_GlnA
 if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_Ag
 !   r_A = (1 - w*f_Gln)*N_GlnA*r_Gln + ((1-w*f_G)*N_GA + (1-w*f_P)*N_PA*f_PP*(1-w*f_G)*N_GP)*r_G
 ! => quadratic in w
-    e = N_PA*f_PP*N_GP*r_G
-    a = e*f_P*f_G
-    b = -(f_Gln*N_GlnA*r_Gln + f_G*N_GA*r_G + e*(f_G+f_P))
-    cc = N_GlnA*r_Gln + N_GA*r_G + e - r_Ag
-    if (.true.) then
-    d = sqrt(b*b - 4*a*cc) 
-    w1 = (-b + d)/(2*a)
-    w2 = (-b - d)/(2*a)
-!    write(nflog,'(a,6e11.3)') 'a,b,cc,d,w: ',a,b,cc,d,w1,w2
-    if (w2 < 0) then
-        w = 0
-    elseif (w2 > 1) then
-        write(nflog,*) 'ERROR: w to adjust r_A > 1: ',w2
-        res = 1
-        return
-    else
-        w = w2
+    write(nflog,'(a,3e12.3)') 'r_GA, r_PA, r_GlnA: ',r_GA, r_PA, r_GlnA
+    write(nflog,'(a,f8.3,2e12.3)') 'w, r_A, r_Ag: ',w, r_A, r_Ag
+    if (w > 0) then
+        e = N_PA*f_PP*N_GP*r_G
+        a = e*f_P*f_G
+        b = -(f_Gln*N_GlnA*r_Gln + f_G*N_GA*r_G + e*(f_G+f_P))
+        cc = N_GlnA*r_Gln + N_GA*r_G + e - r_Ag
+        if (.true.) then
+        d = sqrt(b*b - 4*a*cc) 
+        w1 = (-b + d)/(2*a)
+        w2 = (-b - d)/(2*a)
+        write(nflog,'(a,6e11.3)') 'a,b,cc,d,w1,w2: ',a,b,cc,d,w1,w2
+        if (w2 < 0) then
+            w = 0
+        elseif (w2 > 1) then
+            write(nflog,*) 'ERROR: w to adjust r_A > 1: ',w2
+            res = 1
+            return
+        else
+            w = w2
+        endif
     endif
     endif
     

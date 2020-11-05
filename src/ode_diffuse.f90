@@ -428,7 +428,7 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
 	dydt(k) = dCreact
 	if (isnan(dydt(k))) then
 		write(nflog,*) 'f_rkc_OGL: dydt isnan: ',ichemo,dydt(k)
-		write(*,*) 'f_rkc_drug: dydt isnan: ',ichemo,dydt(k)
+		write(*,*) 'f_rkc_OGL: dydt isnan: ',ichemo,dydt(k)
 		stop
 	endif
 	
