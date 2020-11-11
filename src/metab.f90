@@ -447,7 +447,7 @@ integer :: res
 real(REAL_KIND) :: Cin(:), C_GlnEx
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln
-real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP, v, z
+real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP, v, z, wlim
 real(REAL_KIND) :: f_G, f_P, f_Gln, f_ON, r_P, r_A, r_I, r_L, r_Gln
 real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2
 real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ONIu, r_ON, r_ONA, r_GPA, r_O2
@@ -541,7 +541,13 @@ r_GPI = r_GI + r_PI
 !r_GlnONI = max(0.0,w*r_Iu - r_GPI)     ! to share between r_GlnI and r_ONI if use_ON 
 if (use_ON) then
     r_GlnI = min(r_Iu - r_GPI, w*r_GlnIu)       !w*r_GlnI_max)
-    r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max) ! effectively, f_Gln_max = 1
+    wlim = 0.03
+    if (w < wlim) then
+        z = 0.7 + (1.0 - 0.7)*w/wlim
+    else
+        z = 1
+    endif
+    r_ONI = z*min(r_Iu - r_GPI - r_GlnI, r_ONIu) ! effectively, f_Gln_max = 1
     r_ON = r_ONI/(f_ON*N_ONI)
 !    write(nflog,'(a,4e12.3)') 'r_G, r_P, r_GI, r_PI: ',r_G, r_P, r_GI, r_PI
 !    write(nflog,'(a,4e12.3)') 'r_ONI, r_ON, r_ONu, r_ON/r_ONu: ',r_ONI, r_ON, r_ONu, r_ON/r_ONu
