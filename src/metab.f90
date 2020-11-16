@@ -80,6 +80,9 @@ real(REAL_KIND) :: G_maxrate, O2_maxrate, Gln_maxrate, ON_maxrate
 real(REAL_KIND) :: f_N, f_NG, r_Abase, r_Ibase, C_GlnLo, Km_rGln_factor
 integer :: fgp_solver
 
+real(REAL_KIND) :: C_GlnEx_prev, r_ON_max
+logical :: first_metab
+
 type param_set_type
 real(REAL_KIND) :: a0, b0, c0, d0, a1, b1, c1, d1, a2, b2, c2, d2, a3, b3, c3, d3, p, q, h
 end type
@@ -409,6 +412,7 @@ write(nflog,'(a)') '------------------------------------------------------------
 write(nflog,'(a,3f6.3)') 'fractions of ATP from: G, P, Gln: ', &
             r_Gu*(1 - f_Gu)*N_GA/r_Au, r_Pu*(1 - f_Pu)*N_PA/r_Au, r_Glnu*(1 - f_Glnu)*N_GlnA/r_Au
 write(nflog,'(a)') '---------------------------------------------------------------'
+first_metab = .true.
 res = 0
 end subroutine
 
@@ -453,43 +457,31 @@ real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2
 real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ONIu, r_ON, r_ONA, r_GPA, r_O2
 real(REAL_KIND) :: a, b, cc, d, e, dw, r_Atest, r_Atestq, w1, w2
 integer :: N_O2, N_Gln, k, Nw, iw
-real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, r_GlnIu, f_Gln_max, r_ON_max, r_ONI_max
+real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, r_GlnIu, f_Gln_max, r_ONI_max
 logical :: use_ON = .true.
-
-!do k = 1,8
-!    f = k*0.1
-!    call getq(f,q)
-!    write(nflog,*)
-!    write(nflog,'(a,2f6.3)') 'f, q: ',f,q
-!enddo
-!res = 1
-!return
 
 f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
 q = f_IN
 f_Gln = f_Glnu
 C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc
-!f_Gln_C0 = 1.0      !0.5
-!C0 = f_Gln_C0*C_Gln_min     ! need to make C0 independent of C_Gln_min, another input parameter !!!!!!!!!!!!!
 C0 = chemo(GLUTAMINE)%MM_C0
 f_Gln_max = Km_rGln_factor  !2.0
 !write(nflog,'(a,2f8.4)') 'DEBUG: C_GlnEx, C_Gln_min: ',C_GlnEx,C_Gln_min
-N_Gln = 2
 fPDK = mp%PDK1
-r_Gln_max = fPDK*f_Gln_max*r_Glnu
+!r_Gln_max = fPDK*f_Gln_max*r_Glnu
+r_Gln_max = fPDK*r_Glnu
 r_GlnI_max = r_Gln_max*f_Gln*N_GlnI
 r_GlnIu = r_Glnu*f_Gln*N_GlnI   ! no fPDK!
+!r_ON_max = r_ONu
 r_ON_max = f_Gln_max*r_ONu      ! use same max rate factor as for Gln
 r_ONI_max = r_ON_max*f_ON*N_ONI
-r_ONIu = r_ONu*f_ON*N_ONI
 
 res = 0
 C_O2 = max(0.0,Cin(OXYGEN))
 C_G = max(0.0,Cin(GLUCOSE))
 C_L = max(0.0,Cin(LACTATE))
 C_Gln = max(0.0,Cin(GLUTAMINE))
-C = C_GlnEx - C_Gln_min
 
 N_O2 = Hill_N_O2
 Km_O2 = Hill_Km_O2
@@ -500,16 +492,32 @@ r_G = mp%G_rate
 v = min(1.0,r_G/r_Gu)
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
 
+! This is probably valid only for vmonolayer, not when different cells see different C_GlnEx
+if (first_metab) then
+    C = C_glnEx
+!    r_ON_max = r_ONu*1.3    ! TESTING
+    first_metab = .false.
+else
+    C = (C_GlnEx + C_GlnEx_prev)/2
+    C_GlnEx_prev = C_GlnEx
+endif
+
+N_Gln = chemo(GLUTAMINE)%Hill_N
 if (C < 0) then
     w = 0
 else
     w = C**N_Gln/(C0**N_Gln + C**N_Gln)
 endif
-!write(nflog,'(a,4f8.4)') 'DEBUG: C_Gln, C_Gln_min, C, w: ',C_Gln, C_Gln_min, C, w
+
+! To test slowly reducing r_ON_max
+!if (w < 0.01) then
+!    r_ON_max = r_ON_max*(1 - (1-w)/1000)
+!    r_ONI_max = r_ON_max*f_ON*N_ONI
+!endif
+!write(nflog,'(a,f8.3,4e12.3)') 'w,r_ON_max,r_ONI_max: ',w,r_ON_max,r_ONI_max,f_ON,N_ONI
 
 f_G = w*f_Gu
 f_P = w*f_Pu
-!r_GlnI_max = w*r_GlnI_max      ! try this
 f_Gln = f_Glnu
 
 r_GI = f_G*r_G*N_GI
@@ -520,7 +528,6 @@ r_L = (1 - f_PP)*r_GP
 r_PI = f_P*r_P*N_PI
 r_PA = (1 - f_P)*r_P*N_PA
 r_GPI = r_GI + r_PI
-!write(nflog,'(a,3e12.3)') 'DEBUG: r_G, r_P, r_GPI: ',r_G, r_P, r_GPI
 
 ! Note: 
 !   r_GI = f_G*N_GI*r_G
@@ -535,25 +542,21 @@ r_GPI = r_GI + r_PI
 
 !r_Gln = Min(r_Gln_max, (r_Iu - r_GI - r_PI)/(f_Gln*N_GlnI))
 
-!r_GlnONI = min(1.0,w+0.2)*(r_Iu - r_GPI)     ! to share between r_GlnI and r_ONI if use_ON
-!r_GlnONI = min(1.0,0.6+v)*w*(r_Iu - r_GPI)     ! to share between r_GlnI and r_ONI if use_ON
-! This uses too much ON, when C_Gln doesn't go low the growth is independent of C_G.
-!r_GlnONI = max(0.0,w*r_Iu - r_GPI)     ! to share between r_GlnI and r_ONI if use_ON 
 if (use_ON) then
-    r_GlnI = min(r_Iu - r_GPI, w*r_GlnIu)       !w*r_GlnI_max)
-    wlim = 0.03
+    r_GlnI = min(r_Iu - r_GPI, w*r_GlnIu)
+!    r_GlnI = w*r_GlnIu
+    write(nflog,'(a,2f8.4,e12.3)') 'w, C_GlnEx, r_GlnI: ',w,C_GlnEx,r_GlnI
+    z = 1
+    wlim = 0.05
     if (w < wlim) then
-        z = 0.7 + (1.0 - 0.7)*w/wlim
-    else
-        z = 1
+        z = 0.5 + (1.0 - 0.5)*w/wlim
     endif
-    r_ONI = z*min(r_Iu - r_GPI - r_GlnI, r_ONIu) ! effectively, f_Gln_max = 1
+    r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max) 
+    r_ONI = z*r_ONI
     r_ON = r_ONI/(f_ON*N_ONI)
-!    write(nflog,'(a,4e12.3)') 'r_G, r_P, r_GI, r_PI: ',r_G, r_P, r_GI, r_PI
-!    write(nflog,'(a,4e12.3)') 'r_ONI, r_ON, r_ONu, r_ON/r_ONu: ',r_ONI, r_ON, r_ONu, r_ON/r_ONu
     r_ONA = (1 - f_ON)*r_ON*N_ONA
     r_I = r_GPI + r_GlnI + r_ONI
-!    write(nflog,'(a,4e12.3)') 'r_GPI, r_GlnI, r_ONI, r_I: ',r_GPI, r_GlnI, r_ONI, r_I
+    write(nflog,'(a,2f6.3,5e12.3)') 'w,z,r_GPI,r_GlnI,r_ONI,r_I,r_Iu: ',w,z,r_GPI,r_GlnI,r_ONI,r_I,r_Iu
 else
     r_GlnI = Min(r_GlnI_max, r_GlnONI)
     r_ONI = 0
@@ -562,13 +565,14 @@ else
 endif
 
 !write(nflog,'(a,4e12.3,f8.3)') 'r_Iu, r_GPI, r_GlnI, r_I, w: ',r_Iu, r_GPI, r_GlnI, r_GPI + r_GlnI, w
-if (r_GlnI >= r_GlnI_max) write(nflog,'(a,4e12.3)') 'DEBUG: r_G,r_GPI,r_GlnI,r_GlnI_max: ',r_G,r_GPI,r_GlnI,r_GlnI_max
+!if (r_GlnI >= r_GlnI_max) write(nflog,'(a,4e12.3)') 'DEBUG: r_G,r_GPI,r_GlnI,r_GlnI_max: ',r_G,r_GPI,r_GlnI,r_GlnI_max
 !write(nflog,'(a,5e12.3)') 'r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI: ',r_Gln_max,r_Iu,r_GI,r_PI,f_Gln*N_GlnI
 !write(nflog,'(a,e12.3)') 'r_Gln: ',r_Gln
 !r_Gln = w*fPDK*r_Gln'
 !r_GlnI = f_Gln*r_Gln*N_GlnI
 
 ! Now account for N-intermediates r_NI fraction q of total r_I
+! NOT USED NOW
 if (.not.use_ON .and. r_GlnI < r_GPI*q/(1-q)) then
     if (r_GlnI_max > r_GPI*q/(1-q)) then
         r_GlnI = r_GPI*q/(1-q)
@@ -651,7 +655,7 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
 endif
 
 r_A = r_GA + r_PA + r_GlnA + r_ONA
-write(nflog,'(a,2e12.3)') 'Checking r_A, r_Ag: ',r_A,r_Ag
+!write(nflog,'(a,2e12.3)') 'Checking r_A, r_Ag: ',r_A,r_Ag
 r_I = r_GPI + r_GlnI + r_ONI
 r_NI = q*r_I
 r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
