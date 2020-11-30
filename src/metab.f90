@@ -549,7 +549,7 @@ if (use_ON) then
     write(nflog,'(a,2f8.4,e12.3)') 'w, C_GlnEx, r_GlnI: ',w,C_GlnEx,r_GlnI
     z = 1
     wlim = 0.05
-    zmin = 0.3
+    zmin = 0.4
     if (w < wlim) then      ! explain
         z = zmin + (1.0 - zmin)*w/wlim
     endif
