@@ -451,7 +451,7 @@ integer :: res
 real(REAL_KIND) :: Cin(:), C_GlnEx
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln
-real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP, v, z, wlim
+real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP, v, z, zmin, wlim
 real(REAL_KIND) :: f_G, f_P, f_Gln, f_ON, r_P, r_A, r_I, r_L, r_Gln
 real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2
 real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ONIu, r_ON, r_ONA, r_GPA, r_O2
@@ -486,9 +486,8 @@ C_Gln = max(0.0,Cin(GLUTAMINE))
 N_O2 = Hill_N_O2
 Km_O2 = Hill_Km_O2
 r_O2 = mp%O_rate
-mp%G_rate = get_glycosis_rate(mp%HIF1,C_G,C_Gln,r_O2)	! Note: r_O2 is the previous O_rate - not used
+r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,r_O2)	! Note: r_O2 is the previous O_rate - not used
                                                         ! dependence on C_Gln not wanted now - not used
-r_G = mp%G_rate
 v = min(1.0,r_G/r_Gu)
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
 
@@ -515,6 +514,8 @@ endif
 !    r_ONI_max = r_ON_max*f_ON*N_ONI
 !endif
 !write(nflog,'(a,f8.3,4e12.3)') 'w,r_ON_max,r_ONI_max: ',w,r_ON_max,r_ONI_max,f_ON,N_ONI
+
+r_G = w*r_G     !!!!!!!!!!!!!!!!!!!!!!!!!! test !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 f_G = w*f_Gu
 f_P = w*f_Pu
@@ -548,8 +549,9 @@ if (use_ON) then
     write(nflog,'(a,2f8.4,e12.3)') 'w, C_GlnEx, r_GlnI: ',w,C_GlnEx,r_GlnI
     z = 1
     wlim = 0.05
-    if (w < wlim) then
-        z = 0.5 + (1.0 - 0.5)*w/wlim
+    zmin = 0.3
+    if (w < wlim) then      ! explain
+        z = zmin + (1.0 - zmin)*w/wlim
     endif
     r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max) 
     r_ONI = z*r_ONI
@@ -616,8 +618,9 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
             w = 0
         elseif (w2 > 1) then
             write(nflog,*) 'ERROR: w to adjust r_A > 1: ',w2
-            res = 1
-            return
+!            res = 1
+!            return
+            w = 1
         else
             w = w2
         endif
@@ -671,6 +674,7 @@ r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
 mp%f_G = f_G
 mp%f_P = f_P
 mp%f_Gln = f_Gln
+mp%G_rate = r_G
 mp%A_rate = r_A									! production
 mp%I_rate = r_I									! production
 mp%P_rate = r_P									! utilisation
