@@ -252,7 +252,7 @@ mp => phase_metabolic(1)
 r_G = mp%G_rate/r_Gu
 r_Gln = mp%Gln_rate/r_Glnu
 if (r_ONu > 0) then
-    r_ON = mp%ON_rate/r_ONu
+    r_ON = mp%ON_rate/ON_maxrate
 else
     r_ON = 0
 endif

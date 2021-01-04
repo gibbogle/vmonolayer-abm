@@ -839,6 +839,25 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         "f_GP solver (1,2,3)",
         "Choices for f_GP solver: 1 = max ATP (tandem), 2 = max ATP (staged), 3 = survival (staged)"},
 
+        {"C_GLN_LO",0.25,0,0,
+         "C_Gln_lo",
+         "Lower bound of ramp"},
+
+        {"C_GLN_HI",0.3,0,0,
+         "C_Gln_hi",
+         "Upper bound of ramp"},
+
+        {"F_RGLN_LO",0.2,0,0,
+         "f_rGln_lo",
+         "Low r_Gln factor"},
+
+        {"F_RGLN_THRESHOLD",0.05,0,0,
+         "f_rGln_threshold",
+         "r_Gln threshold for cell death"},
+
+        {"F_RON_BASE",0.1,0,0,
+         "f_rON_base",
+         "base level of r_ON, fraction of max"},
 
 {"HYPOXIA_1", 0.1, 0, 0,
 "Hypoxia threshold 1",

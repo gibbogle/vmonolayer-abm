@@ -406,6 +406,8 @@ real(REAL_KIND) :: CO_H		! threshold O2 for Ofactor
 real(REAL_KIND) :: CG_H		! threshold glucose for Gfactor
 real(REAL_KIND) :: I_rate_max   ! = r_Iu
 real(REAL_KIND) :: rIA      ! = r_Iu/r_Au
+real(REAL_KIND) :: C_Gln_lo, C_Gln_hi, f_rGln_lo, f_rGln_threshold, f_rON_base
+
 ! By cell
 type(metabolism_type), target :: phase_metabolic(3)
 
