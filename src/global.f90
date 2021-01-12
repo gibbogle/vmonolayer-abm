@@ -407,6 +407,8 @@ real(REAL_KIND) :: CG_H		! threshold glucose for Gfactor
 real(REAL_KIND) :: I_rate_max   ! = r_Iu
 real(REAL_KIND) :: rIA      ! = r_Iu/r_Au
 real(REAL_KIND) :: C_Gln_lo, C_Gln_hi, f_rGln_lo, f_rGln_threshold, f_rON_base
+real(REAL_KIND) :: Gln_Nshare
+real(REAL_KIND) :: k_glutamine_decay
 
 ! By cell
 type(metabolism_type), target :: phase_metabolic(3)
@@ -453,6 +455,7 @@ logical :: fully_mixed
 logical :: use_parallel
 logical :: colony_simulation
 logical :: use_metabolism
+logical :: use_glutamine_decay
 logical :: noSS = .false.   ! if true, SS solution is not used for C_P
 logical :: dbug = .false.
 logical :: bdry_debug

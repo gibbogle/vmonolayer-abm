@@ -480,13 +480,14 @@ integer :: res
 real(REAL_KIND) :: Cin(:), C_GlnEx
 type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON
-real(REAL_KIND) :: r_G, fPDK, w, q, f, f_PP, v, z, zmin, wlim
+real(REAL_KIND) :: r_G, fPDK, w, f, f_PP, v, z, zmin, wlim
 real(REAL_KIND) :: f_G, f_P, f_Gln, f_ON, r_P, r_A, r_I, r_L, r_Gln
 real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2, Km_ON
-real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ONIu, r_ON, r_ONA, r_GPA, r_O2
+real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ONIu, r_ON, r_ONA, r_GPA, r_O2, r_N, r_Nu
 real(REAL_KIND) :: a, b, cc, d, e, dw, r_Atest, r_Atestq, w1, w2
 integer :: N_O2, N_Gln, N_ON, k, Nw, iw
 real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, r_GlnIu, f_Gln_max, r_ONI_max
+!real(REAL_KIND) :: Gln_Nshare
 logical :: use_ON = .true.
 
 if (mp%A_rate == 0) then    ! the cell has been tagged to die
@@ -494,9 +495,11 @@ if (mp%A_rate == 0) then    ! the cell has been tagged to die
     return
 endif
 
+!Gln_Nshare = 0.8
+
 f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
-q = f_IN
+!q = f_IN
 f_Gln = f_Glnu
 !C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc  NOT USED
 C0 = chemo(GLUTAMINE)%MM_C0
@@ -537,21 +540,7 @@ f_P = f_Pu
 w = get_f_Gln(C)    ! this is the fraction of r_Glnu 
 f_Gln = f_Glnu
 r_Gln = w*r_Glnu
-if (r_Gln < f_rGln_threshold*r_Glnu) then    ! death
-    mp%f_G = f_G
-    mp%f_P = f_P
-    mp%f_Gln = f_Gln
-    mp%G_rate = 0
-    mp%A_rate = 0
-    mp%I_rate = 0
-    mp%P_rate = 0
-    mp%O_rate = 0
-    mp%Gln_rate = 0
-    mp%ON_rate = 0
-    mp%L_rate = 0
-    res = 0
-    return
-endif
+
 r_GlnI = r_Gln*f_Gln*N_GlnI
 
 r_GI = f_G*r_G*N_GI
@@ -569,10 +558,32 @@ r_ON_max = ON_maxrate*f_MM(C_ON,Km_ON,N_ON)
 r_ONI_max = r_ON_max*f_ON*N_ONI
 r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max) 
 r_ON = r_ONI/(f_ON*N_ONI)
+
+r_I = r_GPI + r_GlnI + r_ONI
+! Making ON also a Nitrogen contributor
+r_N = f_IN*(GLN_Nshare*r_GlnI + (1-Gln_Nshare)*r_ONI)
+!r_Nu = (GLN_Nshare*r_Glnu + (1-Gln_Nshare)*r_ONu)
+write(nflog,'(a,4e12.3)') 'r_Gln, r_ONI, r_ONI_max, r_ON: ',r_Gln, r_ONI, r_ONI_max, r_ON
+!write(nflog,'(a,3e12.3)') 'r_Nu, r_N, f*r_Nu: ',r_Nu,r_N,f_rGln_threshold*r_Nu
+!if (r_N < f_rGln_threshold*r_Nu) then    ! death
+if (r_N < f_rGln_threshold*r_Iu) then    ! death
+    mp%f_G = f_G
+    mp%f_P = f_P
+    mp%f_Gln = f_Gln
+    mp%G_rate = 0
+    mp%A_rate = 0
+    mp%I_rate = 0
+    mp%P_rate = 0
+    mp%O_rate = 0
+    mp%Gln_rate = 0
+    mp%ON_rate = 0
+    mp%L_rate = 0
+    res = 0
+    return
+endif
 write(nflog,'(a,f6.3,5e12.3)') 'w,C_GlnEx,C,r_Gln,r_ON: ',w,C_GlnEx,C,r_Gln,r_ON
 !write(nflog,'(a,4e12.3)') 'C_ON, Km_ON, r_ON, r_ON_max: ',C_ON, Km_ON, r_ON, r_ON_max
 r_ONA = (1 - f_ON)*r_ON*N_ONA
-r_I = r_GPI + r_GlnI + r_ONI
 
 !r_Gln = r_GlnI/(f_Gln*N_GlnI)
 r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
@@ -630,7 +641,6 @@ endif
 r_A = r_GA + r_PA + r_GlnA + r_ONA
 r_I = r_GPI + r_GlnI + r_ONI
 write(nflog,'(a,f7.3)') 'Fraction of intermediates from glucose: ',r_GPI/r_I
-r_NI = q*r_I
 r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
 
 mp%f_G = f_G

@@ -53,40 +53,6 @@ padding: 8px
          <number>0</number>
         </property>
         <item>
-         <widget class="QTextEdit" name="text_more">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>480</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>100</height>
-           </size>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
-          <property name="documentTitle">
-           <string/>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QTabWidget" name="tabs">
           <property name="enabled">
            <bool>true</bool>
@@ -2491,7 +2457,7 @@ padding: 8px
               <item row="22" column="1">
                <widget class="QLineEdit" name="line_F_IN_1">
                 <property name="enabled">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                 <property name="maximumSize">
                  <size>
@@ -2507,7 +2473,7 @@ padding: 8px
               <item row="22" column="0">
                <widget class="QMyLabel" name="label_F_IN_1">
                 <property name="enabled">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                 <property name="font">
                  <font>
@@ -2645,7 +2611,7 @@ padding: 8px
                <x>310</x>
                <y>10</y>
                <width>211</width>
-               <height>131</height>
+               <height>161</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
@@ -2746,6 +2712,46 @@ padding: 8px
                <widget class="QMyLabel" name="label_F_RON_BASE">
                 <property name="text">
                  <string>f_rON_base</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="line_GLN_NSHARE">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QMyLabel" name="label_GLN_NSHARE">
+                <property name="text">
+                 <string>Gln_Nshare</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLineEdit" name="line_K_GLN_DECAY">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QMyLabel" name="label_K_GLN_DECAY">
+                <property name="text">
+                 <string>k_Gln_decay</string>
                 </property>
                </widget>
               </item>
@@ -9946,6 +9952,40 @@ padding: 8px
             </property>
            </widget>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="text_more">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>480</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+          <property name="documentTitle">
+           <string/>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
        </layout>

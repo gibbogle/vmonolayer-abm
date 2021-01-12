@@ -939,12 +939,14 @@ read(nf,*) C_Gln_hi
 read(nf,*) f_rGln_lo
 read(nf,*) f_rGln_threshold
 read(nf,*) f_rON_base
+read(nf,*) Gln_Nshare
+read(nf,*) k_glutamine_decay
 
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM  ! not used
 !ATP_Km = ATP_Km/1000			! uM -> mM 
-!N_GP = N_GA     ! this should be a separate input parameter
 f_ATPramp = 1.3    ! not used
+use_glutamine_decay = (k_glutamine_decay > 0)
 end subroutine
 
 !-----------------------------------------------------------------------------------------
@@ -2245,6 +2247,7 @@ do idiv = 0,ndiv-1
 		enddo
 	endif
 	!write(nflog,*) 'did Solver'
+    call GlutamineDecay
 	call CheckDrugConcs
 	call CheckDrugPresence
 
@@ -2341,6 +2344,31 @@ write(nflog,'(a,i4,7e12.3)') 'step:   ',istep,cell_list(1)%Cin(GLUCOSE),cell_lis
 !	stop
 !endif
 !call averages
+end subroutine
+
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+subroutine GlutamineDecay
+integer :: kcell, i
+real(REAL_KIND) :: decay
+type(cell_type), pointer :: cp
+
+if (use_glutamine_decay) then
+    decay = exp(-k_glutamine_decay*DELTA_T)
+    ! Intracellular glutamine
+    do kcell = 1,nlist
+        cp => cell_list(kcell)
+        if (cp%state == DEAD) cycle
+        cp%Cin(GLUTAMINE) = decay*cp%Cin(GLUTAMINE)
+    enddo
+    Caverage(GLUTAMINE) = decay*Caverage(GLUTAMINE)
+    ! Medium glutamine
+    do i = 1,N1D
+        C_OGL(GLUTAMINE,i) = decay*C_OGL(GLUTAMINE,i)
+    enddo
+    Cmediumave(GLUTAMINE) = decay*Cmediumave(GLUTAMINE)
+    Caverage(MAX_CHEMO + GLUTAMINE) = decay*Caverage(MAX_CHEMO + GLUTAMINE)
+endif
 end subroutine
 
 !-----------------------------------------------------------------------------------------

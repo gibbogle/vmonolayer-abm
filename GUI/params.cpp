@@ -826,14 +826,14 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Pyruvate fraction -> TCA",
        "The factor f_PP is the fraction of pyruvate production that goes to processing by TCA. Rest goes to lactate."},
 
-        {"KM_RGLN_1", 2.0, 0, 0,
+        {"KM_RGLN_1", 1.0, 0, 0,
         "Glutamine max rate factor",
         "The factor multiplying the nominal glutamine max rate when glutamine is replacing glucose."},
 //        (was the factor Km_rGln_factor multiplies Vmax_Gln to give Km for the MM function of r_Gln used to compute r_ON (0.02))"},
 
          {"F_IN_1",0.1,0,0,
           "N-type fraction of intermediates",
-          "Fraction of total intermediates rate that is N-type (which comes from glutamine only)"},
+          "Fraction of intermediates rate from glutamine (and possibly ON) that is N-type"},
 
        {"F_GP_SOLVER",1,0,0,
         "f_GP solver (1,2,3)",
@@ -841,23 +841,32 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 
         {"C_GLN_LO",0.25,0,0,
          "C_Gln_lo",
-         "Lower bound of ramp"},
+         "Lower bound of ramp in r_Gln as a function of C_Gln"},
 
         {"C_GLN_HI",0.3,0,0,
          "C_Gln_hi",
-         "Upper bound of ramp"},
+         "Upper bound of ramp in r_Gln as a function of C_Gln"},
 
         {"F_RGLN_LO",0.2,0,0,
          "f_rGln_lo",
-         "Low r_Gln factor"},
+         "Low r_Gln factor - multiple of max rate to give r_Gln for C_Gln < C_Gln_lo"},
 
         {"F_RGLN_THRESHOLD",0.05,0,0,
-         "f_rGln_threshold",
-         "r_Gln threshold for cell death"},
+         "f_rN_threshold",
+         "Survival threshold for rate of N-type intermediates is f_rN_threshold*r_Iu, where r_Iu is the unconstrained rate of I production"},
 
         {"F_RON_BASE",0.1,0,0,
          "f_rON_base",
-         "base level of r_ON, fraction of max"},
+         "Base level of r_ON, fraction of max rate. This is the rate when there are no growth constraints"},
+
+        {"GLN_NSHARE",0.9,0,0,
+         "Gln_Nshare",
+         "Proportional N contribution from glutamine.  The rate of N-type intermediates production is:\n\
+         r_N = f_IN*(Gln_Nshare*r_GlnI + (1-Gln_Nshare)*r_ONI) where f_IN is the fraction of glutamine (and ON) intermediates prodn that is N-type"},
+
+        {"K_GLN_DECAY",1.38E-6,0,0,
+         "k_glutamine_decay",
+         "Glutamine decay constant"},
 
 {"HYPOXIA_1", 0.1, 0, 0,
 "Hypoxia threshold 1",
