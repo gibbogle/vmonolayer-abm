@@ -228,11 +228,15 @@ else
 endif		
 call getGrowthCount(ngrowth,nogrow,nphase,nmutations,nclono)
 TNnogrow = sum(nogrow(:))
-nogrow_fraction = TNnogrow/real(TNviable)
+if (TNviable > 0) then
+    nogrow_fraction = TNnogrow/real(TNviable)
+else
+    nogrow_fraction = 0
+endif
 growth_fraction = ngrowth/real(Ncells)
 phase_fraction = nphase/real(Ncells)
 clono_fraction = nclono/real(Ncells)
-rmutations = (nmutations*1000000.)/Ncells
+rmutations = (nmutations*1000000.)/Ncells 
 do ityp = 1,Ncelltypes
 	if (Ncells_type(ityp) > 0) then
 		plate_eff(ityp) = real(Nviable(ityp))/Ncells_type(ityp)

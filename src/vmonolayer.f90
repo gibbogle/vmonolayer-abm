@@ -932,7 +932,7 @@ read(nf,*) Hill_Km_C    ! Pasteur effect
 read(nf,*) Gln_baserate
 read(nf,*) f_PPu     ! was f_GL  ! was f_N
 read(nf,*) Km_rGln_factor   !*** simple model -> f_Gln_max in subroutine metab
-read(nf,*) f_IN
+read(nf,*) f_IN     ! fraction of glutamine intermediates prodn that is N-type
 read(nf,*) fgp_solver
 read(nf,*) C_Gln_lo
 read(nf,*) C_Gln_hi

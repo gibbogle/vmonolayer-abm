@@ -487,15 +487,12 @@ real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ONIu, r_O
 real(REAL_KIND) :: a, b, cc, d, e, dw, r_Atest, r_Atestq, w1, w2
 integer :: N_O2, N_Gln, N_ON, k, Nw, iw
 real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, r_GlnIu, f_Gln_max, r_ONI_max
-!real(REAL_KIND) :: Gln_Nshare
 logical :: use_ON = .true.
 
 if (mp%A_rate == 0) then    ! the cell has been tagged to die
     res = 0
     return
 endif
-
-!Gln_Nshare = 0.8
 
 f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
