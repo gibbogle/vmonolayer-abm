@@ -896,6 +896,8 @@ end subroutine
 subroutine ReadMetabolismParameters(nf)
 integer :: nf
 integer :: ityp
+real(REAL_KIND) :: f_apoptosis_rate_lo, t_hours
+type(cycle_parameters_type), pointer :: ccp
 
 read(nf,*) f_Gu
 read(nf,*) f_Pu
@@ -941,7 +943,14 @@ read(nf,*) f_rGln_threshold
 read(nf,*) f_rON_base
 read(nf,*) Gln_Nshare
 read(nf,*) k_glutamine_decay
+read(nf,*) f_apoptosis_rate_lo    ! multiplying factor for low apoptosis rate (/hr)
+read(nf,*) t_hours
 
+do ityp = 1,2
+    ccp => cc_parameters(ityp)
+    ccp%f_apoptosis_rate_lo = f_apoptosis_rate_lo
+    ccp%t_Apoptosis_hi = 3600*t_hours   ! duration of high apoptosis rate (secs)
+enddo
 Hill_N_P = 1
 Hill_Km_P = Hill_Km_P/1000		! uM -> mM  ! not used
 !ATP_Km = ATP_Km/1000			! uM -> mM 

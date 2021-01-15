@@ -273,8 +273,9 @@ real(REAL_KIND) :: dt
 logical :: ok
 integer :: kcell, nlist0, site(3), i, ichemo, idrug, im, ityp, killmodel, kpar=0 
 real(REAL_KIND) :: C_O2, C_glucose, Cdrug, n_O2, kmet, Kd, dMdt, kill_prob, dkill_prob, death_prob,survival_prob
+real(REAL_KIND) :: t_dying
 logical :: anoxia_death, aglucosia_death
-real(REAL_KIND) :: delayed_death_prob
+real(REAL_KIND) :: delayed_death_prob, factor
 type(drug_type), pointer :: dp
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
@@ -296,7 +297,13 @@ do kcell = 1,nlist
 	ccp => cc_parameters(ityp)
 	if (cp%state == DEAD) cycle
 	if (cp%state == DYING) then
-		delayed_death_prob = ccp%apoptosis_rate*dt/3600
+	    t_dying = tnow - cp%tag_time
+	    if (t_dying < ccp%t_apoptosis_hi) then
+	        factor = 1
+		else
+		    factor = ccp%f_apoptosis_rate_lo
+		endif
+		delayed_death_prob = factor*ccp%apoptosis_rate*dt/3600
 	    if (par_uni(kpar) < delayed_death_prob) then	
 			call CellDies(kcell,.true.)
 		endif
@@ -443,6 +450,7 @@ if (.not.now) then
         ! cell was already tagged to die
     else
     	cp%state = DYING
+    	cp%tag_time = tnow;
 	    Ndying(ityp) = Ndying(ityp) + 1
 	endif
 	return

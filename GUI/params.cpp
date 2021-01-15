@@ -831,7 +831,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         "The factor multiplying the nominal glutamine max rate when glutamine is replacing glucose."},
 //        (was the factor Km_rGln_factor multiplies Vmax_Gln to give Km for the MM function of r_Gln used to compute r_ON (0.02))"},
 
-         {"F_IN_1",0.1,0,0,
+        {"F_IN_1",0.1,0,0,
           "N-type fraction of intermediates",
           "Fraction of intermediates rate from glutamine (and possibly ON) that is N-type"},
 
@@ -867,6 +867,14 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         {"K_GLN_DECAY",1.38E-6,0,0,
          "k_glutamine_decay",
          "Glutamine decay constant"},
+
+         {"F_APOPTOSIS_RATE_LO",0.1,0,0,
+          "f_apoptosis_rate_lo",
+          "Multiplying factor to get the low apoptosis rate from the high rate"},
+
+         {"T_APOPTOSIS_HI",24,0,0,
+          "t_apoptosis_hi (h)",
+          "Duration of high apoptosis rate after tagging for metabolic death (hours)"},
 
 {"HYPOXIA_1", 0.1, 0, 0,
 "Hypoxia threshold 1",

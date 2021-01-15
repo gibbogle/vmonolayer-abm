@@ -170,7 +170,8 @@ type cell_type
 	real(REAL_KIND) :: mitosis
 	logical :: growth_delay
 	real(REAL_KIND) :: dt_delay
-	real(REAL_KIND) :: t_growth_delay_end			! this is for suppression of growth before first division
+	real(REAL_KIND) :: t_growth_delay_end	! this is for suppression of growth before first division
+	real(REAL_KIND) :: tag_time             ! time cell is tagged to die metabolically
 	integer :: N_delayed_cycles_left		! decremented by 1 at each cell division
 	logical :: radiation_tag, ATP_tag
 	logical :: drug_tag(MAX_DRUGTYPES)
@@ -208,7 +209,6 @@ type cycle_parameters_type
     real(REAL_KIND) :: T_G1, T_S, T_G2, T_M
     real(REAL_KIND) :: G1_mean_delay, S_mean_delay, G2_mean_delay
     real(REAL_KIND) :: Pk_G1, Pk_S, Pk_G2
-    real(REAL_KIND) :: apoptosis_rate
     real(REAL_KIND) :: arrest_threshold
     ! Radiation damage/repair
     real(REAL_KIND) :: eta_PL, Kcp, eta_L(2)
@@ -216,6 +216,10 @@ type cycle_parameters_type
     real(REAL_KIND) :: eta_IRL, fraction_Ch1, mitosis_factor
     real(REAL_KIND) :: psurvive_Ch1, psurvive_Ch2		! prob of surviving mitosis
     real(REAL_KIND) :: aTCP, bTCP
+    ! Apoptosis
+    real(REAL_KIND) :: apoptosis_rate
+    real(REAL_KIND) :: f_apoptosis_rate_lo  ! multiplying factor for low apoptosis rate
+    real(REAL_KIND) :: t_apoptosis_hi       ! duration of high rate of apoptosis
 end type
 
 type drug_type

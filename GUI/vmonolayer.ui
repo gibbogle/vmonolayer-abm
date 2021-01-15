@@ -2611,7 +2611,7 @@ padding: 8px
                <x>310</x>
                <y>10</y>
                <width>211</width>
-               <height>161</height>
+               <height>201</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
@@ -2752,6 +2752,46 @@ padding: 8px
                <widget class="QMyLabel" name="label_K_GLN_DECAY">
                 <property name="text">
                  <string>k_Gln_decay</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLineEdit" name="line_F_APOPTOSIS_RATE_LO">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0">
+               <widget class="QMyLabel" name="label_F_APOPTOSIS_RATE_LO">
+                <property name="text">
+                 <string>f_apoptosis_rate_lo</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QLineEdit" name="line_T_APOPTOSIS_HI">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="0">
+               <widget class="QMyLabel" name="label_T_APOPTOSIS_HI">
+                <property name="text">
+                 <string>t_apoptosis_hi (h)</string>
                 </property>
                </widget>
               </item>
