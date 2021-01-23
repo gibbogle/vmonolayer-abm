@@ -495,13 +495,6 @@ logical :: use_ON = .true.
 !    res = 0
 !    return
 !endif
-if (mp%tagged) then
-    write(nflog,*) 'Cell is tagged'
-    if (istep < 10) then
-        res = -1
-        return
-    endif
-endif
 
 f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
