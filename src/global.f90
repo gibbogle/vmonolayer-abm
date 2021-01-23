@@ -128,6 +128,7 @@ type metabolism_type
 	real(REAL_KIND) :: C_P
 	real(REAL_KIND) :: C_A
 	real(REAL_KIND) :: recalcable     ! if > 0, can determine rates from w = f_G/f_Gu, otherwise need full procedure
+	logical :: tagged   ! tagged to die
 end type
 
 type cell_type

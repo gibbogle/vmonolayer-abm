@@ -311,7 +311,7 @@ do kcell = 1,nlist
 	endif	
 	call getO2conc(cp,C_O2)
 	if (use_metabolism) then
-		if (cp%metab%A_rate < r_As) then
+		if (cp%metab%A_rate < r_As .or. cp%metab%tagged) then
 			cp%ATP_tag = .true.
 			NATP_tag(ityp) = NATP_tag(ityp) + 1
 			cp%dVdt = 0

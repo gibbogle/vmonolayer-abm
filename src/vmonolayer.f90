@@ -1360,6 +1360,7 @@ call set_divide_volume(kcell, V0)
 cp%dVdt = max_growthrate(ityp)
 !cp%metab%I_rate = metabolic%I_rate_max	! this is just to ensure that initial growth rate is not 0
 cp%metab%I_rate = r_Iu	! this is just to ensure that initial growth rate is not 0
+cp%metab%tagged = .false.
 if (use_volume_method) then
     !cp%divide_volume = Vdivide0
     if (initial_count == 1) then
