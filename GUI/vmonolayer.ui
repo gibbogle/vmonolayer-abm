@@ -2219,6 +2219,9 @@ padding: 8px
               </item>
               <item row="20" column="0">
                <widget class="QMyLabel" name="label_C_GLN_LO_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="font">
                  <font>
                   <weight>50</weight>
@@ -2232,6 +2235,9 @@ padding: 8px
               </item>
               <item row="20" column="1">
                <widget class="QLineEdit" name="line_C_GLN_LO_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
@@ -2546,6 +2552,9 @@ padding: 8px
               </item>
               <item row="21" column="1">
                <widget class="QLineEdit" name="line_KM_RGLN_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
@@ -2559,6 +2568,9 @@ padding: 8px
               </item>
               <item row="21" column="0">
                <widget class="QMyLabel" name="label_KM_RGLN_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="font">
                  <font>
                   <weight>50</weight>

@@ -65,7 +65,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "The divide time will be a random variate from a log-normal distribution. \n\
  Otherwise checkpoint times are exponentially distributed and base phase times are fixed"},
 
-{"DIVIDE_TIME_1_MEDIAN", 18, 0, 0,
+{"DIVIDE_TIME_1_MEDIAN", 19, 0, 0,
 "Median (h)",
 "The time taken for tumour cell division has a lognormal distribution, described by the median and shape parameters. \n\
 [hours]"},
@@ -74,7 +74,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "Shape parameter",
 "The time taken for tumour cell division has a lognormal distribution, described by the median and shape parameters."},
 
-{"DIVIDE_TIME_2_MEDIAN", 18, 0, 0,
+{"DIVIDE_TIME_2_MEDIAN", 19, 0, 0,
 "Division time median parameter",
 "The time taken for tumour cell division has a lognormal distribution, described by the median and shape parameters. \n\
 [hours]"},
@@ -364,15 +364,15 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-{"GLUTAMINE_CONSUMPTION", 0.40e-16, 0, 0,
+{"GLUTAMINE_CONSUMPTION", 0.906e-16, 0, 0,
  "Consumption rate",
  "Glutamine consumption rate"},
 
-{"GLUTAMINE_MM_KM", 50, 0, 0,
+{"GLUTAMINE_MM_KM", 30, 0, 0,
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
-{"GLUTAMINE_HILL_N", 1, 0, 2,
+{"GLUTAMINE_HILL_N", 2, 0, 2,
  "Hill function N",
  "Glutamine uptake rate Hill function N"},
 
@@ -396,7 +396,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Membrane diff constant",
      "Cell membrane diffusion coefficient Kout"},
 
-    {"OTHER_BDRY_CONC", 6.0, 0, 0,
+    {"OTHER_BDRY_CONC", 2.0, 0, 0,
      "Boundary concentration",
      "Other nutrient boundary concentration"},
 
@@ -404,7 +404,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Constant concentration",
      "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-    {"OTHER_CONSUMPTION", 1.5e-16, 0, 0,
+    {"OTHER_CONSUMPTION", 1.303e-16, 0, 0,
      "Consumption rate",
      "Other nutrient consumption rate"},
 
@@ -525,7 +525,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "G2 mean delay (h)",
      "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
 
-     {"APOPTOSIS_RATE_1", 0.1, 0, 0,
+     {"APOPTOSIS_RATE_1", 0.0108, 0, 0,
      "Apoptosis rate/hr",
      "The rate of passage from state = DYING to state = DEAD, probability/hour"},
 
@@ -690,7 +690,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Normal fraction of glutamine -> intermediates",
         "Fraction of glutamine (r_Gn) going to make intermediates under conditions of full nutrition"},
 
-       {"F_ONNORM_1", 0.25, 0, 0,
+       {"F_ONNORM_1", 0.35, 0, 0,
        "Normal fraction of ON -> intermediates",
         "Fraction of other nutrients ON (r_ONn) going to make intermediates under conditions of full nutrition"},
 
@@ -706,7 +706,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "ATP moles produced per glutamine mole",
        "Number of ATP moles produced by the oxidation of one glutamine mole"},
 
-       {"N_ONA_1", 2, 0, 0,
+       {"N_ONA_1", 4, 0, 0,
        "ATP moles produced per othernutrient mole",
        "Number of ATP moles produced by the oxidation of one othernutrient mole"},
 
@@ -718,15 +718,15 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Intermediate moles produced per glucose mole",
       "Number of moles of anabolic intermediates produced the glycolysis of one glucose mole"},
 
-      {"N_PI_1", 1, 0, 0,
+      {"N_PI_1", 3, 0, 0,
       "Intermediate moles produced per pyruvate mole",
       "Number of moles of anabolic intermediates produced the oxidation of one pyruvate mole"},
 
-       {"N_GLNI_1", 2, 0, 0,
+       {"N_GLNI_1", 1.07, 0, 0,
        "Intermediate moles produced per glutamine mole",
        "Number of moles of anabolic intermediates produced the oxidation of one glutamine mole"},
 
-       {"N_ONI_1", 2, 0, 0,
+       {"N_ONI_1", 1.42, 0, 0,
        "Intermediate moles produced per othernutrient mole",
        "Number of moles of anabolic intermediates produced the oxidation of one other nutrient mole"},
 
@@ -764,7 +764,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
        "Nominal normal IC O2 concentration",
        "Nominal normal IC O2 concentration, used to set normal metabolic rates for unconstrained growth"},
 
-       {"C_G_NORM_1", 1.0, 0, 0,
+       {"C_G_NORM_1", 5.0, 0, 0,
        "Nominal normal IC glucose concentration",
        "Nominal normal IC glucose concentration, used to set normal metabolic rates for unconstrained growth"},
 
@@ -776,7 +776,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         "Nominal normal IC glutamine concentration",
         "Nominal normal IC glutamine concentration, used to set normal metabolic rates for unconstrained growth"},
 
-        {"C_ON_NORM_1", 4.0, 0, 0,
+        {"C_ON_NORM_1", 1.0, 0, 0,
         "Nominal normal IC ON concentration",
         "Nominal normal IC other nutrient concentration, used to set normal metabolic rates for unconstrained growth"},
 
@@ -839,7 +839,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         "f_GP solver (1,2,3)",
         "Choices for f_GP solver: 1 = max ATP (tandem), 2 = max ATP (staged), 3 = survival (staged)"},
 
-        {"C_GLN_LO",0.25,0,0,
+        {"C_GLN_LO",0.2,0,0,
          "C_Gln_lo",
          "Lower bound of ramp in r_Gln as a function of C_Gln"},
 
@@ -847,19 +847,19 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
          "C_Gln_hi",
          "Upper bound of ramp in r_Gln as a function of C_Gln"},
 
-        {"F_RGLN_LO",0.2,0,0,
+        {"F_RGLN_LO",0.0472,0,0,
          "f_rGln_lo",
          "Low r_Gln factor - multiple of max rate to give r_Gln for C_Gln < C_Gln_lo"},
 
-        {"F_RGLN_THRESHOLD",0.05,0,0,
+        {"F_RGLN_THRESHOLD",0.0017,0,0,
          "f_rN_threshold",
          "Survival threshold for rate of N-type intermediates is f_rN_threshold*r_Iu, where r_Iu is the unconstrained rate of I production"},
 
-        {"F_RON_BASE",0.1,0,0,
+        {"F_RON_BASE",0.00416,0,0,
          "f_rON_base",
          "Base level of r_ON, fraction of max rate. This is the rate when there are no growth constraints"},
 
-        {"GLN_NSHARE",0.9,0,0,
+        {"GLN_NSHARE",1.0,0,0,
          "Gln_Nshare",
          "Proportional N contribution from glutamine.  The rate of N-type intermediates production is:\n\
          r_N = f_IN*(Gln_Nshare*r_GlnI + (1-Gln_Nshare)*r_ONI) where f_IN is the fraction of glutamine (and ON) intermediates prodn that is N-type"},
@@ -868,11 +868,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
          "k_glutamine_decay",
          "Glutamine decay constant"},
 
-         {"F_APOPTOSIS_RATE_LO",0.1,0,0,
+         {"F_APOPTOSIS_RATE_LO",0.4,0,0,
           "f_apoptosis_rate_lo",
           "Multiplying factor to get the low apoptosis rate from the high rate"},
 
-         {"T_APOPTOSIS_HI",24,0,0,
+         {"T_APOPTOSIS_HI",24.4,0,0,
           "t_apoptosis_hi (h)",
           "Duration of high apoptosis rate after tagging for metabolic death (hours)"},
 
