@@ -491,10 +491,10 @@ integer :: N_O2, N_Gln, N_ON, k, Nw, iw
 real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, r_GlnIu, f_Gln_max, r_ONI_max
 logical :: use_ON = .true.
 
-!if (mp%A_rate == 0) then    ! the cell has been tagged to die
-!    res = 0
-!    return
-!endif
+if (mp%tagged) then    ! the cell has been tagged to die
+    res = 0
+    return
+endif
 
 f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
@@ -555,17 +555,13 @@ Km_ON = chemo(OTHERNUTRIENT)%MM_C0
 N_ON = chemo(OTHERNUTRIENT)%Hill_N
 r_ON_max = ON_maxrate*f_MM(C_ON,Km_ON,N_ON) 
 
-!if (w < f_rGln_lo) then
-!    r_ON_max = r_ON_max*w/(f_rGln_lo)   ! to reduce r_ON when r_Gln goes low
-!endif
-!r_ON_max = r_ON_max*w
-
 r_ONI_max = r_ON_max*f_ON*N_ONI
 r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max) 
 
-if (w < f_rGln_lo) then
-    r_ONI = r_ONI*w/(f_rGln_lo)   ! to reduce r_ON when r_Gln goes low
-endif
+! Try turning this off
+!if (w < f_rGln_lo) then
+!    r_ONI = r_ONI*w/(f_rGln_lo)   ! to reduce r_ON when r_Gln goes low
+!endif
 
 r_ON = r_ONI/(f_ON*N_ONI)
 
@@ -577,22 +573,23 @@ write(nflog,'(a,4e12.3)') 'r_Gln, r_ONI, r_ONI_max, r_ON: ',r_Gln, r_ONI, r_ONI_
 write(nflog,'(a,3e12.3)') 'r_N, f_rGln_threshold*r_Iu: ',r_N,f_rGln_threshold*r_Iu
 
 !if (r_N < f_rGln_threshold*r_Nu) then    ! death
-!if (r_N < f_rGln_threshold*r_Iu) then    ! death
-!    write(nflog,*) 'death'
-!    mp%f_G = f_G
-!    mp%f_P = f_P
-!    mp%f_Gln = f_Gln
-!    mp%G_rate = 0
-!    mp%A_rate = 0
-!    mp%I_rate = 0
-!    mp%P_rate = 0
-!    mp%O_rate = 0
-!    mp%Gln_rate = 0
-!    mp%ON_rate = 0
-!    mp%L_rate = 0
-!    res = 0
-!    return
-!endif
+if (r_N < f_rGln_threshold*r_Iu) then    ! death
+    write(nflog,*) 'death'
+    mp%tagged = .true.
+    mp%f_G = f_G
+    mp%f_P = f_P
+    mp%f_Gln = f_Gln
+    mp%G_rate = 0
+    mp%A_rate = 0
+    mp%I_rate = 0
+    mp%P_rate = 0
+    mp%O_rate = 0
+    mp%Gln_rate = 0
+    mp%ON_rate = 0
+    mp%L_rate = 0
+    res = 0
+    return
+endif
 write(nflog,'(a,f6.3,5e12.3)') 'w,C_GlnEx,C,r_Gln,r_ON: ',w,C_GlnEx,C,r_Gln,r_ON
 !write(nflog,'(a,4e12.3)') 'C_ON, Km_ON, r_ON, r_ON_max: ',C_ON, Km_ON, r_ON, r_ON_max
 r_ONA = (1 - f_ON)*r_ON*N_ONA
