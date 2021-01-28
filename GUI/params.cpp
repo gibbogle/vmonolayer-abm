@@ -804,7 +804,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Lactate -> pyruvate rate constant",
       "The reverse rate constant K_LP of the pyruvate-lactate reaction, i.e. the rate constant for conversion of lactate to pyruvate"},
 
-       {"C_GLN_LO_1", 0.0, 0, 0,
+       {"C_GLN_CUT_1", 0.0, 0, 0,
        "Glutamine cutoff concentration (mM)",
        "When extracellular glutamine concentration falls below this value consumption of glutamine ceases.\n\
         In the simple model, this is C_Gln_min. With C0 = MM_KM for glutamine\n\

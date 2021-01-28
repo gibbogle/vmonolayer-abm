@@ -77,7 +77,7 @@ real(REAL_KIND) :: K_PL			! P -> L
 real(REAL_KIND) :: K_LP			! L -> P
 real(REAL_KIND) :: r_Pu, r_Gu, r_Glnu, r_Au, r_Iu, r_Ou, r_Lu, r_Onu, C_Pu   ! unconstrained conditions
 real(REAL_KIND) :: G_maxrate, O2_maxrate, Gln_maxrate, ON_maxrate
-real(REAL_KIND) :: f_N, f_NG, r_Abase, r_Ibase, C_GlnLo, Km_rGln_factor
+real(REAL_KIND) :: f_N, f_NG, r_Abase, r_Ibase, C_Gln_cut, Km_rGln_factor
 integer :: fgp_solver
 
 real(REAL_KIND) :: C_GlnEx_prev, r_ON_max
@@ -500,7 +500,7 @@ f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
 !q = f_IN
 f_Gln = f_Glnu
-!C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc  NOT USED
+!C_Gln_min = C_Gln_cut    ! 0.02  ! growth suppressed below this extra-cellular conc  NOT USED
 C0 = chemo(GLUTAMINE)%MM_C0
 f_Gln_max = Km_rGln_factor  !2.0
 !write(nflog,'(a,2f8.4)') 'DEBUG: C_GlnEx, C_Gln_min: ',C_GlnEx,C_Gln_min
@@ -574,7 +574,7 @@ write(nflog,'(a,3e12.3)') 'r_N, f_rGln_threshold*r_Iu: ',r_N,f_rGln_threshold*r_
 
 !if (r_N < f_rGln_threshold*r_Nu) then    ! death
 if (r_N < f_rGln_threshold*r_Iu) then    ! death
-    write(nflog,*) 'death'
+    write(nflog,*) 'death from r_Gln'
     mp%tagged = .true.
     mp%f_G = f_G
     mp%f_P = f_P
@@ -598,18 +598,19 @@ r_ONA = (1 - f_ON)*r_ON*N_ONA
 r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
 
 r_A = r_GA + r_PA + r_GlnA + r_ONA
-if ((1 == 0) .and. r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_Ag
-!   r_A = (1 - w*f_Gln)*N_GlnA*r_Gln + ((1-w*f_G)*N_GA + (1-w*f_P)*N_PA*f_PP*(1-w*f_G)*N_GP)*r_G
+if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_Ag
+!   r_A = r_GlnA + ((1-w*f_G)*N_GA + (1-w*f_P)*N_PA*f_PP*(1-w*f_G)*N_GP)*r_G
 !   now have added in (1 - w*f_ON)*N_ONA*r_ON
 ! => quadratic in w
     write(nflog,'(a,3e12.3)') 'r_GA, r_PA, r_GlnA: ',r_GA, r_PA, r_GlnA
     write(nflog,'(a,f8.3,2e12.3)') 'w, r_A, r_Ag: ',w, r_A, r_Ag
-    if (w > 0) then
+!    if (w > 0) then
         e = N_PA*f_PP*N_GP*r_G
         a = e*f_P*f_G
-        b = -(f_Gln*N_GlnA*r_Gln + f_ON*N_ONA*r_ON + f_G*N_GA*r_G + e*(f_G+f_P))
-        cc = N_GlnA*r_Gln + N_ONA*r_ON + N_GA*r_G + e - r_Ag
-        if (.true.) then
+!        b = -(f_Gln*N_GlnA*r_Gln + f_ON*N_ONA*r_ON + f_G*N_GA*r_G + e*(f_G+f_P))
+!        cc = N_GlnA*r_Gln + N_ONA*r_ON + N_GA*r_G + e - r_Ag
+        b = -(f_ON*N_ONA*r_ON + f_G*N_GA*r_G + e*(f_G+f_P))
+        cc = r_GlnA + N_ONA*r_ON + N_GA*r_G + e - r_Ag
         d = sqrt(b*b - 4*a*cc) 
         w1 = (-b + d)/(2*a)
         w2 = (-b - d)/(2*a)
@@ -624,13 +625,12 @@ if ((1 == 0) .and. r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f
         else
             w = w2
         endif
-    endif
-    endif
+!    endif
     
     write(nflog,'(a,f8.3)') 'Adjusting r_A: w: ',w
     f_G = w*f_G
     f_P = w*f_P
-    f_Gln = w*f_Gln
+!    f_Gln = w*f_Gln
     f_ON = w*f_ON   ! added
     
     r_GI = f_G*r_G*N_GI
@@ -640,14 +640,32 @@ if ((1 == 0) .and. r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f
     r_L = (1 - f_PP)*r_GP
     r_PI = f_P*r_P*N_PI
     r_PA = (1 - f_P)*r_P*N_PA
-    r_GlnI = r_Gln*f_Gln*N_GlnI
-    r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
+!    r_GlnI = r_Gln*f_Gln*N_GlnI
+!    r_GlnA = (1 - f_Gln)*r_Gln*N_GlnA
     r_ONI = r_ON*f_ON*N_ONI         ! added
     r_ONA = (1 - f_ON)*r_ON*N_ONA   ! added
     r_GPI = r_GI + r_PI
 endif
 
 r_A = r_GA + r_PA + r_GlnA + r_ONA
+if (r_A < r_As) then
+    write(nflog,*) 'death from r_A'
+    mp%tagged = .true.
+    mp%f_G = f_G
+    mp%f_P = f_P
+    mp%f_Gln = f_Gln
+    mp%G_rate = 0
+    mp%A_rate = 0
+    mp%I_rate = 0
+    mp%P_rate = 0
+    mp%O_rate = 0
+    mp%Gln_rate = 0
+    mp%ON_rate = 0
+    mp%L_rate = 0
+    res = 0
+    return
+endif
+
 r_I = r_GPI + r_GlnI + r_ONI
 write(nflog,'(a,f7.3)') 'Fraction of intermediates from glucose: ',r_GPI/r_I
 r_O2 = (1 - f_P)*r_P*N_PO + (1 - f_Gln)*r_Gln*N_GlnO
@@ -725,7 +743,7 @@ f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
 q = f_IN
 f_Gln = f_Glnu
-C_Gln_min = C_GlnLo    ! 0.02  ! growth suppressed below this extra-cellular conc  NOT USED
+C_Gln_min = C_Gln_cut    ! 0.02  ! growth suppressed below this extra-cellular conc  NOT USED
 C0 = chemo(GLUTAMINE)%MM_C0
 f_Gln_max = Km_rGln_factor  !2.0
 !write(nflog,'(a,2f8.4)') 'DEBUG: C_GlnEx, C_Gln_min: ',C_GlnEx,C_Gln_min
@@ -1645,14 +1663,14 @@ K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
 
-write(nflog,'(a,2f8.4)') 'C_GlnEx, C_GlnLO: ',C_GlnEx,C_GlnLo
-C_GlnHi = C_GlnLo + 0.01
+write(nflog,'(a,2f8.4)') 'C_GlnEx, C_Gln_cut: ',C_GlnEx,C_Gln_cut
+C_GlnHi = C_Gln_cut + 0.01
 if (C_GlnEX > C_GlnHi) then
     f_cutoff = 1
-elseif (C_GlnEx < C_GlnLo) then
+elseif (C_GlnEx < C_Gln_cut) then
     f_cutoff = 0
 else
-    f_cutoff = (C_GlnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
+    f_cutoff = (C_GlnEx - C_Gln_cut)/(C_GlnHi - C_Gln_cut)
 endif
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
 r_GlnON_I = Gln_maxrate*f_Gln*N_GlnI + ON_maxrate*N_ONI ! This is the maximum rate of I production from Gln and ON
@@ -1787,16 +1805,16 @@ f_Gln = f_Glnu
 ratio = (C_Gln/C_ON)    ! ratio of r_Gln/r_ON
 
 !C_GlnEX = C_Gln     ! needed?
-C_GlnHi = C_GlnLo + 0.01
+C_GlnHi = C_Gln_cut + 0.01
 if (C_GlnEX > C_GlnHi) then
     f_cutoff = 1
-elseif (C_GlnEx < C_GlnLo) then
+elseif (C_GlnEx < C_Gln_cut) then
     f_cutoff = 0
 else
-    f_cutoff = (C_glnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
+    f_cutoff = (C_glnEx - C_Gln_cut)/(C_GlnHi - C_Gln_cut)
 endif
 
-!f_cutoff = C_Gln/(C_GlnLo + C_Gln)  ! an alternate way of cutting off consumption of Gln as it goes low
+!f_cutoff = C_Gln/(C_Gln_cut + C_Gln)  ! an alternate way of cutting off consumption of Gln as it goes low
 
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
 f0 = f_cutoff*MM_Gln
@@ -1977,15 +1995,15 @@ K1 = K_PL
 K2 = K_LP
 f_Gln = f_Glnu
 
-write(nflog,'(a,2f8.4)') 'C_GlnEx, C_GlnLO: ',C_GlnEx,C_GlnLo
-!C_GlnLo = 0.02                      !!!!! was hard-coded
-C_GlnHi = C_GlnLo + 0.01
+write(nflog,'(a,2f8.4)') 'C_GlnEx, C_Gln_cut: ',C_GlnEx,C_Gln_cut
+!C_Gln_cut = 0.02                      !!!!! was hard-coded
+C_GlnHi = C_Gln_cut + 0.01
 if (C_GlnEX > C_GlnHi) then
     f_cutoff = 1
-elseif (C_GlnEx < C_GlnLo) then
+elseif (C_GlnEx < C_Gln_cut) then
     f_cutoff = 0
 else
-    f_cutoff = (C_GlnEx - C_GlnLo)/(C_GlnHi - C_GlnLo)
+    f_cutoff = (C_GlnEx - C_Gln_cut)/(C_GlnHi - C_Gln_cut)
 endif
 r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,mp%O_rate)  ! Note: this is the previous O_rate
 !write(*,'(a,5e11.3)') 'r_G,H,C_G,C_Gln,r_O: ',r_G,mp%HIF1,C_G,C_Gln,mp%O_rate

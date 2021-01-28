@@ -929,7 +929,7 @@ read(nf,*) f_ATPg
 !read(nf,*) f_ATPramp    ! not used
 read(nf,*) K_PL
 read(nf,*) K_LP
-read(nf,*) C_GlnLo          !*** simple model -> C_Gln_min in subroutine metab 
+read(nf,*) C_Gln_cut          !*** simple model -> C_Gln_min in subroutine metab 
 read(nf,*) Hill_Km_C    ! Pasteur effect
 read(nf,*) Gln_baserate
 read(nf,*) f_PPu     ! was f_GL  ! was f_N
