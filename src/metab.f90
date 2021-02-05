@@ -491,7 +491,7 @@ real(REAL_KIND) :: C, C0, C_Gln_min, f_Gln_C0, r_Gln_max, r_GlnI_max, r_GlnIu, f
 real(REAL_KIND) :: C_GlnEx_prev
 logical :: use_ON = .true.
 
-!cp => cell_list(kcell_now)     ! BAD can't use a global variable that changes and use OMP
+!cp => cell_list(kcell_now)     ! BAD can't use a global variable that changes and use OMP 
 mp => cp%metab
 if (cp%ATP_tag .or. cp%GLN_tag) then    ! the cell has been tagged to die
     res = 0
@@ -500,7 +500,6 @@ endif
 
 f_ON = f_ONu
 f_PP = f_PPu    ! was 5./85.
-!q = f_IN
 f_Gln = f_Glnu
 !C_Gln_min = C_Gln_cut    ! 0.02  ! growth suppressed below this extra-cellular conc  NOT USED
 C0 = chemo(GLUTAMINE)%MM_C0
@@ -569,14 +568,14 @@ r_ON = r_ONI/(f_ON*N_ONI)
 
 r_I = r_GPI + r_GlnI + r_ONI
 ! Making ON also a Nitrogen contributor
-r_N = f_IN*(GLN_Nshare*r_GlnI + (1-Gln_Nshare)*r_ONI)
+r_N = f_IN*(Gln_Nshare*r_GlnI + (1-Gln_Nshare)*r_ONI)
 !r_Nu = (GLN_Nshare*r_Glnu + (1-Gln_Nshare)*r_ONu)
-!write(nflog,'(a,4e12.3)') 'r_Gln, r_ONI, r_ONI_max, r_ON: ',r_Gln, r_ONI, r_ONI_max, r_ON
+!write(nflog,'(a,4e12.3)') 'r_Gln, r_GlnI, f_IN, r_N: ',r_Gln, r_GlnI, f_IN, r_N
 !write(nflog,'(a,3e12.3)') 'r_N, f_rGln_threshold*r_Iu: ',r_N,f_rGln_threshold*r_Iu
 
 !if (r_N < f_rGln_threshold*r_Nu) then    ! death
 if (r_N < f_rGln_threshold*r_Iu) then    ! death
-!    write(nflog,*) 'tagged for death from low r_Gln: '
+!    write(nflog,'(a,4e12.3)') 'tagged for death from low r_Gln: ',r_N,f_rGln_threshold,r_Iu,f_rGln_threshold*r_Iu
     cp%GLN_tag = .true.
     mp%f_G = f_G
     mp%f_P = f_P
@@ -605,8 +604,8 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
 !   r_A = r_GlnA + ((1-w*f_G)*N_GA + (1-w*f_P)*N_PA*f_PP*(1-w*f_G)*N_GP)*r_G
 !   now have added in (1 - w*f_ON)*N_ONA*r_ON
 ! => quadratic in w
-    write(nflog,'(a,3e12.3)') 'r_GA, r_PA, r_GlnA: ',r_GA, r_PA, r_GlnA
-    write(nflog,'(a,f8.3,2e12.3)') 'w, r_A, r_Ag: ',w, r_A, r_Ag
+!    write(nflog,'(a,3e12.3)') 'r_GA, r_PA, r_GlnA: ',r_GA, r_PA, r_GlnA
+!    write(nflog,'(a,f8.3,2e12.3)') 'w, r_A, r_Ag: ',w, r_A, r_Ag
 !    if (w > 0) then
         e = N_PA*f_PP*N_GP*r_G
         a = e*f_P*f_G
@@ -617,7 +616,7 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
         d = sqrt(b*b - 4*a*cc) 
         w1 = (-b + d)/(2*a)
         w2 = (-b - d)/(2*a)
-        write(nflog,'(a,6e11.3)') 'a,b,cc,d,w1,w2: ',a,b,cc,d,w1,w2
+!        write(nflog,'(a,6e11.3)') 'a,b,cc,d,w1,w2: ',a,b,cc,d,w1,w2
         if (w2 < 0) then
             w = 0
         elseif (w2 > 1) then

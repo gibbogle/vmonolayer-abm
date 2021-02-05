@@ -785,7 +785,7 @@ else
 		
 !		metab = min(metab,1.0)      ! SHOULD NOT BE NECESSARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		dVdt = get_dVdt(cp,metab)
-		if (kcell_now == 1) write(nflog,'(a,4e12.3)') 'I_rate,I_rate_max,metab,dVdt: ',cp%metab%I_rate,r_Iu,metab,dVdt
+		if (kcell_now == -1) write(nflog,'(a,4e12.3)') 'I_rate,I_rate_max,metab,dVdt: ',cp%metab%I_rate,r_Iu,metab,dVdt
 	else
 		oxygen_growth = chemo(OXYGEN)%controls_growth
 		glucose_growth = chemo(GLUCOSE)%controls_growth
@@ -1019,6 +1019,8 @@ cp1%t_divide_last = tnow
 
 ! Second cell
 cp2 = cp1
+cp2%ATP_tag = .false.
+cp2%GLN_tag = .false.
 
 ! These are the variations from cp1
 !cp2%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)

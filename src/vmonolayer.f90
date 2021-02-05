@@ -134,6 +134,7 @@ mp => phase_metabolic(1)
 call SetupMetabolism(mp,ok)
 if (.not.ok) stop
 call PlaceCells(ok)
+call CreateMastercell
 call setTestCell(kcell_test)
 !call show_volume_data
 !call SetRadius(Nsites)
@@ -1361,8 +1362,6 @@ cp%dVdt = max_growthrate(ityp)
 cp%metab = phase_metabolic(1)
 cp%metab%I_rate = r_Iu	! this is just to ensure that initial growth rate is not 0
 cp%metab%C_GlnEx_prev = 0
-cp%ATP_tag = .false.
-cp%GLN_tag = .false.
 if (use_volume_method) then
     !cp%divide_volume = Vdivide0
     if (initial_count == 1) then
@@ -1402,6 +1401,7 @@ endif
 !cp%mitosis = 0
 
 cp%ATP_tag = .false.
+cp%GLN_tag = .false.
 cp%drug_tag = .false.
 cp%radiation_tag = .false.
 !cp%anoxia_tag = .false.
@@ -1423,11 +1423,43 @@ call get_random_vector3(v)	! set initial axis direction
 cp%Cin(OXYGEN) = chemo(OXYGEN)%bdry_conc
 cp%Cin(GLUCOSE) = chemo(GLUCOSE)%bdry_conc
 cp%Cin(LACTATE) = chemo(LACTATE)%bdry_conc
+cp%Cin(GLUTAMINE) = chemo(GLUTAMINE)%bdry_conc
+cp%Cin(OTHERNUTRIENT) = chemo(OTHERNUTRIENT)%bdry_conc
 cp%CFSE = generate_CFSE(1.d0)
 
 !cp%growth_rate_factor = get_growth_rate_factor()
 cp%ATP_rate_factor = get_ATP_rate_factor()
 !cp%ndt = ndt
+end subroutine
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+subroutine CreateMastercell
+type(cell_type), pointer :: cp
+type(cycle_parameters_type),pointer :: ccp
+
+cp => master_cell
+cp%ID = 0
+cp%state = ALIVE
+cp%generation = 1
+cp%celltype = 1
+ccp => cc_parameters(1)
+cp%Iphase = .true.
+cp%metab = phase_metabolic(1)
+cp%metab%I_rate = r_Iu	! this is just to ensure that initial growth rate is not 0
+cp%metab%C_GlnEx_prev = 0
+cp%ATP_tag = .false.
+cp%GLN_tag = .false.
+cp%drug_tag = .false.
+cp%radiation_tag = .false.
+cp%growth_delay = .false.
+cp%G2_M = .false.
+cp%p_rad_death = 0
+cp%Cin(OXYGEN) = chemo(OXYGEN)%bdry_conc
+cp%Cin(GLUCOSE) = chemo(GLUCOSE)%bdry_conc
+cp%Cin(LACTATE) = chemo(LACTATE)%bdry_conc
+cp%Cin(GLUTAMINE) = chemo(GLUTAMINE)%bdry_conc
+cp%Cin(OTHERNUTRIENT) = chemo(OTHERNUTRIENT)%bdry_conc
 end subroutine
 
 #if 0

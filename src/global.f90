@@ -199,6 +199,7 @@ type cell_type
     real(REAL_KIND) :: G2ch_entry_time, G2ch_time, G2ch_max_delay
     
 	type(metabolism_type) :: metab
+	logical :: have_rates
     
 	integer :: ndt
 
@@ -333,6 +334,7 @@ type(event_type), allocatable :: event(:)
 !real(REAL_KIND), allocatable, target :: Cslice(:,:,:,:)
 type(cell_type), target, allocatable :: ccell_list(:)
 integer, allocatable :: perm_index(:)
+type(cell_type), target :: master_cell
 
 character*(12) :: dll_version, dll_run_version
 character*(12) :: gui_version, gui_run_version

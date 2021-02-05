@@ -361,7 +361,8 @@ real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
 integer :: res
 
-cp => cell_list(icase)
+!cp => cell_list(1)
+cp => master_cell
 mp => cp%metab
 knt = knt+1
 ict = icase
@@ -391,7 +392,8 @@ endif
 !write(nflog,*)
 !write(nflog,'(a,i4,f10.3,4e15.6)') 'f_rkc_OGL: knt, t, Cin: ',knt,t,Cin(1:4) 
 if (knt > 10000) then
-    write(nflog,*) 'knt > 10000'
+    write(nflog,*) 'ERROR: knt > 10000'
+    write(*,*) 'ERROR: knt > 10000'
     stop
 endif
 !mp => metabolic
@@ -926,7 +928,9 @@ write(nflog,*)
 write(nflog,*) 'OGLSolver: ',istep
 ict = selected_celltype ! for now just a single cell type 
 !mp => metabolic
-mp => phase_metabolic(1)
+!mp => phase_metabolic(1)
+!mp => cell_list(1)%metab
+mp => master_cell%metab
 mp%recalcable = -1     ! This ensures full solution procedure at the start of each time step
 
 k = 0
@@ -959,13 +963,13 @@ neqn = k
 !if (noSS) then
 !    call Set_f_GP_noSS(mp,C,C_P)
 !else
-   call Set_f_GP(mp,C)
+!   call Set_f_GP(mp,C)
 !endif
 !mp%A_fract = f_MM(C(1),ATP_Km(ict),1)
 !write(nflog,'(a,3e12.3)') 'A_fract: ',mp%A_fract
 !if (.not.use_explicit) then		! RKC solver
 	info(1) = 1
-	info(2) = 1		! = 1 => use spcrad() to estimate spectral radius, != 1 => let rkc do it
+	info(2) = 0		! = 1 => use spcrad() to estimate spectral radius, != 1 => let rkc do it
 	info(3) = 1
 	info(4) = 0
 	rtol = 1d-2		! was 5d-4
@@ -1025,6 +1029,7 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
         if (cell_list(kcell)%state == DEAD) cycle
         cell_list(kcell)%Cin(ichemo) = Caverage(ichemo)
     enddo
+    master_cell%Cin(ichemo) = Caverage(ichemo)
     Caverage(MAX_CHEMO + ichemo) = C(k+1)	! not really average, this is medium at the cell layer, i.e. EC
                                             ! = chemo(ichemo)%Cmedium(1)
 !	write(nflog,'(a,i3,5e12.3)') 'Cdrug: im: ',im,Cdrug(im,1:5)
@@ -1060,7 +1065,8 @@ do kcell = 1,nlist
     if (cp%state == DEAD) cycle
 ! First back up cell metabolism parameters that we need to preserve
 !    cp%metab = metabolic
-	cp%metab = phase_metabolic(1)
+!	cp%metab = phase_metabolic(1)
+    cp%metab = master_cell%metab
     cp%metab%A_rate = cp%ATP_rate_factor*cp%metab%A_rate
 ! Update C_A in each cell, accounting for variation in A_rate
 !	mp => cp%metab

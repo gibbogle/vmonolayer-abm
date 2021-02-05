@@ -1,13 +1,14 @@
-! Modified for parallel use (OMP)
+! Modified for parallel use (OMP) then restored to serial
 
 module rkc_90
 
 implicit none
 
 integer, parameter :: nflogg=12
-double precision :: rkc_sprad
+!double precision :: rkc_sprad
 
-public :: rkc_comm, rkc_sprad
+! Commented in a test   
+!public :: rkc_sprad,rkc_comm 
 
 type rkc_comm
     private
@@ -298,8 +299,8 @@ contains
       integer          i,ptr1,ptr2,ptr3,ptr4
       logical          array,valid
 !      save
-      integer          nfe,nsteps,naccpt,nrejct,nfesig,maxm
-      common /rkcdid/  nfe,nsteps,naccpt,nrejct,nfesig,maxm
+!      integer          nfe,nsteps,naccpt,nrejct,nfesig,maxm
+!      common /rkcdid/  nfe,nsteps,naccpt,nrejct,nfesig,maxm
       external         f
 
       if(idid .eq. 0) then
@@ -387,16 +388,20 @@ contains
       double precision absh,est,err,errold,fac,h,hmax,hmin,hold,sprad,tdir,temp1,temp2,	 & !spcrad,
                        uround,wt,ylast,yplast,at
       logical          array,last,newspc,jacatt
+! moved here
+double precision :: rkc_sprad
 !      save
-      integer          nfe,nsteps,naccpt,nrejct,nfesig,maxm
-      common /rkcdid/  nfe,nsteps,naccpt,nrejct,nfesig,maxm
-      
-      interface 
-		double precision function spcrad(neqn,t,y)
-		integer :: neqn
-		double precision :: t, y(neqn)
-        end function
-      end interface
+! Commented in a test   
+!      integer          nfe,nsteps,naccpt,nrejct,nfesig,maxm
+!      common /rkcdid/  nfe,nsteps,naccpt,nrejct,nfesig,maxm
+
+! Commented in a test   
+!      interface 
+!		double precision function spcrad(neqn,t,y)
+!		integer :: neqn
+!		double precision :: t, y(neqn)
+!        end function
+!      end interface
 
 !---------------------------------
 !    Initialize on the first call.
@@ -449,7 +454,7 @@ contains
 !-------------------------------
 !  Compute an initial step size.
 !-------------------------------        
-      if(nsteps .eq. 0) then
+      if(comm%nsteps .eq. 0) then
         absh = hmax
         if(sprad*absh .gt. one) absh = one/sprad
         absh = max(absh,hmin)
@@ -568,7 +573,7 @@ contains
       enddo
 !!$omp end parallel do
       fac = ten
-      if(naccpt .eq. 1) then
+      if(comm%naccpt .eq. 1) then
         temp2 = err**one3rd
         if(p8 .lt. fac*temp2) fac = p8/temp2
       else
@@ -759,9 +764,10 @@ contains
       parameter       (zero=0d0,one=1d0,onep2=1.2d0,p01=0.01d0)
       integer          i,iter,index,ptr5
       double precision uround,sqrtu,ynrm,sigma,sigmal,dynrm,dfnrm,vnrm,small
-      integer          nfe,nsteps,naccpt,nrejct,nfesig,maxm
 	  real(8), parameter :: sprad_factor = 1
-      common /rkcdid/  nfe,nsteps,naccpt,nrejct,nfesig,maxm
+! Commented in a test   
+!      integer          nfe,nsteps,naccpt,nrejct,nfesig,maxm
+!      common /rkcdid/  nfe,nsteps,naccpt,nrejct,nfesig,maxm
 
       uround = work(4)
       sqrtu = work(5)
@@ -778,7 +784,7 @@ contains
 !  norm has the constant value dynrm.
 !---------------------------------------------------------
       ptr5 = nint(work(7)) + 4*neqn
-      if(nsteps .eq. 0) then
+      if(comm%nsteps .eq. 0) then
         do i = 1,neqn
           v(i) = fn(i)
         enddo
@@ -866,5 +872,15 @@ contains
 !-------------------------------------------
       idid = 6
       end subroutine
+      
+! Added in a test   
+double precision function spcrad(neqn,t,y)
+!!DEC$ ATTRIBUTES DLLEXPORT :: spcrad
+!use global
+integer :: neqn
+double precision :: t, y(neqn)
+spcrad = 200    !spcrad_value   ! value from test.inp
+end function
+
 
 end module
