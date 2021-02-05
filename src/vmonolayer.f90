@@ -155,12 +155,14 @@ call UpdateChemomap
 !call AdjustMM
 call SetInitialGrowthRate
 NATP_tag = 0
+NGLN_tag = 0
 Nradiation_tag = 0
 Ndrug_tag = 0
 Ndrug_tag = 0
 Nradiation_dead = 0
 Ndrug_dead = 0
 NATP_dead = 0
+NGLN_dead = 0
 ndivided = 0
 Ndying = 0
 Ndead = 0
@@ -1338,9 +1340,7 @@ integer :: ityp, k, kpar = 0
 real(REAL_KIND) :: v(3), c(3), R1, R2, V0, Tdiv, Vdiv, p(3), R, gfactor
 type(cell_type), pointer :: cp
 type(cycle_parameters_type),pointer :: ccp
-type(metabolism_type), pointer :: metabolic
 	
-metabolic => phase_metabolic(1)
 cp => cell_list(kcell)
 cp%ID = kcell
 cp%state = ALIVE
@@ -1358,9 +1358,11 @@ V0 = Vdivide0/2
 !cp%fg = gfactor
 call set_divide_volume(kcell, V0)
 cp%dVdt = max_growthrate(ityp)
-!cp%metab%I_rate = metabolic%I_rate_max	! this is just to ensure that initial growth rate is not 0
+cp%metab = phase_metabolic(1)
 cp%metab%I_rate = r_Iu	! this is just to ensure that initial growth rate is not 0
-cp%metab%tagged = .false.
+cp%metab%C_GlnEx_prev = 0
+cp%ATP_tag = .false.
+cp%GLN_tag = .false.
 if (use_volume_method) then
     !cp%divide_volume = Vdivide0
     if (initial_count == 1) then
@@ -2183,10 +2185,9 @@ real(REAL_KIND) :: C_O2, HIF1, PDK1
 type(metabolism_type), pointer :: mp
 logical :: ok = .true.
 logical :: dbug
-type(metabolism_type), pointer :: metabolic
 	
-metabolic => phase_metabolic(1)
-mp => phase_metabolic(1)
+mp => cell_list(1)%metab
+
 !call testmetab2
 dbug = (istep < 0)
 Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
@@ -2245,15 +2246,15 @@ do idiv = 0,ndiv-1
 	if (dbug) write(nflog,*) 'did Solver'
 	if (use_metabolism) then
 		do ityp = 1,Ncelltypes
-			HIF1 = metabolic%HIF1
+			HIF1 = mp%HIF1
 			C_O2 = chemo(OXYGEN)%cmedium(1)
 !			write(*,'(a,2e12.3)') 'before: HIF1,C_O2: ',HIF1,C_O2
 			call analyticSetHIF1(C_O2,HIF1,DELTA_T)
 !			write(*,'(a,e12.3)') 'after: HIF1: ',HIF1
-			metabolic%HIF1 = HIF1
-			PDK1 = metabolic%PDK1
+			mp%HIF1 = HIF1
+			PDK1 = mp%PDK1
 			call analyticSetPDK1(HIF1,PDK1,dt)
-			metabolic%PDK1 = PDK1
+			mp%PDK1 = PDK1
 		enddo
 	endif
 	!write(nflog,*) 'did Solver'
@@ -2321,10 +2322,8 @@ if (saveFACS%active) then
 endif
 
 if (dbug .or. mod(istep,nthour) == 0) then
-!	mp => metabolic
-	mp => phase_metabolic(1)
-	write(logmsg,'(a,i6,i4,a,i8,a,i8,a,4f8.3,a,e12.3)') 'istep, hour: ',istep,istep/nthour,' Nlive: ',Ncells,'   Nviable: ',sum(Nviable), &
-	    '  medium glu,lac,gln,ON: ',cmediumave(GLUCOSE:NUTS),' r_Gln: ',mp%Gln_rate
+	write(logmsg,'(a,i6,i4,a,i8,a,i8,a,4f8.3,a,e12.3)') 'istep, hour: ',istep,istep/nthour,' Nlive: ',Ncells,'   Nviable: ',sum(Nviable)    !, &
+!	    '  medium glu,lac,gln,ON: ',cmediumave(GLUCOSE:NUTS),' r_Gln: ',mp%Gln_rate
 	call logger(logmsg)
 !	write(logmsg,'(a,4e12.3)') 'G_rate, A_rate, PO_rate, O_rate: ',mp%G_rate,mp%A_rate,mp%P_rate,mp%O_rate 
 !	call logger(logmsg)
@@ -2345,7 +2344,6 @@ if (istep == 1) then
 	write(nflog,*) 'nthour: ',nthour
 	write(nflog,'(8a12)') 'step','Cglucose','Coxygen','f_G','f_P','Grate','Irate','Cpyruvate'
 endif
-mp => phase_metabolic(1)
 write(nflog,'(a,i4,7e12.3)') 'step:   ',istep,cell_list(1)%Cin(GLUCOSE),cell_list(1)%Cin(OXYGEN),mp%f_G,mp%f_P, &
 			mp%G_rate,mp%I_rate,mp%C_P
 #endif
@@ -2419,7 +2417,7 @@ cp =>cell_list(kcell)
 mp => cp%metab
 Cin = Caverage(1:MAX_CHEMO)
 !write(*,'(a,3f8.4)') 'O2, glucose, lactate: ',Cin(1:3) 
-call get_metab_rates(mp, Cin, 1.0d0, res)
+call get_metab_rates(cp, Cin, 1.0d0, res)
 return
 
 write(*,'(a,i2,3e12.3)') 'phase, V: ',cp%phase,cp%V		!I2Divide,Itotal,mp%Itotal,mp%I2Divide

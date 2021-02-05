@@ -101,6 +101,7 @@ logical :: metabolised(MAX_CELLTYPES,0:2)
 real(REAL_KIND) :: metab, cell_flux, dMdt, KmetC, vcell_actual, Kd(0:2), dC, C0
 type(drug_type), pointer :: dp
 type(metabolism_type), pointer :: mp
+type(cell_type), pointer :: cp
 real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
 integer :: res
@@ -124,11 +125,13 @@ do ic = 1,ncvars
 enddo
 !write(*,'(a,8e12.3)') 'Cin: ',Cin(1:ncvars)
 !write(*,'(a,8e12.3)') 'Cmedium: ',Cmedium(1:ncvars)
+cp => cell_list(icase)
+mp => cp%metab
 ict = icase
 if (use_metabolism) then
 !	mp => metabolic
-	mp => phase_metabolic(1)
-	call get_metab_rates(mp,Cin,Cmedium(GLUTAMINE),res)
+!	mp => phase_metabolic(1)
+	call get_metab_rates(cp,Cin,Cmedium(GLUTAMINE),res)
 endif
 !write(*,*) 'icase, neqn: ',icase,neqn
 
@@ -353,10 +356,13 @@ real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(NUTS+1)
 real(REAL_KIND) :: C, membrane_kin, membrane_kout, membrane_flux, area_factor, Cbnd
 real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX, K1, K2
 type(metabolism_type), pointer :: mp
+type(cell_type), pointer :: cp
 real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
 integer :: res
 
+cp => cell_list(icase)
+mp => cp%metab
 knt = knt+1
 ict = icase
 A = well_area
@@ -389,10 +395,10 @@ if (knt > 10000) then
     stop
 endif
 !mp => metabolic
-mp => phase_metabolic(1)
+!mp => phase_metabolic(1)
 !if (mod(knt,10) == 1) then      ! solve for rates every 10th time
 if (knt == 1) then              ! solve for rates only once at the start of the main time step
-    call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
+    call get_metab_rates(cp,Cin,C_OGL(GLUTAMINE,1),res)     ! needs to be from y()
     if (res /= 0) then
         write(nflog,*) 'Error: get_metab_rates: res: ',res
         stop
@@ -472,6 +478,7 @@ end subroutine
 !	IC oxygen  =  Cin(1) = y(1),       we have Cin(1) = y(iphase)
 !	IC glucose =  Cin(2) = y(N1D+2),   we have Cin(2) = y(N1D+6+iphase)
 !	IC lactate =  Cin(3) = y(2*N1D+3), we have Cin(3) = y(2*N1D+2*6+iphase)
+! THIS IS NOT VALID NOW THAT the argument for f_metab is cp not mp
 !----------------------------------------------------------------------------------
 subroutine f_rkc_OGL_phased(neqn,t,y,dydt,icase)
 integer :: neqn, icase
@@ -481,12 +488,15 @@ real(REAL_KIND) :: dCsum, dCdiff, dCreact, vol_cm3, Cex, Cin(4)
 real(REAL_KIND) :: C, membrane_kin, membrane_kout, membrane_flux, area_factor, Cbnd
 real(REAL_KIND) :: A, d, dX, dV, Kd, KdAVX
 type(metabolism_type), pointer :: mp
+type(cell_type), pointer :: cp
 real(REAL_KIND) :: average_volume = 1.2
 logical :: use_average_volume = .true.
 integer :: iphase, Nphases, NcellsPerPhase(6)
 real(REAL_KIND) :: total_flux
 integer :: res
 
+cp => cell_list(icase)
+mp => cp%metab
 ict = icase
 A = well_area
 d = total_volume/A
@@ -515,8 +525,9 @@ do ichemo = 1,3
 		Cin(1) = y(iphase)
 		Cin(2) = y(N1D+Nphases+iphase)
 		Cin(3) = y(2*(N1D+Nphases)+iphase)
-		mp => phase_metabolic(iphase)
-		call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)
+!		mp => phase_metabolic(iphase)
+!		call get_metab_rates(mp,Cin,C_OGL(GLUTAMINE,1),res)
+		call get_metab_rates(cp,Cin,C_OGL(GLUTAMINE,1),res)
 !		k = k+1
 		k = (ichemo-1)*(N1D + Nphases) + iphase
 		C = y(k)

@@ -310,14 +310,18 @@ do kcell = 1,nlist
 		cycle
 	endif	
 	call getO2conc(cp,C_O2)
-	if (use_metabolism) then
-		if (cp%metab%A_rate < r_As .or. cp%metab%tagged) then
-			cp%ATP_tag = .true.
-			NATP_tag(ityp) = NATP_tag(ityp) + 1
-			cp%dVdt = 0
-			call CellDies(kcell,.false.)
-			cycle
-		endif
+	if (cp%ATP_tag) then
+		NATP_tag(ityp) = NATP_tag(ityp) + 1
+		cp%dVdt = 0
+		call CellDies(kcell,.false.)
+		cycle
+	endif
+	if (cp%GLN_tag) then
+		NGLN_tag(ityp) = NGLN_tag(ityp) + 1
+		cp%dVdt = 0
+		call CellDies(kcell,.false.)
+		cycle
+	endif
 #if 0			
 	else
 		if (cp%anoxia_tag) then
@@ -363,7 +367,7 @@ do kcell = 1,nlist
 			endif
 		endif
 #endif
-	endif
+!	endif
 	
 	do idrug = 1,ndrugs_used	
 		ichemo = DRUG_A + 3*(idrug-1)
@@ -464,6 +468,10 @@ Ndead(ityp) = Ndead(ityp) + 1
 if (cp%ATP_tag) then
 	NATP_tag(ityp) = NATP_tag(ityp) - 1
 	NATP_dead(ityp) = NATP_dead(ityp) + 1
+endif
+if (cp%GLN_tag) then
+	NGLN_tag(ityp) = NGLN_tag(ityp) - 1
+	NGLN_dead(ityp) = NGLN_dead(ityp) + 1
 endif
 do idrug = 1,ndrugs_used
 	if (cp%drug_tag(idrug)) then

@@ -119,8 +119,6 @@ type metabolism_type
 	real(REAL_KIND) :: O_rate
 	real(REAL_KIND) :: Gln_rate
 	real(REAL_KIND) :: ON_rate
-!	real(REAL_KIND) :: Itotal	! total of intermediates pool			NOT USED
-!	real(REAL_KIND) :: I2Divide	! intermediates total needed to divide	NOT USED
 	real(REAL_KIND) :: GA_rate
 	real(REAL_KIND) :: f_G
 	real(REAL_KIND) :: f_P
@@ -128,7 +126,7 @@ type metabolism_type
 	real(REAL_KIND) :: C_P
 	real(REAL_KIND) :: C_A
 	real(REAL_KIND) :: recalcable     ! if > 0, can determine rates from w = f_G/f_Gu, otherwise need full procedure
-	logical :: tagged   ! tagged to die
+	real(REAL_KIND) :: C_GlnEx_prev
 end type
 
 type cell_type
@@ -174,7 +172,7 @@ type cell_type
 	real(REAL_KIND) :: t_growth_delay_end	! this is for suppression of growth before first division
 	real(REAL_KIND) :: tag_time             ! time cell is tagged to die metabolically
 	integer :: N_delayed_cycles_left		! decremented by 1 at each cell division
-	logical :: radiation_tag, ATP_tag
+	logical :: radiation_tag, ATP_tag, GLN_tag
 	logical :: drug_tag(MAX_DRUGTYPES)
 	logical :: G2_M
 !	logical :: exists
@@ -345,9 +343,9 @@ integer :: Ncells_type(MAX_CELLTYPES), Ndying(MAX_CELLTYPES), Nviable(MAX_CELLTY
 logical :: limit_stop
 !integer :: nadd_sites, Nsites, Nreuse
 integer :: Ndrugs_used
-integer :: Nradiation_tag(MAX_CELLTYPES), NATP_tag(MAX_CELLTYPES)
+integer :: Nradiation_tag(MAX_CELLTYPES), NATP_tag(MAX_CELLTYPES), NGLN_tag(MAX_CELLTYPES)
 integer :: Ndrug_tag(MAX_DRUGTYPES,MAX_CELLTYPES)
-integer :: Nradiation_dead(MAX_CELLTYPES), NATP_dead(MAX_CELLTYPES)
+integer :: Nradiation_dead(MAX_CELLTYPES), NATP_dead(MAX_CELLTYPES), NGLN_dead(MAX_CELLTYPES)
 integer :: Ndrug_dead(MAX_DRUGTYPES,MAX_CELLTYPES)
 logical :: use_radiation_growth_delay_all = .true.
 
