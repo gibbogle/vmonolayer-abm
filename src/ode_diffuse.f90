@@ -969,7 +969,7 @@ neqn = k
 !write(nflog,'(a,3e12.3)') 'A_fract: ',mp%A_fract
 !if (.not.use_explicit) then		! RKC solver
 	info(1) = 1
-	info(2) = 0		! = 1 => use spcrad() to estimate spectral radius, != 1 => let rkc do it
+	info(2) = 1		! = 1 => use spcrad() to estimate spectral radius, != 1 => let rkc do it
 	info(3) = 1
 	info(4) = 0
 	rtol = 1d-2		! was 5d-4
@@ -991,7 +991,8 @@ neqn = k
 		ok = .false.
 		return
 	endif
-	!write(nflog,'(a,3e12.3)') 'IC: ',C(1),C(N1D+2),C(2*N1D+3)
+	write(nflog,*) 'knt: ',knt
+	!write(nflog,'(a,3e12.3)') 'IC: ',C(1),C(N1D+2),C(2*N1D+3) 
 	!write(*,'(a,3e12.3)') 'IC: ',C(1),C(N1D+2),C(2*N1D+3) 
 !else	! explicit solver UNSTABLE
 !	t = 0
