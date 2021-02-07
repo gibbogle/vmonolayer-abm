@@ -784,17 +784,17 @@ endif
 !write(nfres,*)
 write(nfres,'(a)') 'date info GUI_version DLL_version &
 istep hour Ncells(1) Ncells(2) Nviable Nnonviable &
-NATP_dead(1) NATP_dead(2) NdrugA_dead(1) NdrugA_dead(2) NdrugB_dead(1) NdrugB_dead(2) &
+NATP_dead(1) NATP_dead(2) NGLN_dead(1) NGLN_dead(2) NdrugA_dead(1) NdrugA_dead(2) NdrugB_dead(1) NdrugB_dead(2) &
 Nradiation_dead(1) Nradiation_dead(2) Ntotal_dead &
-Ntagged_ATP(1) Ntagged_ATP(2) Ntagged_drugA(1) Ntagged_drugA(2) Ntagged_drugB(1) Ntagged_drugB(2) &
-Ntagged_radiation(1) Ntagged_radiation(2) &
+Ntagged_ATP(1) Ntagged_ATP(2) Ntagged_GLN(1) Ntagged_GLN(2) &
+Ntagged_drugA(1) Ntagged_drugA(2) Ntagged_drugB(1) Ntagged_drugB(2) Ntagged_radiation(1) Ntagged_radiation(2) &
 f_viable f_hypoxic(1) f_hypoxic(2) f_hypoxic(3) f_clonohypoxic(1) f_clonohypoxic(2) f_clonohypoxic(3) f_growth(1) f_growth(2) f_growth(3) &
 f_nogrow f_clonogenic plating_efficiency(1) plating_efficiency(2) &
-EC_oxygen EC_glucose EC_lactate EC_glutamine EC_drugA EC_drugA_metab1 EC_drugA_metab2 EC_drugB EC_drugB_metab1 EC_drugB_metab2 &
-IC_oxygen IC_glucose IC_lactate IC_glutamine IC_pyruvate IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
-medium_oxygen medium_glucose medium_lactate medium_glutamine medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
+EC_oxygen EC_glucose EC_lactate EC_glutamine EC_ON EC_drugA EC_drugA_metab1 EC_drugA_metab2 EC_drugB EC_drugB_metab1 EC_drugB_metab2 &
+IC_oxygen IC_glucose IC_lactate IC_glutamine IC_ON IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
+medium_oxygen medium_glucose medium_lactate medium_glutamine medium_ON medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
 G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase S_phase_nonarrest Nmutations &
-doubling_time glycolysis_rate pyruvate_oxidation_rate glutamine_rate ATP_rate intermediates_rate Ndivided pyruvate_oxidised_fraction'
+doubling_time glycolysis_rate pyruvate_oxidation_rate glutamine_rate ATP_rate intermediates_rate Ndivided'
 write(logmsg,*) 'Opened nfout: ',trim(outputfile)
 ! Note order change
 call logger(logmsg)

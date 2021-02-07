@@ -916,7 +916,7 @@ integer :: info(4), idid
 real(REAL_KIND) :: rtol, atol(1)
 type(rkc_comm) :: comm_rkc(1)
 type(metabolism_type), pointer :: mp
-type(cell_type), pointer :: cp
+type(cell_type), pointer :: cp, cpm
 real(REAL_KIND) :: Cic,Cex,area_factor,membrane_kin,membrane_kout,membrane_flux
 integer :: nt = 1000
 logical :: use_explicit = .false.		! The explicit approach is hopelessly unstable, even with nt = 1000
@@ -930,7 +930,8 @@ ict = selected_celltype ! for now just a single cell type
 !mp => metabolic
 !mp => phase_metabolic(1)
 !mp => cell_list(1)%metab
-mp => master_cell%metab
+cpm => master_cell
+mp => cpm%metab
 mp%recalcable = -1     ! This ensures full solution procedure at the start of each time step
 
 k = 0
@@ -1034,6 +1035,12 @@ do ichemo = 1,NUTS     ! 3 -> 4 = glutamine
     Caverage(MAX_CHEMO + ichemo) = C(k+1)	! not really average, this is medium at the cell layer, i.e. EC
                                             ! = chemo(ichemo)%Cmedium(1)
 !	write(nflog,'(a,i3,5e12.3)') 'Cdrug: im: ',im,Cdrug(im,1:5)
+enddo
+do kcell = 1,nlist
+    cp => cell_list(kcell)
+    if (cp%state == DEAD) cycle
+    cp%ATP_tag = cpm%ATP_tag
+    cp%GLN_tag = cpm%GLN_tag
 enddo
 !write(*,'(a,4e12.3)') 'OGLSolver: Cex: ',chemo(1:GLUTAMINE)%Cmedium(1)
 !write(*,'(a,f12.4)') 'after: Cex-CGln: ',chemo(GLUTAMINE)%Cmedium(1) - Caverage(GLUTAMINE)
