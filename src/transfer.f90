@@ -193,7 +193,7 @@ real(REAL_KIND) :: phase_fraction(6+1), clono_fraction, Tplate_eff
 real(REAL_KIND) :: medium_oxygen, medium_glucose, medium_lactate, medium_other, medium_drug(2,0:2)
 !real(REAL_KIND) :: IC_oxygen, IC_glucose, IC_lactate, IC_pyruvate, IC_other, IC_drug(2,0:2)
 real(REAL_KIND) :: EC(MAX_CHEMO), cmedium(MAX_CHEMO)
-real(REAL_KIND) :: r_G, r_P, r_Gln, r_ON, r_A, r_I
+real(REAL_KIND) :: r_O, r_G, r_P, r_Gln, r_ON, r_A, r_I
 type(metabolism_type), pointer :: mp
 
 hour = istep*DELTA_T/3600.
@@ -257,6 +257,7 @@ enddo
 !mp => metabolic
 !mp => phase_metabolic(1)
 mp => master_cell%metab
+r_O = mp%O_rate/r_Ou
 r_G = mp%G_rate/r_Gu
 r_Gln = mp%Gln_rate/r_Glnu
 if (r_ONu > 0) then
@@ -284,7 +285,7 @@ else
     doubling_time = 0
 endif
 
-summaryData(1:76) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
+summaryData(1:77) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviable), &
 	rint(TNATP_dead), rint(TNGLN_dead), rint(TNdrug_dead(1)), rint(TNdrug_dead(2)), rint(TNradiation_dead), rint(TNdead), &
     rint(TNtagged_ATP), rint(TNtagged_GLN), rint(TNtagged_drug(1)), rint(TNtagged_drug(2)), rint(TNtagged_radiation), &
 	100*viable_fraction, 100*hypoxic_fraction(i_hypoxia_cutoff), 100*clonohypoxic_fraction(i_hypoxia_cutoff), &
@@ -292,9 +293,9 @@ summaryData(1:76) = [ rint(istep), rint(Ncells), rint(TNviable), rint(TNnonviabl
 	EC(OXYGEN:DRUG_A-1), EC(DRUG_A:DRUG_A+2), EC(DRUG_B:DRUG_B+2), &
 	caverage(OXYGEN:DRUG_A-1), An, caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 	cmedium(OXYGEN:DRUG_A-1), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
-	doubling_time, r_G, r_P, r_Gln, r_ON, r_A, r_I, mp%f_G, mp%f_P, mp%HIF1, mp%PDK1, rint(ndivided), &
+	doubling_time, r_O, r_G, r_P, r_Gln, r_ON, r_A, r_I, mp%f_G, mp%f_P, mp%HIF1, mp%PDK1, rint(ndivided), &
 	100*phase_fraction(1:7), rmutations]
-write(nfres,'(a,a,2a12,i8,e12.4,25i7,62e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
+write(nfres,'(a,a,2a12,i8,e12.4,25i7,63e13.5)') trim(header),' ',gui_run_version, dll_run_version, &
 	istep, hour, Ncells_type(1:2), TNviable, TNnonviable, &
     NATP_dead(1:2), NGLN_dead(1:2), Ndrug_dead(1,1:2), Ndrug_dead(2,1:2), Nradiation_dead(1:2), TNdead, &
     Ntagged_ATP(1:2), Ntagged_GLN(1:2), Ntagged_drug(1,1:2), Ntagged_drug(2,1:2), Ntagged_radiation(1:2), &
@@ -304,7 +305,7 @@ write(nfres,'(a,a,2a12,i8,e12.4,25i7,62e13.5)') trim(header),' ',gui_run_version
 	caverage(OXYGEN:OTHERNUTRIENT), caverage(DRUG_A:DRUG_A+2), caverage(DRUG_B:DRUG_B+2), &
 	cmedium(OXYGEN:OTHERNUTRIENT), cmedium(DRUG_A:DRUG_A+2), cmedium(DRUG_B:DRUG_B+2), &
 	phase_fraction(1:7), rmutations, &	! note order change
-	doubling_time, r_G, r_P, r_Gln, r_A, r_I, real(ndivided)
+	doubling_time, r_O, r_G, r_P, r_Gln, r_A, r_I, real(ndivided)
 	
 !call sum_dMdt(GLUCOSE)
 ndoublings = 0

@@ -794,7 +794,7 @@ EC_oxygen EC_glucose EC_lactate EC_glutamine EC_ON EC_drugA EC_drugA_metab1 EC_d
 IC_oxygen IC_glucose IC_lactate IC_glutamine IC_ON IC_drugA IC_drugA_metab1 IC_drugA_metab2 IC_drugB IC_drugB_metab1 IC_drugB_metab2 &
 medium_oxygen medium_glucose medium_lactate medium_glutamine medium_ON medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
 G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase S_phase_nonarrest Nmutations &
-doubling_time glycolysis_rate pyruvate_oxidation_rate glutamine_rate ATP_rate intermediates_rate Ndivided'
+doubling_time oxygen_rate glycolysis_rate pyruvate_oxidation_rate glutamine_rate ATP_rate intermediates_rate Ndivided'
 write(logmsg,*) 'Opened nfout: ',trim(outputfile)
 ! Note order change
 call logger(logmsg)
@@ -917,6 +917,8 @@ read(nf,*) N_GlnI
 read(nf,*) N_ONI
 read(nf,*) N_PO
 read(nf,*) N_GlnO
+!read(nf,*) N_ONO
+N_ONO = N_GlnO  ! interim measure
 read(nf,*) K_H1
 read(nf,*) K_H2
 read(nf,*) K_HB
@@ -2218,7 +2220,7 @@ type(metabolism_type), pointer :: mp
 logical :: ok = .true.
 logical :: dbug
 	
-mp => cell_list(1)%metab
+mp => master_cell%metab
 
 !call testmetab2
 dbug = (istep < 0)
@@ -2276,11 +2278,11 @@ do idiv = 0,ndiv-1
 		endif
 	enddo	! end it_solve loop
 	if (dbug) write(nflog,*) 'did Solver'
-	if (use_metabolism) then
+!	if (use_metabolism) then
 		do ityp = 1,Ncelltypes
 			HIF1 = mp%HIF1
 			C_O2 = chemo(OXYGEN)%cmedium(1)
-!			write(*,'(a,2e12.3)') 'before: HIF1,C_O2: ',HIF1,C_O2
+!			write(*,'(a,2e12.3)') 'before: HIF1,C_O2: ',HIF1,C_O2 
 			call analyticSetHIF1(C_O2,HIF1,DELTA_T)
 !			write(*,'(a,e12.3)') 'after: HIF1: ',HIF1
 			mp%HIF1 = HIF1
@@ -2288,7 +2290,7 @@ do idiv = 0,ndiv-1
 			call analyticSetPDK1(HIF1,PDK1,dt)
 			mp%PDK1 = PDK1
 		enddo
-	endif
+!	endif
 	!write(nflog,*) 'did Solver'
     call GlutamineDecay
 	call CheckDrugConcs
