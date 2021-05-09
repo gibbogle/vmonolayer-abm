@@ -244,7 +244,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
-{"OXYGEN_HILL_N", 1, 1, 2,
+{"OXYGEN_HILL_N", 2, 1, 2,
  "Hill function N",
  "Oxygen uptake rate Hill function N"},
 
@@ -292,7 +292,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Michaelis-Menten Km",
  "Michaelis-Menten Km (uM)"},
 
-{"GLUCOSE_HILL_N", 1, 1, 2,
+{"GLUCOSE_HILL_N", 2, 1, 2,
  "Hill function N",
  "Glucose uptake rate Hill function N"},
 
@@ -364,7 +364,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
  "Constant concentration",
  "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-{"GLUTAMINE_CONSUMPTION", 0.906e-16, 0, 0,
+{"GLUTAMINE_CONSUMPTION", 1.17e-16, 0, 0,
  "Consumption rate",
  "Glutamine consumption rate"},
 
@@ -396,7 +396,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Membrane diff constant",
      "Cell membrane diffusion coefficient Kout"},
 
-    {"OTHER_BDRY_CONC", 2.0, 0, 0,
+    {"OTHER_BDRY_CONC", 2.6, 0, 0,
      "Boundary concentration",
      "Other nutrient boundary concentration"},
 
@@ -404,7 +404,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Constant concentration",
      "Extracellular concentration to be held constant everywhere at the specified boundary value"},
 
-    {"OTHER_CONSUMPTION", 1.303e-16, 0, 0,
+    {"OTHER_CONSUMPTION", 1.67e-16, 0, 0,
      "Consumption rate",
      "Other nutrient consumption rate"},
 
@@ -525,7 +525,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "G2 mean delay (h)",
      "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
 
-     {"APOPTOSIS_RATE_1", 0.0108, 0, 0,
+     {"APOPTOSIS_RATE_1", 0.009, 0, 0,
      "Apoptosis rate/hr",
      "The rate of passage from state = DYING to state = DEAD, probability/hour"},
 
@@ -722,11 +722,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Intermediate moles produced per pyruvate mole",
       "Number of moles of anabolic intermediates produced the oxidation of one pyruvate mole"},
 
-       {"N_GLNI_1", 1.07, 0, 0,
+       {"N_GLNI_1", 0.7, 0, 0,
        "Intermediate moles produced per glutamine mole",
        "Number of moles of anabolic intermediates produced the oxidation of one glutamine mole"},
 
-       {"N_ONI_1", 1.42, 0, 0,
+       {"N_ONI_1", 1.1, 0, 0,
        "Intermediate moles produced per othernutrient mole",
        "Number of moles of anabolic intermediates produced the oxidation of one other nutrient mole"},
 
@@ -839,23 +839,23 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
         "f_GP solver (1,2,3)",
         "Choices for f_GP solver: 1 = max ATP (tandem), 2 = max ATP (staged), 3 = survival (staged)"},
 
-        {"C_GLN_LO",0.2,0,0,
+        {"C_GLN_LO",0.3,0,0,
          "C_Gln_lo",
          "Lower bound of ramp in r_Gln as a function of C_Gln"},
 
-        {"C_GLN_HI",0.3,0,0,
+        {"C_GLN_HI",0.6,0,0,
          "C_Gln_hi",
          "Upper bound of ramp in r_Gln as a function of C_Gln"},
 
-        {"F_RGLN_LO",0.0472,0,0,
+        {"F_RGLN_LO",0.1,0,0,
          "f_rGln_lo",
          "Low r_Gln factor - multiple of max rate to give r_Gln for C_Gln < C_Gln_lo"},
 
-        {"F_RGLN_THRESHOLD",0.0017,0,0,
+        {"F_RGLN_THRESHOLD",0.0018,0,0,
          "f_rN_threshold",
          "Survival threshold for rate of N-type intermediates is f_rN_threshold*r_Iu, where r_Iu is the unconstrained rate of I production"},
 
-        {"F_RON_BASE",0.00416,0,0,
+        {"F_RON_BASE",0.12,0,0,
          "f_rON_base",
          "Base level of r_ON, fraction of max rate. This is the rate when there are no growth constraints"},
 
@@ -868,11 +868,11 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
          "k_glutamine_decay",
          "Glutamine decay constant"},
 
-         {"F_APOPTOSIS_RATE_LO",0.4,0,0,
+         {"F_APOPTOSIS_RATE_LO",0.5,0,0,
           "f_apoptosis_rate_lo",
           "Multiplying factor to get the low apoptosis rate from the high rate"},
 
-         {"T_APOPTOSIS_HI",24.4,0,0,
+         {"T_APOPTOSIS_HI",28,0,0,
           "t_apoptosis_hi (h)",
           "Duration of high apoptosis rate after tagging for metabolic death (hours)"},
 

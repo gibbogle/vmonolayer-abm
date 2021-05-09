@@ -2810,41 +2810,6 @@ padding: 8px
              </layout>
             </widget>
            </widget>
-           <widget class="QLineEdit" name="line_F_GP_SOLVER">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="geometry">
-             <rect>
-              <x>650</x>
-              <y>582</y>
-              <width>21</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>1</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-           <widget class="QMyLabel" name="label_F_GP_SOLVER">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="geometry">
-             <rect>
-              <x>680</x>
-              <y>580</y>
-              <width>101</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>f_FP solver (1,2,3)</string>
-            </property>
-           </widget>
            <widget class="QGroupBox" name="groupBox_moles">
             <property name="geometry">
              <rect>

@@ -435,19 +435,27 @@ real(REAL_KIND) :: C_Gln
 real(REAL_KIND) :: f
 real(REAL_KIND) :: Km_Gln, fcorrect
 integer :: N_Gln
+logical :: dbug
 
+dbug = (istep == -17)
 !C_Gln_lo = 0.25
 !C_Gln_hi = 0.3
 !f_rGln_lo = 0.2
 if (C_Gln > C_Gln_hi) then
     f = 1.0
+    if (dbug) write(nflog,'(a,3f10.6)') '(a) C,C_Gln_lo,f: ',C_Gln,C_Gln_lo,f
 elseif (C_Gln > C_Gln_lo) then
     f = f_rGln_lo + (1.0 - f_rGln_lo)*(C_Gln - C_Gln_lo)/(C_Gln_hi - C_Gln_lo)
+    if (dbug) write(nflog,'(b,3f10.6)') '(a) C,C_Gln_lo,f: ',C_Gln,C_Gln_lo,f
 else
     N_Gln = chemo(GLUTAMINE)%Hill_N
     Km_Gln = chemo(GLUTAMINE)%MM_C0     ! Michaelis-Menten Km
     fcorrect =  f_rGln_lo/f_MM(C_Gln_lo,Km_Gln,N_Gln)
     f = fcorrect*f_MM(C_Gln,Km_Gln,N_Gln)
+    if (dbug) then
+        write(nflog,'(a,3f10.6)') '(c) C,C_Gln_lo,f: ',C_Gln,C_Gln_lo,f
+        write(nflog,'(a,2f10.6)') 'fcorrect,f_MM(C_Gln,Km_Gln,N_Gln): ',fcorrect,f_MM(C_Gln,Km_Gln,N_Gln)
+    endif
 endif
 end function
 
@@ -461,7 +469,7 @@ type(metabolism_type), pointer :: mp
 real(REAL_KIND) :: C_O2, C_G, C_L, C_Gln, C_ON
 real(REAL_KIND) :: r_G, fPDK, w, f, f_PP, v, z, zmin, wlim
 real(REAL_KIND) :: f_G, f_P, f_Gln, f_ON, r_P, r_A, r_I, r_L, r_Gln
-real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2, Km_ON
+real(REAL_KIND) :: r_GP, r_GA, r_PA, r_GlnA, Km_O2, MM_O2, Km_ON, f_MM_O2, k_MM_O2
 real(REAL_KIND) :: r_GI, r_PI, r_GlnI, r_NI, r_GPI, r_GlnONI, r_ONI, r_ONIu, r_ON, r_ONA, r_GPA, r_O2, r_N, r_Nu
 real(REAL_KIND) :: a, b, cc, d, e, dw, r_Atest, r_Atestq, w1, w2, r_A0, r_A1
 integer :: N_O2, N_Gln, N_ON, k, Nw, iw
@@ -502,6 +510,8 @@ r_G = get_glycosis_rate(mp%HIF1,C_G,C_Gln,r_O2)	! Note: r_O2 is the previous O_r
                                                 ! dependence on C_Gln not wanted now - not used
 v = min(1.0,r_G/r_Gu)
 MM_O2 = f_MM(C_O2,Km_O2,N_O2)
+k_MM_O2 = 0.3
+f_MM_O2 = min(1.0, k_MM_O2 + MM_O2)
 
 ! This is probably valid only for vmonolayer, not when different cells see different C_GlnEx
 
@@ -517,22 +527,25 @@ f_P = f_Pu
 
 w = get_f_Gln(C)    ! this is the fraction of r_Glnu 
 f_Gln = f_Glnu
-r_Gln = MM_O2*w*r_Glnu
+r_Gln = f_MM_O2*w*r_Glnu
+if (istep == 17) then
+    write(nflog,'(a,4e12.3)') 'C, w, f_MM_O2, r_Gln: ',C, w, f_MM_O2, r_Gln
+endif
 
 r_GlnI = r_Gln*f_Gln*N_GlnI
 
 r_GI = f_G*r_G*N_GI
 r_GA = (1 - f_G)*r_G*N_GA
 r_GP = (1 - f_G)*r_G*N_GP
-r_P = MM_O2*fPDK*f_PP*r_GP
-r_L = (1 - MM_O2*fPDK*f_PP)*r_GP
+r_P = f_MM_O2*fPDK*f_PP*r_GP
+r_L = (1 - f_MM_O2*fPDK*f_PP)*r_GP
 r_PI = f_P*r_P*N_PI
 r_PA = (1 - f_P)*r_P*N_PA
 r_GPI = r_GI + r_PI
 
 Km_ON = chemo(OTHERNUTRIENT)%MM_C0
 N_ON = chemo(OTHERNUTRIENT)%Hill_N
-r_ON_max = MM_O2*ON_maxrate*f_MM(C_ON,Km_ON,N_ON) 
+r_ON_max = f_MM_O2*ON_maxrate*f_MM(C_ON,Km_ON,N_ON) 
 
 r_ONI_max = r_ON_max*f_ON*N_ONI
 r_ONI = min(r_Iu - r_GPI - r_GlnI, r_ONI_max) 
@@ -543,18 +556,17 @@ r_ONI = max(r_ONI,0.0)
 !endif
 
 r_ON = r_ONI/(f_ON*N_ONI)
-!if (istep > 280 .and. istep < 295) write(nflog,'(a,6e12.3)') 'r_ON,r_ONI,r_ONI_max: ',r_ON,r_ONI,r_ONI_max,C_O2,MM_O2,r_O2
 
 r_I = r_GPI + r_GlnI + r_ONI
 ! Making ON also a Nitrogen contributor
 r_N = f_IN*(Gln_Nshare*r_GlnI + (1-Gln_Nshare)*r_ONI)
-!r_Nu = (GLN_Nshare*r_Glnu + (1-Gln_Nshare)*r_ONu)
+r_Nu = (GLN_Nshare*r_Glnu + (1-Gln_Nshare)*r_ONu)
 !write(nflog,'(a,4e12.3)') 'r_Gln, r_GlnI, f_IN, r_N: ',r_Gln, r_GlnI, f_IN, r_N
 !write(nflog,'(a,3e12.3)') 'r_N, f_rGln_threshold*r_Iu: ',r_N,f_rGln_threshold*r_Iu
 
 !if (r_N < f_rGln_threshold*r_Nu) then    ! death
 if (r_N < f_rGln_threshold*r_Iu) then    ! death
-!    write(nflog,'(a,4e12.3)') 'tagged for death from low r_Gln: ',r_N,f_rGln_threshold,r_Iu,f_rGln_threshold*r_Iu
+    write(nflog,'(a,4e12.3)') 'tagged for death from low r_Gln: ',r_N,f_rGln_threshold,r_Iu,f_rGln_threshold*r_Iu
     cp%GLN_tag = .true.
     mp%f_G = f_G
     mp%f_P = f_P
@@ -586,7 +598,7 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
 !   r_A = r_Ag => quadratic in w
 !    write(nflog,'(a,3e12.3)') 'r_GA, r_PA, r_GlnA: ',r_GA, r_PA, r_GlnA
 !    write(nflog,'(a,f8.3,2e12.3)') 'w, r_A, r_Ag: ',w, r_A, r_Ag
-    e = MM_O2*fPDK*N_PA*f_PP*N_GP*r_G
+    e = f_MM_O2*fPDK*N_PA*f_PP*N_GP*r_G
     a = e*f_P*f_G
     b = -(f_G*N_GA*r_G + e*(f_G+f_P) + f_Gln*N_GlnA*r_Gln + f_ON*N_ONA*r_ON)
     cc = N_GlnA*r_Gln + N_ONA*r_ON + N_GA*r_G + e - r_Ag
@@ -672,8 +684,8 @@ if (r_A < r_Ag) then    ! solve for w s.t. with w*f_G, w*f_P, w*f_Gln, r_A = r_A
     r_GI = f_G*r_G*N_GI
     r_GA = (1 - f_G)*r_G*N_GA
     r_GP = (1 - f_G)*r_G*N_GP
-    r_P = MM_O2*fPDK*f_PP*r_GP
-    r_L = (1 - MM_O2*fPDK*f_PP)*r_GP
+    r_P = f_MM_O2*fPDK*f_PP*r_GP
+    r_L = (1 - f_MM_O2*fPDK*f_PP)*r_GP
     r_PI = f_P*r_P*N_PI
     r_PA = (1 - f_P)*r_P*N_PA
 !    r_GlnI = r_Gln*f_Gln*N_GlnI

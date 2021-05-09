@@ -483,6 +483,9 @@ integer :: kcell_test = 1
 logical :: use_PEST = .false.
 character*(128) :: PEST_parfile, PEST_outputfile
 
+! C_G base concentration (for checking expt. results)
+real(REAL_KIND) :: C_G_base = 10.359
+
 !integer :: icentral !extracellular variable index corresponding to a central site (NX/2,NY/2,NZ/2)
 
 ! Off-lattice parameters, in the input file but unused here

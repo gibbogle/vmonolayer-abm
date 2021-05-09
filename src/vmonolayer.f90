@@ -468,11 +468,13 @@ read(nfcell,*) iuse_glucose		!chemo(GLUCOSE)%used
 !chemo(GLUCOSE)%controls_growth = (iglucosegrowth == 1)
 !read(nfcell,*) iglucosedeath
 !chemo(GLUCOSE)%controls_death = (iglucosedeath == 1)
+read(nfcell,*) C_G_base
 read(nfcell,*) chemo(GLUCOSE)%diff_coef
 read(nfcell,*) chemo(GLUCOSE)%medium_diff_coef
 read(nfcell,*) chemo(GLUCOSE)%membrane_diff_in
 read(nfcell,*) chemo(GLUCOSE)%membrane_diff_out
 read(nfcell,*) chemo(GLUCOSE)%bdry_conc
+if (chemo(GLUCOSE)%bdry_conc < 0) chemo(GLUCOSE)%bdry_conc = -chemo(GLUCOSE)%bdry_conc*C_G_base
 chemo(GLUCOSE)%dose_conc = chemo(GLUCOSE)%bdry_conc
 read(nfcell,*) iconstant
 chemo(GLUCOSE)%constant = (iconstant == 1)

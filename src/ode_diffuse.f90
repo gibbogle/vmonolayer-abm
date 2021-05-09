@@ -407,7 +407,8 @@ endif
         write(nflog,*) 'Error: get_metab_rates: res: ',res
         stop
     endif
-if (knt == 1) then              ! solve for rates only once at the start of the main time step
+!if (knt == 1) then
+if (istep == -17) then            
     write(nflog,'(a,7e12.3)') 'rates CGlnEx: ',mp%O_rate,mp%G_rate,mp%L_rate,mp%Gln_rate,mp%ON_rate,mp%P_rate,C_GlnEx
 endif
 k = 0
@@ -917,7 +918,7 @@ end subroutine
 subroutine OGLSolver(tstart,dt,ok)
 real(REAL_KIND) :: tstart, dt
 logical :: ok
-integer :: ichemo, k, ict, neqn, i, kcell, it, res
+integer :: ichemo, k, ict, neqn, i, kcell, it, res, k0
 real(REAL_KIND) :: t, tend
 !real(REAL_KIND) :: C(3*N1D+3), Cin(3), Csum, dCdt(3*N1D+3), dtt
 !real(REAL_KIND) :: C(3*N1D+4), Cin(4), Csum, dCdt(3*N1D+4), C_P, dtt
@@ -954,12 +955,16 @@ do ichemo = 1,NUTS     ! 4 = glutamine
     Caverage(ichemo) = max(0.0,Caverage(ichemo))    ! try adding this to prevent -ve C_Gln
 	k = k+1
 	C(k) = Caverage(ichemo)		! IC 
+!	write(nflog,'(a,2i4,e12.3)') 'ichemo,k,C(k): ',ichemo,k,C(k)
+	k0 = k
 	do i = 1,N1D
 		k = k+1
 		C(k) = C_OGL(ichemo,i)	! EC
 	enddo
+!	write(nflog,'(10e12.3)') C(k0+1:k0+N1D)
 enddo
-! Locations of Cin and Cex:
+
+! Locations of Cin and Cex: 
 ! Cin = C(ichemo + (ichemo-1)*N1D) = Caverage(ichemo)
 ! Cex = C_OGL(ichemo,1)
 !
