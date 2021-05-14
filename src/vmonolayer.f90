@@ -203,19 +203,19 @@ subroutine show_volume_data
 integer :: kcell
 real(REAL_KIND) :: Vsum, Vdivsum
 
-write(nfout,*) 'Volume data:'
-write(nfout,'(a,L)') 'use_divide_time_distribution: ',use_divide_time_distribution
-write(nfout,'(a,L)') 'use_V_dependence: ',use_V_dependence
+write(nflog,*) 'Volume data:'
+write(nflog,'(a,L)') 'use_divide_time_distribution: ',use_divide_time_distribution
+write(nflog,'(a,L)') 'use_V_dependence: ',use_V_dependence
 Vsum = 0
 Vdivsum = 0
 do kcell = 1,nlist
-	write(nfout,'(i6,2f6.2)') kcell,cell_list(kcell)%V, cell_list(kcell)%divide_volume
+	write(nflog,'(i6,2f6.2)') kcell,cell_list(kcell)%V, cell_list(kcell)%divide_volume
 	Vsum = Vsum + cell_list(kcell)%V
 	Vdivsum = Vdivsum + cell_list(kcell)%divide_volume
 enddo
-write(nfout,*)
-write(nfout,'(a,f6.2)') 'Average initial volume: ',Vsum/nlist
-write(nfout,'(a,f6.2)') 'Average divide volume: ',Vdivsum/nlist
+write(nflog,*)
+write(nflog,'(a,f6.2)') 'Average initial volume: ',Vsum/nlist
+write(nflog,'(a,f6.2)') 'Average divide volume: ',Vdivsum/nlist
 end subroutine
 
 !----------------------------------------------------------------------------------------- 
@@ -376,6 +376,7 @@ real(REAL_KIND) :: sigma(2), DXmm, anoxia_tag_hours, anoxia_death_hours, aglucos
 character*(12) :: drug_name
 character*(1) :: numstr
 type(cycle_parameters_type),pointer :: ccp
+logical :: write_hourly_results
 
 ok = .true.
 chemo(:)%used = .false.
@@ -764,26 +765,36 @@ endif
 !if (mod(NX,2) /= 0) NX = NX+1					! ensure that NX is even
 !NYB = NXB
 
-open(nfout,file=outputfile,status='replace')
-write(nfout,'(a,a)') 'GUI version: ',gui_run_version
-write(nfout,'(a,a)') 'DLL version: ',dll_run_version
-write(nfout,*)
-
+if (use_PEST) then
+    if (simulate_colony) then
+        open(nfout,file=outputfile,status='replace')
+!    else
+!        open(nfout,file='vmonolayer_main.out',status='replace')
+    endif
+else
+    open(nfout,file=outputfile,status='replace')
+    write(nfout,'(a,a)') 'GUI version: ',gui_run_version
+    write(nfout,'(a,a)') 'DLL version: ',dll_run_version
+    write(nfout,*)
+endif
 write(nflog,*)
 write(nflog,'(a,a)') 'GUI version: ',gui_run_version
 write(nflog,'(a,a)') 'DLL version: ',dll_run_version
 write(nflog,*)
 
-if (.not.use_PEST) then
-	open(nfres,file='vmonolayer_ts.out',status='replace')
-	write(nflog,*) 'Opened vmonolayer_ts.out'
-else
-	open(nfres,file=PEST_outputfile,status='replace')
-	write(nflog,*) 'Opened PEST_outputfile: ',PEST_outputfile
-endif
-!write(nfres,'(a,a)') 'GUI version: ',gui_run_version
-!write(nfres,'(a,a)') 'DLL version: ',dll_run_version
-!write(nfres,*)
+if (.not.(use_PEST .and. simulate_colony)) then
+    if (.not.use_PEST) then
+	    open(nfres,file='vmonolayer_ts.out',status='replace')
+	    write(nflog,*) 'Opened vmonolayer_ts.out'
+    else
+	    open(nfres,file=outputfile,status='replace')
+	    write(nflog,*) 'Opened ',trim(outputfile)
+    endif
+!if (.not.(use_PEST .and. simulate_colony)) then
+!    write(*,*) 'use_PEST, simulate_colony: ',use_PEST, simulate_colony
+!	write(*,*) 'Opening: ',trim(outputfile)
+!	open(nfres,file=trim(outputfile),status='replace')
+!	write(*,*) 'Opened: ',trim(outputfile)
 write(nfres,'(a)') 'date info GUI_version DLL_version &
 istep hour Ncells(1) Ncells(2) Nviable Nnonviable &
 NATP_dead(1) NATP_dead(2) NGLN_dead(1) NGLN_dead(2) NdrugA_dead(1) NdrugA_dead(2) NdrugB_dead(1) NdrugB_dead(2) &
@@ -797,9 +808,9 @@ IC_oxygen IC_glucose IC_lactate IC_glutamine IC_ON IC_drugA IC_drugA_metab1 IC_d
 medium_oxygen medium_glucose medium_lactate medium_glutamine medium_ON medium_drugA medium_drugA_metab1 medium_drugA_metab2 medium_drugB medium_drugB_metab1 medium_drugB_metab2 &
 G1_phase G1_checkpoint S_phase G2_phase G2_checkpoint M_phase S_phase_nonarrest Nmutations &
 doubling_time oxygen_rate glycolysis_rate pyruvate_oxidation_rate glutamine_rate ATP_rate intermediates_rate Ndivided'
-write(logmsg,*) 'Opened nfout: ',trim(outputfile)
-! Note order change
+write(logmsg,*) 'Wrote nfres header: '
 call logger(logmsg)
+endif
 
 Nsteps = days*24*60*60/DELTA_T		! DELTA_T in seconds
 NT_DISPLAY = 2						! This is the updating interval (calls to get_summary) in the GUI version.  Not used by command-line version.
@@ -1361,7 +1372,8 @@ V0 = Vdivide0/2
 !cp%divide_volume = get_divide_volume(ityp, V0, Tdiv, gfactor)
 !cp%divide_time = Tdiv
 !cp%fg = gfactor
-call set_divide_volume(kcell, V0)
+!call set_divide_volume(kcell, V0)
+call set_divide_volume(cp, V0)
 cp%dVdt = max_growthrate(ityp)
 cp%metab = phase_metabolic(1)
 cp%metab%I_rate = r_Iu	! this is just to ensure that initial growth rate is not 0
@@ -1570,7 +1582,7 @@ do iphase = 1,6
 			cp%G2_flag = .false.
 			cp%t_divide_last = -(phase_time(1) + phase_time(2) + phase_time(3) + phase_time(4) + phase_time(5))
 		else
-			write(nfout,*) 'Error in SetInitialCellCycleStatus' 
+			write(nflog,*) 'Error in SetInitialCellCycleStatus' 
 			stop
 		endif
 		exit
@@ -2517,7 +2529,6 @@ character*(2048) :: infile, outfile
 logical :: ok, success, isopen
 integer :: i
 
-!use_PEST = (.not.use_TCP .and. PEST_outputfile(1:1) /= ' ')
 if (use_TCP) then
 	use_PEST = .false.
 endif

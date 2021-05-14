@@ -637,7 +637,7 @@ end subroutine
 ! Over the duration of the exposure repair is also occurring (this will be
 ! insignificant if the duration is very short).
 !--------------------------------------------------------------------------
-subroutine radiation_damage(cp, ccp, dose, SER_OER, tmin)
+subroutine old_radiation_damage(cp, ccp, dose, SER_OER, tmin)
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dose, SER_OER(2), tmin
@@ -693,7 +693,7 @@ end subroutine
 ! than one repair and one misrepair of each type can occur within a time step.
 ! The fix would be to subdivide the time step, as in the damage subroutine.
 !--------------------------------------------------------------------------
-subroutine radiation_repair(cp, ccp, dt)
+subroutine old_radiation_repair(cp, ccp, dt)
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dt

@@ -148,7 +148,7 @@ void ExecThread::run()
 {
 	LOG_MSG("Invoking DLL...");
 	int res=0;
-    double hour;
+    double hour, PE;
     const char *infile, *outfile;
 //    char *infile, *outfile;
     char version[12];
@@ -303,19 +303,19 @@ void ExecThread::run()
             break;
         }
         if (i == nsteps+1) {
-//            mutex1.lock();
             stopped = true;
-//            mutex1.unlock();
             break;
         }
     }
     LOG_MSG("ExecThread::run: stopped or completed");
 //    snapshot();
 //    LOG_MSG("got snapshot:");
-    sleep(100);
+    sleep(200);
 
     if (Global::simulate_colony) {
-        make_colony_distribution(&Global::colony_days, Global::dist, &Global::ddist, &Global::ndist);
+        LOG_MSG("do make_colony_distribution");
+        make_colony_distribution(&Global::colony_days, Global::dist, &Global::ddist, &Global::ndist, &PE);
+        LOG_MSG("did make_colony_distribution");
     }
 
 	LOG_MSG("ExecThread::run: call terminate_run");

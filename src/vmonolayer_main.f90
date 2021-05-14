@@ -14,22 +14,22 @@ integer :: jstep, hour, ntot, ncog, inflow, irun, i_hypoxia_cutoff,i_growth_cuto
 character*(128) :: b, c, progname
 real :: vasc
 real(8) :: t1, t2
-logical :: simulate_colony
+!logical :: simulate_colony
 integer :: idist, ndist = 40
-real(8) :: colony_days, dist(40), ddist = 50
+real(8) :: PE, colony_days, dist(40), ddist = 50
 
-runfile = 'vmonolayer_main.out'
-open(nfrun,file=runfile,status='replace')
+!runfile = 'vmonolayer_main.out'
+!open(nfrun,file=runfile,status='replace')
 call disableTCP
 
-outfile = 'vmonolayer_main.res'
+!outfile = 'vmonolayer_main.res'
 
 call get_command (b, nlen, status)
 if (status .ne. 0) then
     write (*,*) 'get_command failed with status = ', status
     stop
 end if
-write (nfrun,*) 'command line = ', b(1:nlen)
+!write (nfrun,*) 'command line = ', b(1:nlen)
 call get_command_argument (0, c, nlen, status)
 if (status .ne. 0) then
     write (*,*) 'Getting command name failed with status = ', status
@@ -75,6 +75,12 @@ elseif (cnt /= 3) then
 	stop
 endif
 
+if (use_PEST) then
+    outfile = PEST_outputfile
+else
+    outfile = 'vmonolayer_main.out'
+endif
+
 !call get_dimensions(NX,NY,NZ,nsteps,DELTA_T, MAX_CHEMO, cused);
 i_hypoxia_cutoff = 3
 i_growth_cutoff = 1
@@ -83,8 +89,8 @@ do irun = 1,1
 	inbuflen = len(infile)
 	outbuflen = len(outfile)
 	write(*,*) 'call execute'
-	write(nfrun,*) 'infile: ',infile
-	write(nfrun,*) 'outfile: ',outfile
+!	write(nfrun,*) 'infile: ',infile
+!	write(nfrun,*) 'outfile: ',outfile
 	call execute(ncpu,infile,inbuflen,outfile,outbuflen,res)
 	if (res /= 0) stop
 	!call cpu_time(t1)
@@ -108,10 +114,7 @@ do irun = 1,1
 		endif
 	enddo
 	if (simulate_colony) then
-	    call make_colony_distribution(colony_days,dist,ddist,ndist)
-        do idist = 1,ndist
-	        write(nfrun,'(i4,a,i4,f6.3)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
-        enddo
+	    call make_colony_distribution(colony_days,dist,ddist,ndist,PE)
 	endif
 	call terminate_run(res)
 	!call cpu_time(t2)

@@ -937,8 +937,8 @@ logical :: use_explicit = .false.		! The explicit approach is hopelessly unstabl
 real(REAL_KIND) :: dC_Pdt, vol_cm3, K1, K2
 real(REAL_KIND) :: average_volume = 1.2
 
-write(nflog,*)
-write(nflog,*) 'OGLSolver: ',istep
+!write(nflog,*)
+!write(nflog,*) 'OGLSolver: ',istep
 ict = selected_celltype ! for now just a single cell type 
 !mp => metabolic
 !mp => phase_metabolic(1)
@@ -1003,7 +1003,6 @@ neqn = k
 		ok = .false.
 		return
 	endif
-	write(nflog,*) 'knt: ',knt
 	!write(nflog,'(a,3e12.3)') 'IC: ',C(1),C(N1D+2),C(2*N1D+3) 
 	!write(*,'(a,3e12.3)') 'IC: ',C(1),C(N1D+2),C(2*N1D+3) 
 
@@ -1081,7 +1080,7 @@ do kcell = 1,nlist
 !	mp => cp%metab
 !	call update_C_A(dt,mp)
 enddo
-write(nflog,'(a,5f10.6)') 'master_cell%Cin: ',master_cell%Cin(1:NUTS)
+!write(nflog,'(a,5f10.6)') 'master_cell%Cin: ',master_cell%Cin(1:NUTS)
 !write(*,'(a,2e12.3)') 'did OGLSolver: Grate, Orate: ',cell_list(1)%metab%G_rate, cell_list(1)%metab%O_rate
 return
 

@@ -341,6 +341,7 @@ character*(12) :: gui_version, gui_run_version
 integer :: initial_count
 
 integer :: nlist, Ncells, Ncells0, ncells_mphase, lastID, Ncelltypes
+integer :: nColonyMax
 integer :: Ncells_type(MAX_CELLTYPES), Ndying(MAX_CELLTYPES), Nviable(MAX_CELLTYPES), Ndead(MAX_CELLTYPES)
 logical :: limit_stop
 !integer :: nadd_sites, Nsites, Nreuse
@@ -459,7 +460,8 @@ logical :: use_gaplist = .true.
 logical :: medium_change_step
 logical :: fully_mixed
 logical :: use_parallel
-logical :: colony_simulation
+logical :: simulate_colony      ! colony growth will be simulated
+logical :: colony_simulation    ! colony growth is being simulated
 logical :: use_metabolism
 logical :: use_glutamine_decay
 logical :: noSS = .false.   ! if true, SS solution is not used for C_P
@@ -494,7 +496,7 @@ real(REAL_KIND) :: C_G_base = 10.359
 
 !real(REAL_KIND), allocatable :: omp_x(:), omp_y(:), omp_z(:)
 
-!DEC$ ATTRIBUTES DLLEXPORT :: nsteps, DELTA_T, use_PEST, PEST_outputfile
+!DEC$ ATTRIBUTES DLLEXPORT :: nsteps, DELTA_T, use_PEST, PEST_outputfile, simulate_colony
 
 contains
 
@@ -666,16 +668,18 @@ vnorm = v/sqrt(d)
 end subroutine
 
 !-----------------------------------------------------------------------------------------
+! Changed from kcell argument to cp, because it can be a colony cell, in ccell_list.
 !-----------------------------------------------------------------------------------------
-subroutine set_divide_volume(kcell,V0)
-integer :: kcell
+!subroutine set_divide_volume(kcell,V0)
+subroutine set_divide_volume(cp,V0)
+!integer :: kcell
 real(REAL_KIND) :: V0
 real(REAL_KIND) :: Tdiv, fg, Tfixed, Tgrowth0, Tgrowth, rVmax
 integer :: ityp, kpar=0
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 
-cp => cell_list(kcell)
+!cp => cell_list(kcell)
 ityp = cp%celltype
 ccp => cc_parameters(ityp)
 
@@ -710,9 +714,9 @@ endif
 cp%divide_volume = V0 + Tgrowth*rVmax
 cp%divide_time = Tdiv
 cp%fg = fg
-if (kcell == 1) then
-    write(nflog,'(a,5e12.3)') 'set_divide_volume: V0,Tgrowth,Tdiv,div_vol,rVmax: ',V0,Tgrowth,Tdiv,cp%divide_volume,rVmax
-endif
+!if (kcell == 1) then
+!    write(nflog,'(a,5e12.3)') 'set_divide_volume: V0,Tgrowth,Tdiv,div_vol,rVmax: ',V0,Tgrowth,Tdiv,cp%divide_volume,rVmax
+!endif
 end subroutine	
 
 !--------------------------------------------------------------------------------------

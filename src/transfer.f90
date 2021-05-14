@@ -196,6 +196,8 @@ real(REAL_KIND) :: EC(MAX_CHEMO), cmedium(MAX_CHEMO)
 real(REAL_KIND) :: r_O, r_G, r_P, r_Gln, r_ON, r_A, r_I
 type(metabolism_type), pointer :: mp
 
+if (use_PEST .and. simulate_colony) return  ! PEST run for colony simulation reports only PE
+
 hour = istep*DELTA_T/3600.
 
 Ntagged_ATP(:) = NATP_tag(:)				! number currently dying of ATP starvation 

@@ -528,9 +528,6 @@ f_P = f_Pu
 w = get_f_Gln(C)    ! this is the fraction of r_Glnu 
 f_Gln = f_Glnu
 r_Gln = f_MM_O2*w*r_Glnu
-if (istep == 17) then
-    write(nflog,'(a,4e12.3)') 'C, w, f_MM_O2, r_Gln: ',C, w, f_MM_O2, r_Gln
-endif
 
 r_GlnI = r_Gln*f_Gln*N_GlnI
 

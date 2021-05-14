@@ -8,8 +8,7 @@ implicit none
 
 !integer, parameter :: n_colony_days=10
 integer, parameter :: max_trials = 1000
-integer :: nmax
-!integer, allocatable :: perm_index(:)
+!integer, allocatable :: perm_index(:) 
 !logical :: use_permute
 
 contains
@@ -26,12 +25,12 @@ contains
 ! dt_delay
 ! t_growth_delay_end
 ! N_delayed_cycles_left
-! The new method simply continues the simulation from where it ended, for 10 days. 
+! The new method simply continues the simulation from where it ended, for 10 days.
 !---------------------------------------------------------------------------------------------------
-subroutine make_colony_distribution(n_colony_days,dist,ddist,ndist) bind(C)
+subroutine make_colony_distribution(n_colony_days,dist,ddist,ndist,PE) bind(C)
 !DEC$ ATTRIBUTES DLLEXPORT :: make_colony_distribution
 use, intrinsic :: iso_c_binding
-real(c_double) :: n_colony_days, dist(*), ddist
+real(c_double) :: n_colony_days, dist(*), ddist, PE
 integer(c_int) :: ndist
 integer, parameter :: ddist50 = 50
 integer, parameter :: ndist50 = 1000/ddist50
@@ -40,15 +39,18 @@ real(REAL_KIND) :: tnow_save
 integer :: k, kk, kcell, ityp, n, idist, ncycmax, ntot, nlist_save, ntrials, ndays, nt, idist50, kmin
 type (cell_type), pointer :: cp
 logical :: ok
-integer :: dist_cutoff = 200
+integer :: dist_cutoff = 50
+integer, allocatable :: ncolony(:),ntcolony(:)
 
+simulate_colony = .true.
 colony_simulation = .true.
-ndays = (Nsteps*DELTA_T)/(24.*60*60)
+ndays = int(n_colony_days)
 nlist_save = nlist
 tnow_save = tnow
-ncycmax = 24*3600*n_colony_days/divide_time_mean(1) + 1
-nmax = 2**ncycmax
-allocate(ccell_list(nmax))
+ncycmax = 24*3600*ndays/divide_time_mean(1) + 1
+nColonyMax = 2**(ncycmax+1)
+write(nflog,*) 'divide_time_mean(1),ncycmax,nColonyMax: ',divide_time_mean(1),ncycmax,nColonyMax
+allocate(ccell_list(nColonyMax))
 if (allocated(perm_index)) deallocate(perm_index)
 allocate(perm_index(nlist_save))
 if (Ncells > max_trials) then
@@ -64,7 +66,7 @@ if (.not.ok) then
     dist(1:ndist) = 0
     return
 endif
-ddist = nmax/ndist
+ddist = (nColonyMax/2)/ndist
 dmin = 1.0e10
 do k = 1,ndist
     if (abs(k*100 - ddist) < dmin) then
@@ -73,34 +75,43 @@ do k = 1,ndist
     endif
 enddo
 ddist = kmin*100
-write(nfout,*)
-write(logmsg,'(a,f8.1,2i5)') 'make_colony_distribution: n_colony_days: ',n_colony_days
+allocate(ncolony(0:ndays))
+allocate(ntcolony(0:ndays))
+write(logmsg,'(a,i4)') 'make_colony_distribution: ndays: ',ndays
 call logger(logmsg)
-write(nfout,'(a,f8.1,2i5)') 'make_colony_distribution: n_colony_days: ',n_colony_days
-write(nfout,'(a,i5,f8.1,i5)') 'ndist,ddist,ntrials: ',ndist,ddist,ntrials
+if (.not.use_PEST) then
+    write(nfout,*)
+    write(nfout,'(a,i4)') 'make_colony_distribution: ndays: ',ndays
+    write(nfout,'(a,i5,f8.1,i6)') 'ndist,ddist,ntrials: ',ndist,ddist,ntrials
+endif
 dist(1:ndist) = 0
 dist50 = 0
 ntot = 0
 sum1 = 0
 sum2 = 0
-tend = tnow + n_colony_days*24*3600    ! plate for 10 days
+tend = tnow + ndays*24*3600    ! plate for 10 days
 kk = 0
 k = 0
 nt = 0  ! count of runs giving colony size n > dist_threshold
+ntcolony = 0
 do while(k < ntrials)
     kk = kk+1
     kcell = perm_index(kk)
 	cp => cell_list(kcell)
 	if (cp%state == DEAD) then
-	    write(nflog,*) 'colony: cell dead: ',kcell
+!	    write(nflog,*) 'colony: cell dead: ',kcell
 	    cycle
 	else
 	    k = k+1
 	endif
+!	write(nflog,*) 'colony: ',k,kk,kcell
 	ityp = cp%celltype
 	! Now simulate colony growth from a single cell
 	tnow = tnow_save
-	call make_colony(kcell,tend,n)
+	ncolony = 0
+	call make_colony(kcell,tend,ncolony)
+	n = ncolony(ndays)
+	ntcolony = ntcolony + ncolony
 	ntot = ntot + n
 	if (n > dist_cutoff) then
 	    nt = nt + 1
@@ -119,29 +130,60 @@ do while(k < ntrials)
 	endif
 enddo
 
-ave = sum1/nt
-SD = sqrt((sum2 - nt*ave**2)/(nt-1))
-SE = SD/sqrt(real(nt))
-write(nfout,*)
-write(nfout,'(a,i4,a,i5)') 'With cutoff colony size: ',dist_cutoff, ' number of colonies: ',nt
-write(nfout,'(a,3f8.1)') 'average size, SD, SE: ',ave,SD,SE
-write(nfout,*)
-dist50(1:ndist50) = dist50(1:ndist50)/ntrials
-write(nfout,'(a,2i8,f8.1)') 'Colony size distribution < 1000:'
-do idist50 = 1,ndist50
-	write(nfout,'(i6,a,i6,f7.4)') int((idist50-1)*ddist50),'-',int(idist50*ddist50),dist50(idist50)
-enddo
-write(nfout,*)
-
+if (nt > 0) then
+    ave = sum1/nt
+    SD = sqrt((sum2 - nt*ave**2)/(nt-1))
+    SE = SD/sqrt(real(nt))
+else
+    ave = 0
+    SD = 0
+    SE = 0
+endif
+PE = real(nt)/ntrials
 dist(1:ndist) = dist(1:ndist)/ntrials
+dist50(1:ndist50) = dist50(1:ndist50)/ntrials
+
+if (.not.use_PEST) then
+    write(nfout,*)
+    write(nfout,'(a,i4,a,i5)') 'With cutoff colony size: ',dist_cutoff, ' number of colonies: ',nt
+    write(nfout,'(a,3f8.1)') 'average size, SD, SE: ',ave,SD,SE
+    write(nfout,*)
+    write(nfout,'(a,2i8,f8.1)') 'Colony size distribution < 1000:'
+    do idist50 = 1,ndist50
+	    write(nfout,'(i6,a,i6,f7.4)') int((idist50-1)*ddist50),'-',int(idist50*ddist50),dist50(idist50)
+    enddo
+    write(nfout,*)
+    write(nfout,'(a,2i8,f8.1)') 'Colony size distribution:'
+    do idist = 1,ndist
+	    write(nfout,'(i6,a,i6,f7.4)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
+    enddo
+    write(nfout,*)
+    write(nfout,*) 'Total colony population multiplication factor by day:'
+    write(nfout,'(10f9.2)') ntcolony(1:ndays)/real(ntrials)
+endif
+write(nfout,'(a,f8.4)') 'PE: ',PE
+
+
+write(logmsg,'(a,2i8,f8.1)') 'Colony size distribution < 1000:'
+call logger(logmsg)
+do idist50 = 1,ndist50
+    write(logmsg,'(i6,a,i6,f7.4)') int((idist50-1)*ddist50),'-',int(idist50*ddist50),dist50(idist50)
+    call logger(logmsg)
+enddo
 write(logmsg,'(a,2i8,f8.1)') 'Colony size distribution: ', nlist_save,ntot,real(ntot)/nlist_save
 call logger(logmsg)
-write(nfout,'(a,2i8,f8.1)') 'Colony size distribution:'
 do idist = 1,ndist
 	write(logmsg,'(i6,a,i6,f7.4)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
     call logger(logmsg)
-	write(nfout,'(i6,a,i6,f7.4)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
 enddo
+write(logmsg,'(a)') 'Total colony population multiplication factor by day:'
+call logger(logmsg)
+write(logmsg,'(10f9.2)') ntcolony(1:ndays)/real(ntrials)
+call logger(logmsg)
+write(logmsg,'(a,f8.4)') 'Plating efficiency PE: ',PE
+call logger(logmsg)
+call logger("------------------------------------")
+
 deallocate(ccell_list)
 deallocate(perm_index)
 
@@ -153,16 +195,17 @@ end subroutine
 
 !---------------------------------------------------------------------------------------------------
 ! The cell is at the point of division - possibly G2_M (arrested at G2/M checkpoint)
-! For now only radiation tagging is handled
+! For now only radiation tagging is handled 
 ! Growth rate dVdt (mean) is used only to estimate the time of next division
 !---------------------------------------------------------------------------------------------------
-subroutine make_colony(kcell,tend,n)
-integer :: kcell, n
-real(REAL_KIND) :: tend, dt 
-integer :: icell, ityp, nlist0, kpar=0
-real(REAL_KIND) :: V0, Tdiv0, r_mean, c_rate, dVdt, Tmean, R
+subroutine make_colony(kcell,tend,ncolony)
+integer :: kcell, ncolony(0:)
+real(REAL_KIND) :: t0, tend, dt 
+integer :: icell, ityp, nlist0, iday, n, k, kpar=0
+real(REAL_KIND) :: V0, Tdiv0, r_mean, c_rate, dVdt, Tmean, R, totgen
 logical :: changed, ok
 type (cell_type), pointer :: cp
+integer :: cnt(3)
 
 !write(*,'(a,i6,2f12.0)') 'make_colony: ',kcell,tnow,tend
 ccell_list(1) = cell_list(kcell)
@@ -179,15 +222,55 @@ dt = DELTA_T
 nlist = 1
 ncells = 1
 ngaps = 0
+iday = 1
+t0 = tnow
 do while (tnow < tend)
 	tnow = tnow + dt
     call new_grower(dt,changed,ok)
+    call CellDeath(dt,ok)
+    if (tnow > t0 + iday*24*3600) then
+        n = countColony()
+!        write(*,*) 'iday, n: ',iday,n,tnow,tend
+        ncolony(iday) = n
+        iday = iday+1
+    endif
 enddo
-!write(*,*) nlist,ccell_list(nlist)%dVdt,max_growthrate(1),ccell_list(nlist)%V
+ncolony(iday) = countColony()
+!write(*,*) 'ending day, n, nlist: ',iday, ncolony(iday), nlist
+return
+
+!write(*,*) nlist,ccell_list(nlist)%dVdt,max_growthrate(1),ccell_list(nlist)%V 
+cnt = 0
+totgen = 0
 n = 0
 do icell = 1,nlist
-	if (ccell_list(icell)%state /= DEAD) n = n+1
+    k = ccell_list(icell)%state
+    cnt(k) = cnt(k) + 1
+	if (ccell_list(icell)%state /= DEAD) then
+	    totgen = totgen + ccell_list(icell)%generation
+	endif
 enddo
+n = cnt(1) + cnt(2)
+!write(*,*) 'Cell counts, average generation: ',cnt,totgen/n
 end subroutine
+
+!---------------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------
+function countColony() result(n)
+integer :: n
+integer :: icell, k, cnt(3)
+
+cnt = 0
+n = 0
+do icell = 1,nlist
+    k = ccell_list(icell)%state
+	if (k == ALIVE) then
+	    n = n+1
+!	    write(*,*) 'cell state: ',ccell_list(icell)%state
+	endif
+	cnt(k) = cnt(k) + 1
+enddo
+!write(*,*) 'cnt: ',cnt
+end function
 
 end module

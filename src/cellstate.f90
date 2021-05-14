@@ -38,7 +38,7 @@ if (.not.ok) return
 !endif
 call CellDeath(dt,ok)
 if (.not.ok) return
-cp => cell_list(kcell_test)
+!cp => cell_list(kcell_test)
 !write(nflog,'(a,2i6,2f8.3,e12.3)') 'kcell_test: ',kcell_test,cp%phase,tnow/3600,cp%mitosis,cp%dVdt
 end subroutine
 
@@ -275,16 +275,16 @@ integer :: kcell, nlist0, site(3), i, ichemo, idrug, im, ityp, killmodel, kpar=0
 real(REAL_KIND) :: C_O2, C_glucose, Cdrug, n_O2, kmet, Kd, dMdt, kill_prob, dkill_prob, death_prob,survival_prob
 real(REAL_KIND) :: t_dying
 logical :: anoxia_death, aglucosia_death
-real(REAL_KIND) :: delayed_death_prob, factor
+real(REAL_KIND) :: R, delayed_death_prob, factor
 type(drug_type), pointer :: dp
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 
 !call logger('CellDeath')
 ok = .true.
-if (colony_simulation) then
-    return
-endif
+!if (colony_simulation) then
+!    return
+!endif
 
 !tnow = istep*DELTA_T	! seconds
 anoxia_death = chemo(OXYGEN)%controls_death
@@ -292,7 +292,12 @@ aglucosia_death = chemo(GLUCOSE)%controls_death
 nlist0 = nlist
 first = .true.
 do kcell = 1,nlist
-    cp => cell_list(kcell)
+    if (colony_simulation) then
+        cp => ccell_list(kcell)
+!        write(*,*) 'colony: in CellDeath: kcell, state: ',kcell,cp%state
+    else
+        cp => cell_list(kcell)
+    endif
 	ityp = cp%celltype
 	ccp => cc_parameters(ityp)
 	if (cp%state == DEAD) cycle
@@ -304,7 +309,9 @@ do kcell = 1,nlist
 		    factor = ccp%f_apoptosis_rate_lo
 		endif
 		delayed_death_prob = factor*ccp%apoptosis_rate*dt/3600
-	    if (par_uni(kpar) < delayed_death_prob) then	
+		R = par_uni(kpar)
+!        if (colony_simulation) write(*,'(a,4e12.3)') 'colony: R,delayed_death_prob: ',R,factor,ccp%apoptosis_rate,delayed_death_prob
+	    if (R < delayed_death_prob) then	
 			call CellDies(kcell,.true.)
 		endif
 		cycle
@@ -322,6 +329,7 @@ do kcell = 1,nlist
 		call CellDies(kcell,.false.)
 		cycle
 	endif
+	
 #if 0			
 	else
 		if (cp%anoxia_tag) then
@@ -447,7 +455,11 @@ logical :: now
 integer :: site(3), ityp, idrug
 type(cell_type), pointer :: cp
 
-cp => cell_list(kcell)
+if (colony_simulation) then
+    cp => ccell_list(kcell)
+else
+    cp => cell_list(kcell)
+endif
 ityp = cp%celltype
 if (.not.now) then
     if (cp%state == DYING) then
@@ -455,6 +467,7 @@ if (.not.now) then
     else
     	cp%state = DYING
     	cp%tag_time = tnow;
+!        if (colony_simulation) write(*,*) 'colony: DYING: tag_time: ',cp%tag_time
 	    Ndying(ityp) = Ndying(ityp) + 1
 	endif
 	return
@@ -484,6 +497,7 @@ if (cp%radiation_tag) then
 	Nradiation_dead(ityp) = Nradiation_dead(ityp) + 1
 endif
 cp%state = DEAD
+!if (colony_simulation) write(*,*) 'colony: dead: ',kcell
 
 ngaps = ngaps + 1
 if (ngaps > max_ngaps) then
@@ -569,11 +583,12 @@ do kcell = 1,nlist0
 	kcell_now = kcell
 	if (colony_simulation) then
 	    cp => ccell_list(kcell)
+!	    write(*,*) 'colony: new_grower: state,phase: ',cp%state,cp%phase
 	else
     	cp => cell_list(kcell)
     endif
 	if (cp%state == DEAD) cycle
-	if (cp%state == DYING) then		! nothing affects a DYING cell
+	if (cp%state == DYING) then		! nothing affects a DYING cell (when does it die?)
 		cp%dVdt = 0
 		cycle
 	endif
@@ -630,6 +645,9 @@ do kcell = 1,nlist0
                 if (.not.cp%radiation_tag .and. cp%N_PL > 0) then		! lesions still exist, no time for repair
 					cp%radiation_tag = .true.
 				    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+!				    if (colony_simulation) then
+!				        write(*,*) 'radiation tagged: N_PL > 0'
+!				    endif
 					call CellDies(kcell,.false.)
 				endif
 				
@@ -645,6 +663,9 @@ do kcell = 1,nlist0
 					if (R < pdeath) then				
 						cp%radiation_tag = .true.
 						Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+!				    if (colony_simulation) then
+!				        write(*,*) 'radiation tagged: N_Ch1'
+!				    endif
 						call CellDies(kcell,.false.)
 					endif
 				endif
@@ -654,6 +675,9 @@ do kcell = 1,nlist0
 					if (R < pdeath) then				
 						cp%radiation_tag = .true.
 						Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+!				    if (colony_simulation) then
+!				        write(*,*) 'radiation tagged: N_Ch2'
+!				    endif
 						call CellDies(kcell,.false.)
 					endif
 				endif
@@ -677,6 +701,7 @@ do kcell = 1,nlist0
 		enddo
 		if (drugkilled) cycle
 		cp%mitosis = (tnow - cp%t_start_mitosis)/mitosis_duration	
+!    	if (colony_simulation) write(*,*) 'in_mitosis: mitosis: ',cp%mitosis
 		if (use_volume_method) then
 			if (cp%growth_delay) then
 				if (cp%G2_M) then
@@ -702,6 +727,7 @@ do kcell = 1,nlist0
 				endif
 			endif		
 		else
+!		    if (colony_simulation) write(*,*) 'radiation_tag: ',cp%radiation_tag
 			if (cp%radiation_tag) cycle
 		endif
 		
@@ -943,6 +969,12 @@ else
 	endif
 	kcell2 = nlist
 endif
+if (colony_simulation .and. kcell2 > nColonyMax) then
+	ok = .false.
+	call logger('Error: Maximum number of colony cells nColonyMax has been exceeded.  Increase and rebuild.')
+	return
+endif
+    
 ncells = ncells + 1
 !write(*,*) 'divider: ',kcell1,kcell2
 ityp = cp1%celltype
@@ -963,7 +995,8 @@ cp1%birthtime = tnow
 !cp1%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)
 !cp1%divide_time = Tdiv
 !cp1%fg = gfactor
-call set_divide_volume(kcell1, V0)
+!call set_divide_volume(kcell1, V0)
+call set_divide_volume(cp1, V0)
 !if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide NOT USED
 !	cp1%metab%I2Divide = get_I2Divide(cp1)
 !	cp1%metab%Itotal = 0
@@ -1026,7 +1059,8 @@ cp2%GLN_tag = .false.
 !cp2%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)
 !cp2%divide_time = Tdiv
 !cp2%fg = gfactor
-call set_divide_volume(kcell2, V0)
+!call set_divide_volume(kcell2, V0)
+call set_divide_volume(cp2, V0)
 if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
 !    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*cp2%fg*ccp%T_G1
 !    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*ccp%T_G1

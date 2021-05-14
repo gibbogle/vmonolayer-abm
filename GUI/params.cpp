@@ -252,6 +252,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "Use Glucose?",
 "Glucose is simulated"},
 
+    {"C_G_BASE", 1, 0, 1,
+    "C_G_base",
+    "If GLUCOSE_BDRY_CONC < 0, it is used as a factor to multiply C_G_BASE to get the actual GLUCOSE_BDRY_CONC (for PEST runs)"},
+
 //{"GLUCOSE_GROWTH", 1, 0, 1,
 //"Glucose growth?",
 //"The rate of growth of a cell is the maximum rate multiplied by the fractional rates of metabolism of both O2 and glucose"},
@@ -525,7 +529,7 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "G2 mean delay (h)",
      "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
 
-     {"APOPTOSIS_RATE_1", 0.009, 0, 0,
+     {"APOPTOSIS_RATE_1", 0.1, 0, 0,
      "Apoptosis rate/hr",
      "The rate of passage from state = DYING to state = DEAD, probability/hour"},
 
@@ -534,41 +538,41 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "Threshold level of fraction of maximum growth rate that causes arrest in S phase"},
 
 
-     {"RMR_ETA_PL_1", 35, 0, 0,
+     {"RMR_ETA_PL_1", 42, 0, 0,
      "PL lesion creation rate",
      "Coefficient of rate of creation of potentially lethal lesions: eta_PL"},
 
-     {"RMR_ETA_IRL_1", 0.003, 0, 0,
+     {"RMR_ETA_IRL_1", 0.00005, 0, 0,
      "IRL creation rate",
      "Coefficient of rate of creation of irrepairable lesions: eta_IRL"},
 
-     {"RMR_KREP_BASE_1", 0.2, 0, 0,
+     {"RMR_KREP_BASE_1", 0.5, 0, 0,
      "Base PL lesion repair rate",
      "Base coefficient of rate of repair of potentially lethal lesions: Krepair_base (Curtis's epsilon_PL)\n\
      The true repair rate varies linearly from Krepair_base to Krepair_max over the S phase"},
 
-     {"RMR_KREP_MAX_1", 2.0, 0, 0,
+     {"RMR_KREP_MAX_1", 3.0, 0, 0,
      "Max PL lesion repair rate",
      "Maximum coefficient of rate of repair of potentially lethal lesions: Krepair_max (Curtis's epsilon_PL)\n\
      The true repair rate varies linearly from Krepair_base to Krepair_max over the S phase"},
 
-     {"RMR_KMIS_1", 0.00003, 0, 0,
+     {"RMR_KMIS_1", 0.0001, 0, 0,
      "Lesion misrepair rate",
      "Coefficient of rate of misrepair of PL lesions to Ch1 and Ch2 lesions: Kmisrepair"},
 
-     {"RMR_F_MITOSIS_1", 4, 0, 0,
+     {"RMR_F_MITOSIS_1", 5, 0, 0,
      "Mitosis factor",
      "Multiplying factor of misrepair during mitosis: mitosis_factor"},
 
-     {"RMR_F_CH1_1", 0.5, 0, 0,
+     {"RMR_F_CH1_1", 0.8, 0, 0,
      "Ch1 fraction of misrepair",
      "Fraction of misrepaired lesions that are Ch1: fraction_Ch1"},
 
-     {"RMR_PSURVIVE1_1", 0.45, 0, 0,
+     {"RMR_PSURVIVE1_1", 0.9, 0, 0,
      "Ch1 prob of mitosis survival",
      "Probability that a cell with one Ch1 lesion survives mitosis: psurvive_Ch1"},
 
-     {"RMR_PSURVIVE2_1", 0.05, 0, 0,
+     {"RMR_PSURVIVE2_1", 0.1, 0, 0,
      "Ch2 prob of mitosis survival",
      "Probability that a cell with one Ch2 lesion survives mitosis: psurvive_Ch2"},
 
@@ -621,41 +625,41 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "Threshold level of fraction of maximum growth rate that causes arrest in S phase"},
 
 
-      {"RMR_ETA_PL_2", 35, 0, 0,
+      {"RMR_ETA_PL_2", 42, 0, 0,
       "PL lesion creation rate",
       "Coefficient of rate of creation of potentially lethal lesions: eta_PL"},
 
-      {"RMR_ETA_IRL_2", 0.003, 0, 0,
+      {"RMR_ETA_IRL_2", 0.0001, 0, 0,
       "IRL creation rate",
       "Coefficient of rate of creation of irrepairable lesions: eta_IRL"},
 
-      {"RMR_KREP_BASE_2", 0.2, 0, 0,
+      {"RMR_KREP_BASE_2", 0.5, 0, 0,
       "Base PL lesion repair rate",
       "Base coefficient of rate of repair of potentially lethal lesions: Krepair_base (Curtis's epsilon_PL)\n\
       The true repair rate varies linearly from Krepair_base to Krepair_max over the S phase"},
 
-      {"RMR_KREP_MAX_2", 2.0, 0, 0,
+      {"RMR_KREP_MAX_2", 4.0, 0, 0,
       "Max PL lesion repair rate",
       "Maximum coefficient of rate of repair of potentially lethal lesions: Krepair_max (Curtis's epsilon_PL)\n\
       The true repair rate varies linearly from Krepair_base to Krepair_max over the S phase"},
 
-      {"RMR_KMIS_2", 0.00003, 0, 0,
+      {"RMR_KMIS_2", 0.0001, 0, 0,
       "Lesion misrepair rate",
       "Coefficient of rate of misrepair of PL lesions to Ch1 and Ch2 lesions: Kmisrepair"},
 
-      {"RMR_F_MITOSIS_2", 4, 0, 0,
+      {"RMR_F_MITOSIS_2", 5, 0, 0,
       "Mitosis factor",
       "Multiplying factor of misrepair during mitosis: mitosis_factor"},
 
-      {"RMR_F_CH1_2", 0.5, 0, 0,
+      {"RMR_F_CH1_2", 0.8, 0, 0,
       "Ch1 fraction of misrepair",
       "Fraction of misrepaired lesions that are Ch1: fraction_Ch1"},
 
-      {"RMR_PSURVIVE1_2", 0.45, 0, 0,
+      {"RMR_PSURVIVE1_2", 0.9, 0, 0,
       "Ch1 prob of mitosis survival",
       "Probability that a cell with one Ch1 lesion survives mitosis: psurvive_Ch1"},
 
-      {"RMR_PSURVIVE2_2", 0.05, 0, 0,
+      {"RMR_PSURVIVE2_2", 0.1, 0, 0,
       "Ch2 prob of mitosis survival",
       "Probability that a cell with one Ch2 lesion survives mitosis: psurvive_Ch2"},
 
