@@ -135,15 +135,14 @@ else
 	    ityp = cp%celltype
 	    ccp => cc_parameters(ityp)
 	    call getO2conc(cp,C_O2)
-	    ! Compute sensitisation SER
-	    if (Ndrugs_used > 0) then
-	        SER = getSER(cp,C_O2)
-	    else
-    	    SER = 1.0
-    	endif
+        ! Compute sensitisation SER
+        if (Ndrugs_used > 0 .and. .not.use_inhibiter) then
+            SER = getSER(cp,C_O2)
+        else
+	        SER = 1.0
+	    endif
         SER_OER(1) = SER*(LQ(ityp)%OER_am*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_alpha NEEDS ATTENTION
         SER_OER(2) = SER*(LQ(ityp)%OER_bm*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_beta
-!        SER_OER = 1
         call radiation_damage(cp, ccp, dose, SER_OER(1), tmin)
 	    if (cp%irrepairable) then	! irrepairable damage 
 			n = n+1

@@ -274,7 +274,7 @@ type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dose0, SER_OER, tmin
 real(REAL_KIND) :: dose, dDdt, dtmin, dthour, R
-real(REAL_KIND) :: p_PL, p_IRL, Krepair, Kmisrepair, misrepair_factor, fraction
+real(REAL_KIND) :: p_PL, p_IRL, Krepair, Kmisrepair, misrepair_factor, fraction, inhibition
 integer :: nt, it, nPL, nPL0, nIRL, ityp, kpar=0
 logical :: do_repair = .false.
 
@@ -336,7 +336,19 @@ if (.not.do_repair) then
 	cp%N_PL = nPL0 + nPL
 	cp%N_IRL = nIRL
 	cp%irrepairable = (nIRL > 0)
+	
+    if (cp%ID == 1) then
+        write(nflog,*) 'damage: cell #, nPL0, N_PL, N_IRL: ',cp%ID,nPL0,cp%N_PL,cp%N_IRL
+        write(nflog,*) 'eta_PL, dose0, SER_OER, C: ',ccp%eta_PL,dose0,SER_OER,C_inhibiter
+    endif
+	
 	return
+endif
+
+inhibition = 1
+if (use_inhibiter) then
+    C_inhibiter = cp%Cin(drug_A)
+    inhibition = repairInhibition(C_inhibiter)
 endif
 
 p_PL = ccp%eta_PL*dose/nt
@@ -353,7 +365,7 @@ do it = 1,nt
 	if (do_repair) then
 		! repair/misrepair
 		R = par_uni(kpar)
-		if (R < nPL*Krepair*dthour) then
+		if (R < nPL*inhibition*Krepair*dthour) then
 			nPL = nPL - 1
 		endif
 		R = par_uni(kpar)
@@ -385,7 +397,7 @@ type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dt
 integer :: i, k, ityp, nPL, nmis, kpar=0
 real(REAL_KIND) :: dthour, fraction, Krepair, Kmisrepair, misrepair_factor, R, p_rep, p_mis
-real(REAL_KIND) :: rnPL, rnPL0, dPL
+real(REAL_KIND) :: rnPL, rnPL0, dPL, inhibition
 integer :: nt, it
 logical :: use_prob = .false.
 
@@ -414,6 +426,13 @@ else
     endif
     Krepair = ccp%Krepair_base + fraction*(ccp%Krepair_max - ccp%Krepair_base)
 endif
+
+inhibition = 1
+if (use_inhibiter) then
+    C_inhibiter = cp%Cin(drug_A)
+    inhibition = repairInhibition(C_inhibiter)
+endif
+
 if (cp%phase == M_phase) then
 	misrepair_factor = ccp%mitosis_factor
 else
@@ -441,7 +460,7 @@ Kmisrepair = misrepair_factor*ccp%Kmisrepair	! -> scalar
 !enddo
 
 ! First allow true repair to occur
-rnPL = nPL*exp(-Krepair*nt*dthour)
+rnPL = nPL*exp(-inhibition*Krepair*nt*dthour)
 nPL = rnPL
 R = par_uni(kpar)
 if (R < (rnPL - nPL)) nPL = nPL + 1
@@ -482,6 +501,10 @@ else
 	endif
 endif
 cp%N_PL = nPL
+!if (cp%ID == 1) then
+!    write(nflog,'(a,4i6)') 'repair: cell #, N_PL, N_Ch2, N_Ch2: ',cp%ID,cp%N_PL,cp%N_CH1,cp%N_Ch2
+!    write(nflog,'(a,4e12.3)') 'C, Krepair, inhibition, Kmisrepair: ',C_inhibiter,Krepair, inhibition, Kmisrepair
+!endif
 end subroutine
 
 !--------------------------------------------------------------------------
@@ -494,6 +517,15 @@ real(REAL_KIND) :: TCP
 
 TCP = ccp%bTCP*n/(ccp%aTCP + n)
 TCP = 3600*TCP	! hours -> seconds
+end function
+
+!--------------------------------------------------------------------------
+! C is the concentration of the repair inhibiting drug.
+!--------------------------------------------------------------------------
+function repairInhibition(C) result(inhibition)
+real(REAL_KIND) :: C, inhibition
+
+inhibition = 1 - a_inhibit*C/(b_inhibit + C)
 end function
 
 end module

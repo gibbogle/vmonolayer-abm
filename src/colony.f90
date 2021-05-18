@@ -7,7 +7,7 @@ use cellstate
 implicit none
 
 !integer, parameter :: n_colony_days=10
-integer, parameter :: max_trials = 1000
+integer, parameter :: max_trials = 20000
 !integer, allocatable :: perm_index(:) 
 !logical :: use_permute
 
@@ -77,7 +77,7 @@ enddo
 ddist = kmin*100
 allocate(ncolony(0:ndays))
 allocate(ntcolony(0:ndays))
-write(logmsg,'(a,i4)') 'make_colony_distribution: ndays: ',ndays
+write(logmsg,'(a,i4,i6)') 'make_colony_distribution: ndays, ntrials: ',ndays,ntrials
 call logger(logmsg)
 if (.not.use_PEST) then
     write(nfout,*)
@@ -120,7 +120,7 @@ do while(k < ntrials)
     endif
 	idist = n/ddist + 1
 	dist(idist) = dist(idist) + 1
-	if (mod(k,100) == 0) then
+	if (mod(k,ntrials/10) == 0) then
 	    write(logmsg,'(a,3i8)') 'cell: n, idist: ',k,n,idist
 	    call logger(logmsg)
 	endif

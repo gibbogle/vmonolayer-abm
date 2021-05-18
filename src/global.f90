@@ -488,6 +488,12 @@ character*(128) :: PEST_parfile, PEST_outputfile
 ! C_G base concentration (for checking expt. results)
 real(REAL_KIND) :: C_G_base = 10.359
 
+! DNA-PK parameters (temporary)
+logical :: DRUG_A_inhibiter = .false.   ! set true if drug is in the input file
+logical :: use_inhibiter = .true.
+real(REAL_KIND) :: C_inhibiter = 3.0
+real(REAL_KIND) :: a_inhibit = 0.83, b_inhibit = 0.5
+
 !integer :: icentral !extracellular variable index corresponding to a central site (NX/2,NY/2,NZ/2)
 
 ! Off-lattice parameters, in the input file but unused here

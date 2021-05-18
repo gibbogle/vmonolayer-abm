@@ -809,6 +809,7 @@ end subroutine
 subroutine Solver(it,tstart,dt,nc,ok)
 integer :: it, nc
 real(REAL_KIND) :: tstart, dt
+integer :: kcell
 logical :: ok
 logical :: use_drugsolver = .true.
 
@@ -817,9 +818,17 @@ if (.not.master_cell%ATP_tag .and. .not.master_cell%GLN_tag) then
     call OGLSolver(tstart,dt,ok)
 endif
 if (.not.use_drugsolver) return
+!if (DRUG_A_inhibiter) then
+!    if (use_inhibiter) then     ! fixed drug concentration
+!        do kcell = 1,ncells
+!            cell_list(kcell)%Cin(DRUG_A) = event(1)%conc
+!        enddo
+!    endif
+!    return
+!endif
 if (chemo(DRUG_A)%present) then
-    write(nflog,*) 'DRUG_A present!'
-    stop
+!    write(nflog,*) 'DRUG_A present!'
+!    stop   ! why??
 	call DrugSolver(DRUG_A,tstart,dt,1,ok)
 endif
 if (chemo(DRUG_B)%present) then

@@ -501,6 +501,7 @@ read(nfcell,*) chemo(GLUTAMINE)%medium_diff_coef
 read(nfcell,*) chemo(GLUTAMINE)%membrane_diff_in
 read(nfcell,*) chemo(GLUTAMINE)%membrane_diff_out
 read(nfcell,*) chemo(GLUTAMINE)%bdry_conc
+chemo(GLUTAMINE)%dose_conc = chemo(GLUTAMINE)%bdry_conc
 read(nfcell,*) iconstant
 chemo(GLUTAMINE)%constant = (iconstant == 1)
 read(nfcell,*) chemo(GLUTAMINE)%max_cell_rate
@@ -513,6 +514,7 @@ read(nfcell,*) chemo(OTHERNUTRIENT)%medium_diff_coef
 read(nfcell,*) chemo(OTHERNUTRIENT)%membrane_diff_in
 read(nfcell,*) chemo(OTHERNUTRIENT)%membrane_diff_out
 read(nfcell,*) chemo(OTHERNUTRIENT)%bdry_conc
+chemo(OTHERNUTRIENT)%dose_conc = chemo(OTHERNUTRIENT)%bdry_conc
 read(nfcell,*) iconstant
 chemo(OTHERNUTRIENT)%constant = (iconstant == 1)
 read(nfcell,*) chemo(OTHERNUTRIENT)%max_cell_rate
@@ -1054,6 +1056,13 @@ do idrug = 1,Ndrugs_used
 		endif
     enddo
     write(nflog,*) 'drug: ',idrug,drug(idrug)%classname,'  ',drug(idrug)%name
+    ! Repair inhibiting drg
+    if (drug(1)%SER_KO2(1,0) < 0) then      ! drug 1 is a DNA repair inhibiter
+        DRUG_A_inhibiter = .true.
+        a_inhibit = drug(1)%SER_max(1,0)
+        b_inhibit = drug(1)%SER_Km(1,0)
+        use_inhibiter = drug(1)%sensitises(1,0)
+    endif
 enddo
 end subroutine
 
@@ -1129,19 +1138,21 @@ do itime = 1,ntimes
 			enddo
 		endif
 
-		kevent = kevent + 1
-		event(kevent)%etype = MEDIUM_EVENT
-		event(kevent)%time = t + dt
-		event(kevent)%ichemo = 0
-!		event(kevent)%volume = medium_volume0
-		event(kevent)%volume = total_volume
-		event(kevent)%conc = 0
-		event(kevent)%O2medium = O2flush		
-		event(kevent)%glumedium = chemo(GLUCOSE)%dose_conc		
-		event(kevent)%lacmedium = chemo(LACTATE)%dose_conc	
-		event(kevent)%full = .false.	
-		event(kevent)%dose = 0
-		write(nflog,'(a,i3,2f8.3)') 'define MEDIUM_EVENT: volume: ',kevent,event(kevent)%volume,event(kevent)%O2medium
+        if (.not.(idrug == 1 .and. use_inhibiter)) then     ! the flushing MEDIUM_EVENT is not added if the drug is an inhibiter
+		    kevent = kevent + 1
+		    event(kevent)%etype = MEDIUM_EVENT
+		    event(kevent)%time = t + dt
+		    event(kevent)%ichemo = 0
+!		    event(kevent)%volume = medium_volume0
+		    event(kevent)%volume = total_volume
+		    event(kevent)%conc = 0
+		    event(kevent)%O2medium = O2flush		
+		    event(kevent)%glumedium = chemo(GLUCOSE)%dose_conc
+		    event(kevent)%lacmedium = chemo(LACTATE)%dose_conc	
+		    event(kevent)%full = .false.	
+		    event(kevent)%dose = 0
+		    write(nflog,'(a,i3,2f8.3)') 'define MEDIUM_EVENT: volume: ',kevent,event(kevent)%volume,event(kevent)%O2medium
+		endif
 	elseif (trim(line) == 'MEDIUM') then
 		kevent = kevent + 1
 		event(kevent)%etype = MEDIUM_EVENT
@@ -1995,6 +2006,8 @@ do kevent = 1,Nevents
 			C(OXYGEN) = E%O2conc
 			C(GLUCOSE) = chemo(GLUCOSE)%dose_conc
 			C(LACTATE) = chemo(LACTATE)%dose_conc
+			C(GLUTAMINE) = chemo(GLUTAMINE)%dose_conc
+			C(OTHERNUTRIENT) = chemo(OTHERNUTRIENT)%dose_conc
 			ichemo = E%ichemo
 			idrug = E%idrug
 			C(ichemo) = E%conc
@@ -2267,11 +2280,12 @@ endif
 
 drug_gt_cthreshold = .false.
 
-if (medium_change_step .or. chemo(DRUG_A)%present .or. chemo(DRUG_B)%present) then
+if (medium_change_step .or. ((chemo(DRUG_A)%present .or. chemo(DRUG_B)%present) .and..not.DRUG_A_inhibiter)) then
 	ndiv = 6
 else
 	ndiv = 1
 endif
+if (DRUG_A_inhibiter) ndiv = 1
 dt = DELTA_T/ndiv
 dts = dt/NT_CONC
 DELTA_T_save = DELTA_T
@@ -2290,6 +2304,7 @@ do idiv = 0,ndiv-1
 			res = 5
 			return
 		endif
+		
 	enddo	! end it_solve loop
 	if (dbug) write(nflog,*) 'did Solver'
 !	if (use_metabolism) then
