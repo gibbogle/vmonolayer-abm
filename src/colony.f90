@@ -39,7 +39,7 @@ real(c_double) :: n_colony_days, dist(*), ddist, PE
 integer(c_int) :: ndist
 integer, parameter :: ddist50 = 50
 integer, parameter :: ndist50 = 1000/ddist50
-real(REAL_KIND) :: V0, dVdt, dt, t, tend, sum1, sum2, SD, SE, ave, dist50(ndist50), dmin
+real(REAL_KIND) :: V0, dVdt, dt, t, tend, sum1, sum2, SD, SE, ave, dist50(ndist50), dmin, log10PE
 real(REAL_KIND) :: tnow_save
 integer :: k, kk, kcell, ityp, n, idist, ncycmax, ntot, nlist_save, ntrials, ndays, nt, idist50, kmin, nrepeat, krep, kp
 type (cell_type), pointer :: cp
@@ -215,7 +215,12 @@ if (.not.use_PEST) then
     write(nfout,*) 'Total colony population multiplication factor by day:'
     write(nfout,'(10f9.2)') ntcolony(1:ndays)/real(ntrials)
 endif
-write(nfout,'(a,f8.4)') 'PE: ',PE
+if (PE > 0.000001) then
+    log10PE = log10(PE)
+else
+    log10PE = -6
+endif
+write(nfout,'(a,f8.4)') 'log10PE: ',log10PE
 
 
 write(logmsg,'(a,2i8,f8.1)') 'Colony size distribution < 1000:'
@@ -234,7 +239,7 @@ write(logmsg,'(a)') 'Total colony population multiplication factor by day:'
 call logger(logmsg)
 write(logmsg,'(10f9.2)') ntcolony(1:ndays)/real(ntrials)
 call logger(logmsg)
-write(logmsg,'(a,f8.4)') 'Plating efficiency PE: ',PE
+write(logmsg,'(a,2f8.4)') 'Plating efficiency PE, log10PE: ',PE,log10PE
 call logger(logmsg)
 call logger("------------------------------------")
 
