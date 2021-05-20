@@ -26,6 +26,11 @@ contains
 ! t_growth_delay_end
 ! N_delayed_cycles_left
 ! The new method simply continues the simulation from where it ended, for 10 days.
+!
+! When the number of surviving cells at the start of the colony simulation is very small, the results
+! of the simulation very greatly with the random seed.  Need to perform multiple simulations with
+! these cells to reduce the variability.
+! First create a list of the surviving cells.
 !---------------------------------------------------------------------------------------------------
 subroutine make_colony_distribution(n_colony_days,dist,ddist,ndist,PE) bind(C)
 !DEC$ ATTRIBUTES DLLEXPORT :: make_colony_distribution
@@ -36,11 +41,12 @@ integer, parameter :: ddist50 = 50
 integer, parameter :: ndist50 = 1000/ddist50
 real(REAL_KIND) :: V0, dVdt, dt, t, tend, sum1, sum2, SD, SE, ave, dist50(ndist50), dmin
 real(REAL_KIND) :: tnow_save
-integer :: k, kk, kcell, ityp, n, idist, ncycmax, ntot, nlist_save, ntrials, ndays, nt, idist50, kmin
+integer :: k, kk, kcell, ityp, n, idist, ncycmax, ntot, nlist_save, ntrials, ndays, nt, idist50, kmin, nrepeat, krep, kp
 type (cell_type), pointer :: cp
 logical :: ok
 integer :: dist_cutoff = 50
 integer, allocatable :: ncolony(:),ntcolony(:)
+integer, allocatable :: survivor(:)
 
 simulate_colony = .true.
 colony_simulation = .true.
@@ -51,21 +57,59 @@ ncycmax = 24*3600*ndays/divide_time_mean(1) + 1
 nColonyMax = 2**(ncycmax+1)
 write(nflog,*) 'divide_time_mean(1),ncycmax,nColonyMax: ',divide_time_mean(1),ncycmax,nColonyMax
 allocate(ccell_list(nColonyMax))
+allocate(survivor(Ncells))
 if (allocated(perm_index)) deallocate(perm_index)
 allocate(perm_index(nlist_save))
+!if (Ncells > max_trials) then
+!    use_permute = .true.
+!    ntrials = max_trials
+!else
+!    use_permute = .false.
+!    ntrials = Ncells
+!endif
+!call make_perm_index(ok)
+!if (.not.ok) then
+!    call logger('Error: make_perm_index')
+!    dist(1:ndist) = 0
+!    return
+!endif
+k = 0
+do kcell = 1,nlist
+	cp => cell_list(kcell)
+	if (cp%state == DEAD) then
+	    cycle
+	else
+	    k = k+1
+	    if (k > Ncells) then
+	        write(*,*) 'Error: dimension of survivor(:) exceeded'
+	        stop
+	    endif
+	    survivor(k) = kcell
+	endif
+enddo
+if (k /= Ncells) then
+    write(*,*) 'Error: inconsistent survivor numbers: ',Ncells, k
+    stop
+endif
+! At this point survivor(:) holds the cell IDs of all surviving cells
+write(*,*) 'Created survivor list'
 if (Ncells > max_trials) then
-    use_permute = .true.
+    nrepeat = 1
     ntrials = max_trials
+    use_permute = .true.
+    call make_perm_index(ok)
+    if (.not.ok) then
+        call logger('Error: make_perm_index')
+        dist(1:ndist) = 0
+        return
+    endif
 else
+    nrepeat = real(max_trials)/Ncells
+    ! This is the number of repeat simulations per survivor
+    ntrials = nrepeat*Ncells
     use_permute = .false.
-    ntrials = Ncells
 endif
-call make_perm_index(ok)
-if (.not.ok) then
-    call logger('Error: make_perm_index')
-    dist(1:ndist) = 0
-    return
-endif
+write(*,*) 'Ncells,nrepeat,ntrials: ',Ncells,nrepeat,ntrials
 ddist = (nColonyMax/2)/ndist
 dmin = 1.0e10
 do k = 1,ndist
@@ -94,18 +138,27 @@ kk = 0
 k = 0
 nt = 0  ! count of runs giving colony size n > dist_threshold
 ntcolony = 0
-do while(k < ntrials)
-    kk = kk+1
-    kcell = perm_index(kk)
-	cp => cell_list(kcell)
-	if (cp%state == DEAD) then
-!	    write(nflog,*) 'colony: cell dead: ',kcell
-	    cycle
-	else
-	    k = k+1
-	endif
+!do while(k < ntrials)
+!    kk = kk+1
+!    kcell = perm_index(kk)
+!	cp => cell_list(kcell)
+!	if (cp%state == DEAD) then
+!	    cycle
+!	else
+!	    k = k+1
+!	endif
 !	write(nflog,*) 'colony: ',k,kk,kcell
+do kk = 1,Ncells
+    if (use_permute) then
+        kp = perm_index(kk)
+        kcell = survivor(kp)
+    else
+        kcell = survivor(kk)
+    endif
+    cp => cell_list(kcell)
 	ityp = cp%celltype
+do krep = 1,nrepeat
+    k = k+1
 	! Now simulate colony growth from a single cell
 	tnow = tnow_save
 	ncolony = 0
@@ -128,6 +181,7 @@ do while(k < ntrials)
 	if (idist50 <= ndist50) then
 	    dist50(idist50) = dist50(idist50) + 1
 	endif
+enddo
 enddo
 
 if (nt > 0) then
