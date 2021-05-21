@@ -41,7 +41,7 @@ integer, parameter :: ddist50 = 50
 integer, parameter :: ndist50 = 1000/ddist50
 real(REAL_KIND) :: V0, dVdt, dt, t, tend, sum1, sum2, SD, SE, ave, dist50(ndist50), dmin, log10PE
 real(REAL_KIND) :: tnow_save
-integer :: k, kk, kcell, ityp, n, idist, ncycmax, ntot, nlist_save, ntrials, ndays, nt, idist50, kmin, nrepeat, krep, kp
+integer :: k, kk, kcell, ityp, n, idist, ncycmax, ntot, nlist_save, ntrials, ndays, nt, idist50, kmin, nrepeat, krep, kp, kpmax
 type (cell_type), pointer :: cp
 logical :: ok
 integer :: dist_cutoff = 50
@@ -92,7 +92,7 @@ if (k /= Ncells) then
     stop
 endif
 ! At this point survivor(:) holds the cell IDs of all surviving cells
-write(*,*) 'Created survivor list'
+write(nflog,*) 'Created survivor list'
 if (Ncells > max_trials) then
     nrepeat = 1
     ntrials = max_trials
@@ -103,13 +103,17 @@ if (Ncells > max_trials) then
         dist(1:ndist) = 0
         return
     endif
+    kpmax = 0
+    do kk = 1,Ncells
+        kpmax = max(kpmax,perm_index(kk))
+    enddo
 else
     nrepeat = real(max_trials)/Ncells
     ! This is the number of repeat simulations per survivor
     ntrials = nrepeat*Ncells
     use_permute = .false.
 endif
-write(*,*) 'Ncells,nrepeat,ntrials: ',Ncells,nrepeat,ntrials
+write(nflog,*) 'Ncells,nrepeat,ntrials: ',Ncells,nrepeat,ntrials
 ddist = (nColonyMax/2)/ndist
 dmin = 1.0e10
 do k = 1,ndist
@@ -150,8 +154,9 @@ ntcolony = 0
 !	write(nflog,*) 'colony: ',k,kk,kcell
 do kk = 1,Ncells
     if (use_permute) then
-        kp = perm_index(kk)
-        kcell = survivor(kp)
+!        kp = perm_index(kk)
+!        kcell = survivor(kp)
+        kcell = perm_index(kk)
     else
         kcell = survivor(kk)
     endif

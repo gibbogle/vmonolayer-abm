@@ -1031,7 +1031,7 @@ do kcell = 1,nlist
 	np = np + 1
 	perm_index(np) = kcell
 enddo
-if (np /= ncells) then
+if (np /= Ncells) then
 	write(logmsg,*) 'Error: make_perm_index: np /= Ncells: ',np,ncells,nlist
 	call logger(logmsg)
 	ok = .false.
