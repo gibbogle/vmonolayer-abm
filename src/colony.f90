@@ -152,7 +152,7 @@ ntcolony = 0
 !	    k = k+1
 !	endif
 !	write(nflog,*) 'colony: ',k,kk,kcell
-do kk = 1,Ncells
+do kk = 1,min(max_trials,Ncells)
     if (use_permute) then
 !        kp = perm_index(kk)
 !        kcell = survivor(kp)
