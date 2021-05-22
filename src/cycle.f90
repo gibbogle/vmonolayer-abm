@@ -18,6 +18,7 @@ integer, parameter :: dividing      = 8
 logical :: use_volume_based_transition = .false.
 real(REAL_KIND) :: starvation_arrest_threshold = 5
 real(REAL_KIND) :: max_arrest_time = 6*3600
+logical :: inhibit_misrepair = .true.
 
 contains
 
@@ -350,6 +351,10 @@ if (use_inhibiter) then
     C_inhibiter = cp%Cin(drug_A)
     inhibition = repairInhibition(C_inhibiter)
 endif
+Krepair = inhibition*Krepair
+if (inhibit_misrepair) then
+    Kmisrepair = inhibition*Kmisrepair
+endif
 
 p_PL = ccp%eta_PL*dose/nt
 p_IRL = ccp%eta_IRL*dose/nt
@@ -365,7 +370,7 @@ do it = 1,nt
 	if (do_repair) then
 		! repair/misrepair
 		R = par_uni(kpar)
-		if (R < nPL*inhibition*Krepair*dthour) then
+		if (R < nPL*Krepair*dthour) then
 			nPL = nPL - 1
 		endif
 		R = par_uni(kpar)
@@ -432,13 +437,16 @@ if (use_inhibiter) then
     C_inhibiter = cp%Cin(drug_A)
     inhibition = repairInhibition(C_inhibiter)
 endif
-
+Krepair = inhibition*Krepair
 if (cp%phase == M_phase) then
 	misrepair_factor = ccp%mitosis_factor
 else
 	misrepair_factor = 1
 endif
 Kmisrepair = misrepair_factor*ccp%Kmisrepair	! -> scalar
+if (inhibit_misrepair) then
+    Kmisrepair = inhibition*Kmisrepair
+endif
 
 !do it = 1,nt
 !	R = par_uni(kpar)
@@ -460,7 +468,7 @@ Kmisrepair = misrepair_factor*ccp%Kmisrepair	! -> scalar
 !enddo
 
 ! First allow true repair to occur
-rnPL = nPL*exp(-inhibition*Krepair*nt*dthour)
+rnPL = nPL*exp(-Krepair*nt*dthour)
 nPL = rnPL
 R = par_uni(kpar)
 if (R < (rnPL - nPL)) nPL = nPL + 1
