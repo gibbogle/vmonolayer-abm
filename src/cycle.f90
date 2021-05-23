@@ -18,7 +18,7 @@ integer, parameter :: dividing      = 8
 logical :: use_volume_based_transition = .false.
 real(REAL_KIND) :: starvation_arrest_threshold = 5
 real(REAL_KIND) :: max_arrest_time = 6*3600
-logical :: inhibit_misrepair = .true.
+logical :: inhibit_misrepair = .false.
 
 contains
 
@@ -351,9 +351,9 @@ if (use_inhibiter) then
     C_inhibiter = cp%Cin(drug_A)
     inhibition = repairInhibition(C_inhibiter)
 endif
-Krepair = inhibition*Krepair
+Krepair = (1 - inhibition)*Krepair
 if (inhibit_misrepair) then
-    Kmisrepair = inhibition*Kmisrepair
+    Kmisrepair = (1 - inhibition)*Kmisrepair
 endif
 
 p_PL = ccp%eta_PL*dose/nt
@@ -437,7 +437,7 @@ if (use_inhibiter) then
     C_inhibiter = cp%Cin(drug_A)
     inhibition = repairInhibition(C_inhibiter)
 endif
-Krepair = inhibition*Krepair
+Krepair = (1 - inhibition)*Krepair
 if (cp%phase == M_phase) then
 	misrepair_factor = ccp%mitosis_factor
 else
@@ -445,7 +445,7 @@ else
 endif
 Kmisrepair = misrepair_factor*ccp%Kmisrepair	! -> scalar
 if (inhibit_misrepair) then
-    Kmisrepair = inhibition*Kmisrepair
+    Kmisrepair = (1 - inhibition)*Kmisrepair
 endif
 
 !do it = 1,nt
@@ -529,11 +529,12 @@ end function
 
 !--------------------------------------------------------------------------
 ! C is the concentration of the repair inhibiting drug.
+! More inhibition ==> less repair, because Krepair ==> (1 - inhibition)*Krepair
 !--------------------------------------------------------------------------
 function repairInhibition(C) result(inhibition)
 real(REAL_KIND) :: C, inhibition
 
-inhibition = 1 - a_inhibit*C/(b_inhibit + C)
+inhibition = a_inhibit*C/(b_inhibit + C)
 end function
 
 end module
