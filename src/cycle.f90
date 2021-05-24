@@ -282,7 +282,7 @@ logical :: do_repair = .false.
 dose = dose0*SER_OER
 nt = dose*ccp%eta_PL/0.01
 dtmin = tmin/nt
-!write(*,*) 'from dose: nt, dtmin: ',dose,nt,dtmin
+!write(*,*) 'from dose: nt, dtmin: ',dose,nt,dtmin 
 !dtmin = 0.0001
 !nt = max(tmin/dtmin, 1.0)
 dthour = dtmin/60
@@ -374,7 +374,7 @@ do it = 1,nt
 			nPL = nPL - 1
 		endif
 		R = par_uni(kpar)
-		if (R < nPL**2*Kmisrepair*dthour) then	! -> scalar
+		if (R < (nPL**2)*Kmisrepair*dthour) then	! -> scalar
 			nPL = nPL - 1
 			R = par_uni(kpar)
 			if (R < ccp%fraction_Ch1) then
@@ -395,6 +395,12 @@ end subroutine
 ! This may need to be changed, because it implicitly assumes that no more
 ! than one repair and one misrepair of each type can occur within a time step.
 ! The fix would be to subdivide the time step, as in the damage subroutine.
+! The alternate computation of the number of misrepairs is based on integrating
+! the rate of misrepair, which is dN/dt = -N^2.Kmisrepair.dt
+! dN/N^2 = - K.dt
+! -1/N = -K.t + c
+! -1/N0 = K.0 + c ==> c = -1/N0
+! N(t) = N(0)/(Kmisrepair*N(0)*t + 1)
 !--------------------------------------------------------------------------
 subroutine radiation_repair(cp, ccp, dt)
 type(cell_type), pointer :: cp
@@ -437,6 +443,7 @@ if (use_inhibiter) then
     C_inhibiter = cp%Cin(drug_A)
     inhibition = repairInhibition(C_inhibiter)
 endif
+if (cp%ID == 1) write(nflog,'(a,f8.4)') 'inhibition: ',inhibition
 Krepair = (1 - inhibition)*Krepair
 if (cp%phase == M_phase) then
 	misrepair_factor = ccp%mitosis_factor
