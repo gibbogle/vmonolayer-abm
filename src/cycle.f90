@@ -28,15 +28,18 @@ contains
 ! Note that the volumes required for the transitions (cp%G1_V,..)  never change.
 ! Now treat G1, S, G2 in the same way regarding checkpoints
 !--------------------------------------------------------------------------
-subroutine log_timestep(cp, ccp, dt)
+subroutine log_timestep(cp, ccp, dt, dies)
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dt
+logical :: dies
 integer :: phase, ityp, nPL, kpar=0
 real(REAL_KIND) :: cf_O2, cf_glucose, pcp_O2, pcp_glucose, pcp_starvation, R
-logical :: switch
+logical :: switch, S_switch, M_switch
 
 phase = cp%phase
+S_switch = .false.
+M_switch = .false.
 if (cp%dVdt == 0) then
 	write(nflog,*) 'dVdt=0, kcell, phase: ',kcell_now,phase
 	stop
@@ -63,7 +66,8 @@ elseif (phase == G1_checkpoint) then  ! this checkpoint combines the release fro
     if (use_metabolism) then
 		cp%G1S_flag = cp%G1S_flag .and. (cp%metab%A_rate > r_Ag)
 	endif
-    if (cp%G1_flag .and. cp%G1S_flag) then
+    if (cp%G1_flag .and. cp%G1S_flag) then  ! switch to S-phase
+        S_switch = .true.
         cp%phase = S_phase
 ! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code 
 	    cp%S_duration = (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
@@ -119,7 +123,8 @@ elseif (phase == G2_checkpoint) then ! this checkpoint combines the release from
     if (use_metabolism) then
 		cp%G2M_flag = cp%G2M_flag .and. (cp%metab%A_rate > r_Ag)
 	endif
-    if (cp%G2_flag .and. cp%G2M_flag) then
+    if (cp%G2_flag .and. cp%G2M_flag) then  ! switch to M-phase
+        M_switch = .true.
         cp%phase = M_phase
         cp%M_time = tnow + ccp%T_M   
     endif
@@ -128,8 +133,17 @@ elseif (phase == M_phase) then
         cp%phase = dividing
 !        cp%doubling_time = tnow
     endif
-endif    
-if (nPL > 0 .and. .not.cp%irrepairable) then
+endif
+dies = .false.
+if (S_switch .and. (cp%N_PL > 0 .or. cp%N_IRL > 0)) then
+    dies = mortality(cp,ccp,'S')
+endif
+if (M_switch .and. (cp%N_PL > 0 .or. cp%N_IRL > 0 .or. cp%N_Ch1 > 0 .or. cp%N_Ch2 > 0)) then
+    dies = mortality(cp,ccp,'M')
+endif
+if (dies) return
+!if (nPL > 0 .and. .not.cp%irrepairable) then
+if (nPL > 0) then
     call radiation_repair(cp, ccp, dt)
 endif
 end subroutine
@@ -138,15 +152,19 @@ end subroutine
 ! This uses exponentially distributed checkpoint times for G1, S, G2,
 ! fixed (with growth scaling) G1, S, G2 times.
 !--------------------------------------------------------------------------
-subroutine exp_timestep(cp, ccp, dt)
+subroutine exp_timestep(cp, ccp, dt, dies)
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dt
+logical :: dies
 integer :: phase, ityp, nPL, kpar=0
 real(REAL_KIND) :: delay, duration
-logical :: switch
+logical :: switch, S_switch, M_switch
 
 phase = cp%phase
+S_switch = .false.
+M_switch = .false.
+!if (colony_simulation) write(*,*) 'colony_simulation: ID,phase,N_PL: ',cp%ID,phase,cp%N_PL,cp%N_Ch1,cp%N_Ch2
 if (cp%dVdt == 0) then
 !	if (phase == G1_phase .or. phase == S_phase .or. phase == G2_phase) then
 		write(nflog,*) 'dVdt=0, kcell, phase: ',kcell_now,phase
@@ -169,6 +187,7 @@ elseif (phase == G1_checkpoint) then  ! this checkpoint combines the release fro
         delay = cp%G1ch_max_delay
     endif
     if (tnow > cp%G1ch_entry_time + delay) then
+        S_switch = .true.
         cp%phase = S_phase
 	    duration = (max_growthrate(ityp)/cp%dVdt)*ccp%T_S
         cp%S_time = tnow + duration
@@ -204,6 +223,7 @@ elseif (phase == G2_checkpoint) then ! this checkpoint combines the release from
         delay = cp%G2ch_max_delay
     endif
     if (tnow > cp%G2ch_entry_time + delay) then
+        M_switch = .true.
         cp%phase = M_phase
         cp%M_time = tnow + ccp%T_M   
     endif
@@ -211,12 +231,47 @@ elseif (phase == M_phase) then
     if (tnow > cp%M_time) then
         cp%phase = dividing
     endif
-endif    
-if (nPL > 0 .and. .not.cp%irrepairable) then
+endif
+!if (cp%ID == 1 .and. (nPL > 0 .or. cp%N_Ch1 > 0)) then
+!    write(nflog,*) 'ID=1: phase,nPL: ',cp%phase,nPL,cp%N_Ch1,cp%N_Ch2,M_switch
+!endif
+dies = .false.  
+if (S_switch .and. (cp%N_PL > 0 .or. cp%N_IRL > 0)) then
+    dies = mortality(cp,ccp,'S')
+endif
+if (M_switch .and. (cp%N_PL > 0 .or. cp%N_IRL > 0 .or. cp%N_Ch1 > 0 .or. cp%N_Ch2 > 0)) then
+    dies = mortality(cp,ccp,'M')
+    if (cp%ID == 1) write(nflog,*) 'ID=1: M_switch: dies: ',dies
+endif
+if (dies) return
+!if (nPL > 0 .and. .not.cp%irrepairable) then
+if (nPL > 0) then
     call radiation_repair(cp, ccp, dt)
 endif
 end subroutine
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+function mortality(cp,ccp,pchar) result(dies)
+type(cell_type), pointer :: cp
+type(cycle_parameters_type), pointer :: ccp
+character :: pchar
+integer :: N, ityp, kpar=0
+real(REAL_KIND) :: R, psurvive, psurvive_IRL, pdeath    ! , psurvive_PL
+logical :: dies
+
+N = cp%N_PL + cp%N_IRL
+!psurvive_PL = 0.999  !ccp%psurvive_Ch1
+psurvive_IRL = psurvive_PL
+psurvive = (psurvive_PL**cp%N_PL)*(psurvive_IRL**cp%N_IRL)
+if (pchar == 'M') then
+    psurvive = (psurvive/10)*(ccp%psurvive_Ch1**cp%N_Ch1)*(ccp%psurvive_Ch2**cp%N_Ch2)
+endif
+pdeath = 1 - psurvive
+R = par_uni(kpar)
+dies = (R < pdeath)
+!write(*,'(a,a,2i4,f6.3,L2)') 'mortality: pchar,psurvive: ',pchar,cp%N_PL,cp%N_IRL,psurvive,dies
+end function
 
 !--------------------------------------------------------------------------
 ! We want:
@@ -295,29 +350,7 @@ if (cp%irrepairable) then
 endif
 nIRL = 0
 if (do_repair) then
-	! For repair/misrepair
-	ityp = cp%celltype
-	if (cp%phase < S_phase) then
-		Krepair = ccp%Krepair_base
-	elseif (cp%phase > S_phase) then
-		Krepair = ccp%Krepair_max
-	else
-		if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
-			fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
-		else
-!			fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
-            fraction = cp%S_time/cp%S_duration
-			fraction = max(0.0, fraction)
-			fraction = min(1.0, fraction)
-		endif
-		Krepair = ccp%Krepair_base + fraction*(ccp%Krepair_max - ccp%Krepair_base)
-	endif
-	if (cp%phase == M_phase) then
-		misrepair_factor = ccp%mitosis_factor
-	else
-		misrepair_factor = 1
-	endif
-	Kmisrepair = misrepair_factor*ccp%Kmisrepair
+    call getRepairParameters(cp,ccp,Krepair,Kmisrepair)
 endif
 
 if (.not.do_repair) then
@@ -414,65 +447,13 @@ logical :: use_prob = .false.
 
 nPL = cp%N_PL
 if (nPL == 0) return
-
 if (use_prob) then
 	nt = 100
 else
 	nt = 1
 endif
 dthour = dt/(nt*3600)    ! sec -> hour
-ityp = cp%celltype
-if (cp%phase < S_phase) then
-    Krepair = ccp%Krepair_base
-elseif (cp%phase > S_phase) then
-    Krepair = ccp%Krepair_max
-else
-    if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
-        fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
-    else
-!        fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
-        fraction = cp%S_time/cp%S_duration
-		fraction = max(0.0, fraction)
-		fraction = min(1.0, fraction)
-    endif
-    Krepair = ccp%Krepair_base + fraction*(ccp%Krepair_max - ccp%Krepair_base)
-endif
-
-inhibition = 1
-if (use_inhibiter) then
-    C_inhibiter = cp%Cin(drug_A)
-    inhibition = repairInhibition(C_inhibiter)
-endif
-if (cp%ID == 1) write(nflog,'(a,f8.4)') 'inhibition: ',inhibition
-Krepair = (1 - inhibition)*Krepair
-if (cp%phase == M_phase) then
-	misrepair_factor = ccp%mitosis_factor
-else
-	misrepair_factor = 1
-endif
-Kmisrepair = misrepair_factor*ccp%Kmisrepair	! -> scalar
-if (inhibit_misrepair) then
-    Kmisrepair = (1 - inhibition)*Kmisrepair
-endif
-
-!do it = 1,nt
-!	R = par_uni(kpar)
-!	if (R < nPL*Krepair*dthour) then
-!		nPL = nPL - 1
-!		if (nPL == 0) exit
-!	endif
-!	R = par_uni(kpar)
-!	if (R < nPL**2*Kmisrepair*dthour) then
-!		nPL = nPL - 1
-!		R = par_uni(kpar)
-!		if (R < ccp%fraction_Ch1) then
-!			cp%N_Ch1 = cp%N_Ch1 + 1
-!		else
-!			cp%N_Ch2 = cp%N_Ch2 + 1
-!		endif
-!		if (nPL == 0) exit
-!	endif
-!enddo
+call getRepairParameters(cp,ccp,Krepair,Kmisrepair)
 
 ! First allow true repair to occur
 rnPL = nPL*exp(-Krepair*nt*dthour)
@@ -502,6 +483,7 @@ else
 		rnPL = rnPL0/(rnPL0*Kmisrepair*nt*dthour + 1)
 		dPL = rnPL0 - rnPL		! this is the number of misrepairs - convert to integer
 		nmis = dPL
+!		write(*,*) 'misrepair: ',dPL,nmis
 		R = par_uni(kpar)
 		if (R < (dPL - nmis)) nmis = nmis + 1
 		nPL = nPL - nmis
@@ -516,10 +498,57 @@ else
 	endif
 endif
 cp%N_PL = nPL
+!write(*,*) 'stopping in radiation_repair'
+!stop
 !if (cp%ID == 1) then
 !    write(nflog,'(a,4i6)') 'repair: cell #, N_PL, N_Ch2, N_Ch2: ',cp%ID,cp%N_PL,cp%N_CH1,cp%N_Ch2
 !    write(nflog,'(a,4e12.3)') 'C, Krepair, inhibition, Kmisrepair: ',C_inhibiter,Krepair, inhibition, Kmisrepair
 !endif
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+subroutine getRepairParameters(cp,ccp,Krepair,Kmisrepair)
+type(cell_type), pointer :: cp
+type(cycle_parameters_type), pointer :: ccp
+real(REAL_KIND) :: Krepair, Kmisrepair
+real(REAL_KIND) :: Krepair_HRR, Krepair_NHEJ
+real(REAL_KIND) :: Kmisrepair_NHEJ, Kmisrepair_DIM
+real(REAL_KIND) :: fraction, inhibition, C_inhibiter
+integer :: ityp
+
+ityp = cp%celltype
+if (cp%phase < S_phase) then
+    Krepair_HRR = ccp%HRR_repair_base
+elseif (cp%phase > S_phase) then
+    Krepair_HRR = ccp%HRR_repair_max
+else
+    if (use_volume_based_transition) then   ! fraction = fraction of passage through S phase
+        fraction = (cp%V - cp%G1_V)/(cp%S_V - cp%G1_V)
+    else
+!        fraction = 1 - (cp%S_time - tnow)/(cp%S_time - cp%S_start_time)
+        fraction = cp%S_time/cp%S_duration
+		fraction = max(0.0, fraction)
+		fraction = min(1.0, fraction)
+    endif
+    Krepair_HRR = ccp%HRR_repair_base + fraction*(ccp%HRR_repair_max - ccp%HRR_repair_base)
+endif
+Krepair_NHEJ = ccp%NHEJ_repair
+Kmisrepair_NHEJ = ccp%NHEJ_misrepair
+Kmisrepair_DIM = ccp%DIM_misrepair
+
+inhibition = 1
+if (use_inhibiter) then
+    C_inhibiter = cp%Cin(drug_A)
+    inhibition = repairInhibition(C_inhibiter)
+endif
+Krepair_NHEJ = (1 - inhibition)*Krepair_NHEJ
+if (inhibit_misrepair) then
+    Kmisrepair_NHEJ = (1 - inhibition)*Kmisrepair_NHEJ
+endif
+Krepair = Krepair_HRR + Krepair_NHEJ
+Kmisrepair = Kmisrepair_NHEJ + Kmisrepair_DIM
+
 end subroutine
 
 !--------------------------------------------------------------------------

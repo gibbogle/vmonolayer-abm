@@ -77,8 +77,10 @@ logical :: ok
 integer :: kcell, site(3), iv, ityp, idrug, im, ichemo, n, kpar=0
 real(REAL_KIND) :: C_O2, SER, p_death, p_recovery, R, kill_prob, tmin
 real(REAL_KIND) :: SER_OER(2)
+logical :: dies
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
+character :: pchar
 
 ok = .true.
 call logger('Irradiation')
@@ -144,21 +146,37 @@ else
         SER_OER(1) = SER*(LQ(ityp)%OER_am*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_alpha NEEDS ATTENTION
         SER_OER(2) = SER*(LQ(ityp)%OER_bm*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_beta
         call radiation_damage(cp, ccp, dose, SER_OER(1), tmin)
-	    if (cp%irrepairable) then	! irrepairable damage 
-			n = n+1
-			if (.not.cp%radiation_tag) then
-				cp%radiation_tag = .true.	! tagged, but not DYING yet
-			    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
-			endif	
-			if (cp%phase == S_phase .or. cp%phase == M_phase) then	! set to DYING immediately, otherwise at mitosis
-				call CellDies(kcell,.false.)
-			endif
+        ! Now check for possible death if the cell is in S-phase or M-phase
+        dies = .false.  
+        if (cp%phase == S_phase .and. (cp%N_PL > 0 .or. cp%N_IRL > 0)) then
+            pchar = 'S'
+            dies = mortality(cp,ccp,pchar)
+        endif
+        if (cp%phase == M_phase .and. (cp%N_PL > 0 .or. cp%N_IRL > 0 .or. cp%N_Ch1 > 0 .or. cp%N_Ch2 > 0)) then
+            pchar = 'M'
+            dies = mortality(cp,ccp,pchar)
+        endif
+        if (dies) then
+            write(*,*) 'dies: ',kcell,' ',pchar,' ',cp%N_PL,cp%N_IRL
+			cp%radiation_tag = .true.	! tagged, but not DYING yet
+		    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+			call celldies(cp,.false.)
 		endif
+!	    if (cp%irrepairable) then	! irrepairable damage 
+!			n = n+1
+!			if (.not.cp%radiation_tag) then
+!				cp%radiation_tag = .true.	! tagged, but not DYING yet
+!			    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+!			endif	
+!			if (cp%phase == S_phase .or. cp%phase == M_phase) then	! set to DYING immediately, otherwise at mitosis
+!				call celldies(cp,.false.)
+!			endif
+!		endif
     enddo
 endif
 call check_radiation
-write(logmsg,'(a,i6)') 'Did irradiation: # of IRL cells: ',n
-call logger(logmsg)
+!write(logmsg,'(a,i6)') 'Did irradiation: # of IRL cells: ',n
+!call logger(logmsg)
 end subroutine
 
 !-----------------------------------------------------------------------------------------
@@ -182,12 +200,14 @@ do kcell = 1,nlist
 	aveCh2 = aveCh2 + cp%N_Ch2
 	aveIRL = aveIRL + cp%N_IRL
 	avePL = avePL + cp%N_PL
+!	write(nflog,*) 'kcell, N_PL: ',kcell,cp%N_PL
 enddo
-write(nflog,*) 'check_radiation: n: ',n
+write(nflog,*) 'check_radiation: n,ndying: ',n,nlist-n
 write(nflog,'(a,f9.3)') 'aveCh1: ',aveCh1/n
 write(nflog,'(a,f9.3)') 'aveCh2: ',aveCh2/n
 write(nflog,'(a,f9.3)') 'aveIRL: ',aveIRL/n
 write(nflog,'(a,f9.3)') 'avePL: ',avePL/n
+
 end subroutine
 
 !-----------------------------------------------------------------------------------------
@@ -310,8 +330,9 @@ do kcell = 1,nlist
 		delayed_death_prob = factor*ccp%apoptosis_rate*dt/3600
 		R = par_uni(kpar)
 !        if (colony_simulation) write(*,'(a,4e12.3)') 'colony: R,delayed_death_prob: ',R,factor,ccp%apoptosis_rate,delayed_death_prob
-	    if (R < delayed_death_prob) then	
-			call CellDies(kcell,.true.)
+	    if (R < delayed_death_prob) then
+	        kcell_now = kcell	! just for gaplist
+			call CellDies(cp,.true.)
 		endif
 		cycle
 	endif	
@@ -319,13 +340,13 @@ do kcell = 1,nlist
 	if (cp%ATP_tag) then
 		NATP_tag(ityp) = NATP_tag(ityp) + 1
 		cp%dVdt = 0
-		call CellDies(kcell,.false.)
+		call celldies(cp,.false.)
 		cycle
 	endif
 	if (cp%GLN_tag) then
 		NGLN_tag(ityp) = NGLN_tag(ityp) + 1
 		cp%dVdt = 0
-		call CellDies(kcell,.false.)
+		call celldies(cp,.false.)
 		cycle
 	endif
 	
@@ -333,7 +354,7 @@ do kcell = 1,nlist
 	else
 		if (cp%anoxia_tag) then
 			if (tnow >= cp%t_anoxia_die) then
-				call CellDies(kcell,.false.)
+				call celldies(cp,.false.)
 !				Nanoxia_dead(ityp) = Nanoxia_dead(ityp) + 1
 				cycle
 			endif
@@ -355,7 +376,7 @@ do kcell = 1,nlist
 		call getGlucoseconc(cp,C_glucose)
 		if (cp%aglucosia_tag) then
 			if (tnow >= cp%t_aglucosia_die) then
-				call CellDies(kcell,.false.)
+				call celldies(cp,.false.)
 !				Naglucosia_dead(ityp) = Naglucosia_dead(ityp) + 1
 				cycle
 			endif
@@ -434,31 +455,20 @@ dkill_prob = 1 - SF
 end subroutine
 
 !-----------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------
-subroutine test_CellDies
-integer :: kcell, i, kpar=0
-
-do i = 1,10
-	kcell = random_int(1,nlist,kpar)
-	call CellDies(kcell,.true.)
-enddo
-stop
-end subroutine
-
-!-----------------------------------------------------------------------------------------
 ! A cell that dies must be subtracted from any counts it is on.
 !-----------------------------------------------------------------------------------------
-subroutine CellDies(kcell,now)
-integer :: kcell
+subroutine CellDies(cp,now)
+type(cell_type), pointer :: cp
+!subroutine CellDies(kcell,now)
+!integer :: kcell
 logical :: now
 integer :: site(3), ityp, idrug
-type(cell_type), pointer :: cp
 
-if (colony_simulation) then
-    cp => ccell_list(kcell)
-else
-    cp => cell_list(kcell)
-endif
+!if (colony_simulation) then
+!    cp => ccell_list(kcell)
+!else
+!    cp => cell_list(kcell)
+!endif
 ityp = cp%celltype
 if (.not.now) then
     if (cp%state == DYING) then
@@ -466,7 +476,6 @@ if (.not.now) then
     else
     	cp%state = DYING
     	cp%tag_time = tnow;
-!        if (colony_simulation) write(*,*) 'colony: DYING: tag_time: ',cp%tag_time
 	    Ndying(ityp) = Ndying(ityp) + 1
 	endif
 	return
@@ -504,7 +513,7 @@ if (ngaps > max_ngaps) then
     call logger(logmsg)
     stop
 endif
-gaplist(ngaps) = kcell
+gaplist(ngaps) = kcell_now
 end subroutine
 
 !-----------------------------------------------------------------------------------------
@@ -568,7 +577,7 @@ type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: rr(3), c(3), rad, d_desired, R, rrsum, pdeath, mitosis_duration
 integer, parameter :: MAX_DIVIDE_LIST = 100000
 integer :: ndivide, divide_list(MAX_DIVIDE_LIST)
-logical :: drugkilled
+logical :: drugkilled, radkilled
 logical :: mitosis_entry, in_mitosis, divide, tagged
 
 ok = .true.
@@ -631,60 +640,61 @@ do kcell = 1,nlist0
 	    prev_phase = cp%phase
 		if (cp%dVdt > 0) then
 	        if (use_exponential_cycletime) then
-    			call exp_timestep(cp, ccp, dt)
+    			call exp_timestep(cp, ccp, dt, radkilled)
     		else
-    	        call log_timestep(cp, ccp, dt)
+    	        call log_timestep(cp, ccp, dt, radkilled)
     	    endif
+    	    if (radkilled) then
+                ityp = cp%celltype
+	            cp%radiation_tag = .true.	! tagged, but not DYING yet
+                Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+	            call celldies(cp,.false.)
+            endif
+
 	    endif
         if (cp%phase >= M_phase) then
             if (prev_phase == G2_checkpoint) then		! this is mitosis entry
-				if (cp%radiation_tag .and. cp%irrepairable) then	! cell was tagged but possibly not DYING
-					call CellDies(kcell,.false.)
-				endif
-                if (.not.cp%radiation_tag .and. cp%N_PL > 0) then		! lesions still exist, no time for repair
-					cp%radiation_tag = .true.
-				    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
-!				    if (colony_simulation) then
-!				        write(*,*) 'radiation tagged: N_PL > 0'
-!				    endif
-					call CellDies(kcell,.false.)
-				endif
+!               Death by lesions on entry to M-phase (and S-phase) is now handled in cell cycle
+!				if (cp%radiation_tag .and. cp%irrepairable) then	! cell was tagged but possibly not DYING - how?
+!					call celldies(cp,.false.)
+!				endif
+!                if (.not.cp%radiation_tag .and. cp%N_PL > 0) then		! lesions still exist, no time for repair
+!					cp%radiation_tag = .true.
+!				    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+!					call celldies(cp,.false.)
+!				endif
 				
 				cp%Iphase = .false.
 				cp%mitosis = 0
 				cp%t_start_mitosis = tnow
 				ncells_mphase = ncells_mphase + 1
 				
-				! For cells with Ch1 or Ch2, check for death
-				if (cp%N_Ch1 > 0 .and. .not.cp%radiation_tag) then
-					pdeath = 1 - ccp%psurvive_Ch1**cp%N_Ch1
-					R = par_uni(kpar)
-					if (R < pdeath) then				
-						cp%radiation_tag = .true.
-						Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
-!				    if (colony_simulation) then
-!				        write(*,*) 'radiation tagged: N_Ch1'
-!				    endif
-						call CellDies(kcell,.false.)
-					endif
-				endif
-				if (cp%N_Ch2 > 0 .and. .not.cp%radiation_tag) then
-					pdeath = 1 - ccp%psurvive_Ch2**cp%N_Ch2
-					R = par_uni(kpar)
-					if (R < pdeath) then				
-						cp%radiation_tag = .true.
-						Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
-!				    if (colony_simulation) then
-!				        write(*,*) 'radiation tagged: N_Ch2'
-!				    endif
-						call CellDies(kcell,.false.)
-					endif
-				endif
+!				! For cells with Ch1 or Ch2, check for death
+!				if (cp%N_Ch1 > 0 .and. .not.cp%radiation_tag) then
+!					pdeath = 1 - ccp%psurvive_Ch1**cp%N_Ch1
+!					R = par_uni(kpar)
+!					if (R < pdeath) then				
+!						cp%radiation_tag = .true.
+!						Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+!						call celldies(cp,.false.)
+!					endif
+!				endif
+!				if (cp%N_Ch2 > 0 .and. .not.cp%radiation_tag) then
+!					pdeath = 1 - ccp%psurvive_Ch2**cp%N_Ch2
+!					R = par_uni(kpar)
+!					if (R < pdeath) then				
+!						cp%radiation_tag = .true.
+!						Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+!						call celldies(cp,.false.)
+!					endif
+!				endif
             endif
             in_mitosis = .true.
         endif
-!		if (cp%phase < Checkpoint2 .and. cp%phase /= Checkpoint1) then
-		if (cp%phase == G1_phase .or.cp%phase == S_phase .or. cp%phase == G2_phase) then
+        if (cp%state == DYING) then     ! no growth, no progression through cell cycle
+	        cp%dVdt = 0
+            cycle
+		elseif (cp%phase == G1_phase .or.cp%phase == S_phase .or. cp%phase == G2_phase) then
 		    call growcell(cp,dt)
 		endif	
 	endif
@@ -693,7 +703,7 @@ do kcell = 1,nlist0
 		drugkilled = .false.
 		do idrug = 1,ndrugs_used
 			if (cp%drug_tag(idrug)) then
-				call CellDies(kcell,.false.)
+				call celldies(cp,.false.)
 				drugkilled = .true.
 				exit
 			endif
@@ -719,7 +729,7 @@ do kcell = 1,nlist0
 			if (cp%radiation_tag) then
 				R = par_uni(kpar)
 				if (R < cp%p_rad_death) then
-					call CellDies(kcell,.false.)
+					call celldies(cp,.false.)
 !					changed = .true.
 !					Nradiation_dead(ityp) = Nradiation_dead(ityp) + 1
 					cycle
@@ -780,13 +790,11 @@ if (use_metabolism .and. cp%metab%A_rate < r_Ag) then
 	return
 endif
 ityp = cp%celltype
-!tagged = cp%anoxia_tag .or. cp%aglucosia_tag .or. (cp%state == DYING)
-!if (tagged) then
-if (cp%state == DYING) then
-	cp%dVdt = 0
-!	write(*,*) 'tagged: ',kcell_now
-	return
-endif
+!if (cp%state == DYING) then
+!	cp%dVdt = 0
+!!	write(*,*) 'tagged: ',kcell_now
+!	return
+!endif
 if (colony_simulation) then
 	if (use_metabolism) then
 !		cp%metab%Itotal = cp%metab%Itotal + dt*cp%metab%I_rate
@@ -1053,6 +1061,10 @@ cp1%t_divide_last = tnow
 cp2 = cp1
 cp2%ATP_tag = .false.
 cp2%GLN_tag = .false.
+!if (cp1%ID == 1) then
+!    write(*,*) 'divider: ID=1: N_PL,N_CH1,N_Ch2: ',cp2%N_PL,cp2%N_Ch1,cp2%N_Ch2
+!    stop
+!endif
 
 ! These are the variations from cp1
 !cp2%divide_volume = get_divide_volume(ityp,V0,Tdiv, gfactor)

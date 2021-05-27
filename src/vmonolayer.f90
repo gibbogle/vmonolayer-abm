@@ -581,6 +581,7 @@ read(nfcell,*) spcrad_value
 
 read(nfcell,*) Ndrugs_used
 write(nflog,*) 'Ndrugs_used: ',Ndrugs_used
+use_inhibiter = .false.
 if (Ndrugs_used > 0) then
     call ReadDrugData(nfcell)
 endif
@@ -859,16 +860,19 @@ read(nf,*) ccp%Apoptosis_rate
 read(nf,*) ccp%arrest_threshold
 read(nf,*) ccp%eta_PL
 read(nf,*) ccp%eta_IRL
-read(nf,*) ccp%Krepair_base
-read(nf,*) ccp%Krepair_max
-read(nf,*) ccp%Kmisrepair
-read(nf,*) ccp%mitosis_factor
+!read(nf,*) ccp%Krepair_base
+read(nf,*) ccp%HRR_repair_max
+read(nf,*) ccp%NHEJ_repair
+read(nf,*) ccp%NHEJ_misrepair
+read(nf,*) ccp%DIM_misrepair
+!read(nf,*) ccp%mitosis_factor
 read(nf,*) ccp%fraction_Ch1
 read(nf,*) ccp%psurvive_Ch1
 read(nf,*) ccp%psurvive_Ch2
 read(nf,*) ccp%aTCP
 read(nf,*) ccp%bTCP
 !read(nf,*) ccp%Kcp
+ccp%HRR_repair_base = 0
 
 total = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
 write(nflog,'(a,7f8.2)') 'T_G1,T_S,T_G2,T_M,G1_delay,G2_delay, total: ',ccp%T_G1,ccp%T_S,ccp%T_G2,ccp%T_M, &
@@ -881,6 +885,7 @@ ccp%T_M = 3600*ccp%T_M
 ccp%G1_mean_delay = 3600*ccp%G1_mean_delay
 ccp%G2_mean_delay = 3600*ccp%G2_mean_delay
 enddo
+read(nf,*) psurvive_PL
 end subroutine
 
 !-----------------------------------------------------------------------------------------

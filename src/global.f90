@@ -211,10 +211,11 @@ type cycle_parameters_type
     real(REAL_KIND) :: Pk_G1, Pk_S, Pk_G2
     real(REAL_KIND) :: arrest_threshold
     ! Radiation damage/repair
-    real(REAL_KIND) :: eta_PL, Kcp, eta_L(2)
-    real(REAL_KIND) :: Krepair_base, Krepair_max, Kmisrepair	!(2)
-    real(REAL_KIND) :: eta_IRL, fraction_Ch1, mitosis_factor
-    real(REAL_KIND) :: psurvive_Ch1, psurvive_Ch2		! prob of surviving mitosis
+    real(REAL_KIND) :: eta_PL, eta_IRL
+    real(REAL_KIND) :: HRR_repair_base, HRR_repair_max
+    real(REAL_KIND) :: NHEJ_repair, NHEJ_misrepair
+    real(REAL_KIND) :: DIM_misrepair
+    real(REAL_KIND) :: fraction_Ch1, psurvive_Ch1, psurvive_Ch2		! prob of surviving mitosis
     real(REAL_KIND) :: aTCP, bTCP
     ! Apoptosis
     real(REAL_KIND) :: apoptosis_rate
@@ -490,9 +491,11 @@ real(REAL_KIND) :: C_G_base = 10.359
 
 ! DNA-PK parameters (temporary)
 logical :: DRUG_A_inhibiter = .false.   ! set true if drug is in the input file
-logical :: use_inhibiter = .true.
-real(REAL_KIND) :: C_inhibiter = 3.0
+logical :: use_inhibiter = .false.
+real(REAL_KIND) :: C_inhibiter
 real(REAL_KIND) :: a_inhibit = 0.83, b_inhibit = 0.5
+
+real(REAL_KIND) :: psurvive_PL  ! temporary !
 
 !integer :: icentral !extracellular variable index corresponding to a central site (NX/2,NY/2,NZ/2)
 
