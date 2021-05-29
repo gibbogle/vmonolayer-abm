@@ -869,6 +869,7 @@ read(nf,*) ccp%DIM_misrepair
 read(nf,*) ccp%fraction_Ch1
 read(nf,*) ccp%psurvive_Ch1
 read(nf,*) ccp%psurvive_Ch2
+read(nf,*) ccp%psurvive_PL
 read(nf,*) ccp%aTCP
 read(nf,*) ccp%bTCP
 !read(nf,*) ccp%Kcp
@@ -885,7 +886,6 @@ ccp%T_M = 3600*ccp%T_M
 ccp%G1_mean_delay = 3600*ccp%G1_mean_delay
 ccp%G2_mean_delay = 3600*ccp%G2_mean_delay
 enddo
-read(nf,*) psurvive_PL
 end subroutine
 
 !-----------------------------------------------------------------------------------------

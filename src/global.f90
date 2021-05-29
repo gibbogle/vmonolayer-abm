@@ -216,6 +216,7 @@ type cycle_parameters_type
     real(REAL_KIND) :: NHEJ_repair, NHEJ_misrepair
     real(REAL_KIND) :: DIM_misrepair
     real(REAL_KIND) :: fraction_Ch1, psurvive_Ch1, psurvive_Ch2		! prob of surviving mitosis
+    real(REAL_KIND) :: psurvive_PL
     real(REAL_KIND) :: aTCP, bTCP
     ! Apoptosis
     real(REAL_KIND) :: apoptosis_rate
@@ -494,8 +495,6 @@ logical :: DRUG_A_inhibiter = .false.   ! set true if drug is in the input file
 logical :: use_inhibiter = .false.
 real(REAL_KIND) :: C_inhibiter
 real(REAL_KIND) :: a_inhibit = 0.83, b_inhibit = 0.5
-
-real(REAL_KIND) :: psurvive_PL  ! temporary !
 
 !integer :: icentral !extracellular variable index corresponding to a central site (NX/2,NY/2,NZ/2)
 

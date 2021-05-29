@@ -262,8 +262,8 @@ logical :: dies
 
 N = cp%N_PL + cp%N_IRL
 !psurvive_PL = 0.999  !ccp%psurvive_Ch1
-psurvive_IRL = psurvive_PL
-psurvive = (psurvive_PL**cp%N_PL)*(psurvive_IRL**cp%N_IRL)
+psurvive_IRL = ccp%psurvive_PL
+psurvive = (ccp%psurvive_PL**cp%N_PL)*(psurvive_IRL**cp%N_IRL)
 if (pchar == 'M') then
     psurvive = (psurvive/10)*(ccp%psurvive_Ch1**cp%N_Ch1)*(ccp%psurvive_Ch2**cp%N_Ch2)
 endif
@@ -537,7 +537,7 @@ Krepair_NHEJ = ccp%NHEJ_repair
 Kmisrepair_NHEJ = ccp%NHEJ_misrepair
 Kmisrepair_DIM = ccp%DIM_misrepair
 
-inhibition = 1
+inhibition = 0
 if (use_inhibiter) then
     C_inhibiter = cp%Cin(drug_A)
     inhibition = repairInhibition(C_inhibiter)
