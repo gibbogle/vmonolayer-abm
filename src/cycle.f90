@@ -439,7 +439,7 @@ subroutine radiation_repair(cp, ccp, dt)
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dt
-integer :: i, k, ityp, nPL, nmis, kpar=0
+integer :: i, k, ityp, nPL, nPL0, nmis, kpar=0
 real(REAL_KIND) :: dthour, fraction, Krepair, Kmisrepair, misrepair_factor, R, p_rep, p_mis
 real(REAL_KIND) :: rnPL, rnPL0, dPL, inhibition
 integer :: nt, it
@@ -460,6 +460,7 @@ rnPL = nPL*exp(-Krepair*nt*dthour)
 nPL = rnPL
 R = par_uni(kpar)
 if (R < (rnPL - nPL)) nPL = nPL + 1
+!write(nflog,*) 'true repair: ', nPL0,nPL,nPL0-nPL
 
 ! Then misrepair occurs on remaining nPL
 if (use_prob) then
