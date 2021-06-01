@@ -223,12 +223,12 @@ endif
 if (PE > 0.000001) then
     log10PE = log10(PE)
 else
-    log10PE = -6
+    log10PE = -4
 endif
 write(nfout,'(a,f8.4)') 'log10PE: ',log10PE
 
 
-write(logmsg,'(a,2i8,f8.1)') 'Colony size distribution < 1000:'
+write(logmsg,'(a,2i8,f8.1)') 'Colony size distribution < 1000:' 
 call logger(logmsg)
 do idist50 = 1,ndist50
     write(logmsg,'(i6,a,i6,f7.4)') int((idist50-1)*ddist50),'-',int(idist50*ddist50),dist50(idist50)
