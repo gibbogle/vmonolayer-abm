@@ -157,7 +157,7 @@ else
             dies = mortality(cp,ccp,pchar)
         endif
         if (dies) then
-            write(*,*) 'dies: ',kcell,' ',pchar,' ',cp%N_PL,cp%N_IRL
+!            write(*,*) 'dies: ',kcell,' ',pchar,' ',cp%N_PL,cp%N_IRL
 			cp%radiation_tag = .true.	! tagged, but not DYING yet
 		    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
 			call celldies(cp,.false.)
