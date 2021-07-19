@@ -28,7 +28,6 @@ type(cell_type),pointer :: cp
 !call logger('GrowCells: ')
 !tnow = istep*DELTA_T
 tnow = t_simulation		! now = time at the start of the timestep
-!write(*,*) 'tnow, t_simulation: ',tnow,t_simulation
 ok = .true.
 call new_grower(dt,changed,ok)
 if (.not.ok) return
@@ -584,8 +583,6 @@ ok = .true.
 changed = .false.
 nlist0 = nlist
 ndivide = 0
-!tnow = istep*DELTA_T !+ t_fmover
-!if (colony_simulation) write(*,*) 'grower: ',nlist0,use_volume_method,tnow
 
 do kcell = 1,nlist0
 	kcell_now = kcell
@@ -652,8 +649,9 @@ do kcell = 1,nlist0
             endif
 
 	    endif
-        if (cp%phase >= M_phase) then
-            if (prev_phase == G2_checkpoint) then		! this is mitosis entry
+        if (cp%phase == M_phase) then
+!            if (prev_phase == G2_checkpoint) then		! this is mitosis entry
+            if (cp%phase /= dividing) then
 !               Death by lesions on entry to M-phase (and S-phase) is now handled in cell cycle
 !				if (cp%radiation_tag .and. cp%irrepairable) then	! cell was tagged but possibly not DYING - how?
 !					call celldies(cp,.false.)
@@ -667,6 +665,7 @@ do kcell = 1,nlist0
 				cp%Iphase = .false.
 				cp%mitosis = 0
 				cp%t_start_mitosis = tnow
+!				if (kcell == 20) write(nflog,'(a,f8.0)') 'start mitosis: cp%t_start_mitosis: ',cp%t_start_mitosis
 				ncells_mphase = ncells_mphase + 1
 				
 !				! For cells with Ch1 or Ch2, check for death
@@ -689,7 +688,8 @@ do kcell = 1,nlist0
 !					endif
 !				endif
             endif
-            in_mitosis = .true.
+!            in_mitosis = .true.
+            cp%phase = dividing
         endif
         if (cp%state == DYING) then     ! no growth, no progression through cell cycle
 	        cp%dVdt = 0
@@ -699,7 +699,8 @@ do kcell = 1,nlist0
 		endif	
 	endif
 	
-	if (in_mitosis) then
+!	if (in_mitosis) then
+    if (cp%phase == dividing) then
 		drugkilled = .false.
 		do idrug = 1,ndrugs_used
 			if (cp%drug_tag(idrug)) then
@@ -710,6 +711,7 @@ do kcell = 1,nlist0
 		enddo
 		if (drugkilled) cycle
 		cp%mitosis = (tnow - cp%t_start_mitosis)/mitosis_duration	
+!		if (kcell == 20) write(nflog,'(a,3f8.0,f8.3)') 'new_grower: ',tnow,cp%t_start_mitosis,mitosis_duration,cp%mitosis
 !    	if (colony_simulation) write(*,*) 'in_mitosis: mitosis: ',cp%mitosis
 		if (use_volume_method) then
 			if (cp%growth_delay) then
@@ -741,6 +743,7 @@ do kcell = 1,nlist0
 		endif
 		
         if (cp%mitosis >= 1) then
+!            if (kcell == 20) write(nflog,*) 'new_grower: divide cell: ',kcell
 			divide = .true.
 		endif
 	endif
@@ -839,14 +842,15 @@ else
 	endif
 endif
 cp%dVdt = dVdt
-!if (kcell_now == 1) write(nflog,'(a,e12.3)') 'dVdt: ',dVdt 
 Vin_0 = cp%V
 dV = dVdt*dt
 Cdrug(:) = cp%Cin(DRUG_A:DRUG_B+2)
 if (use_cell_cycle .and. .not.(cp%phase == G1_phase .or. cp%phase == S_phase .or. cp%phase == G2_phase)) then
     dV = 0		! this should never happen, because growcell is called only for G1, S, G2
 endif
-cp%V = Vin_0 + dV
+cp%V = Vin_0 + dV/cp%fg
+!if (kcell_now == 28) &
+!    write(nflog,'(a,i4,5e12.3)') 'growcell: ',kcell_now,dVdt,cp%fg,dV/cp%fg,Vin_0,cp%V
 cp%Cin(DRUG_A:DRUG_B+2) = Cdrug(:)*Vin_0/cp%V
 end subroutine
 
@@ -869,29 +873,10 @@ do kcell = 1,nlist
 	if (cp%state == DEAD) cycle
 	metab = 1
 	dVdt = get_dVdt(cp,metab)
-!	C_O2 = chemo(OXYGEN)%bdry_conc
-!	C_glucose = chemo(GLUCOSE)%bdry_conc
-!	metab_O2 = 1
-!	metab_glucose = 1
-!	if (oxygen_growth .and. glucose_growth) then
-!	    metab_O2 = O2_metab(C_O2)
-!		metab_glucose = glucose_metab(C_glucose)
-!		metab = metab_O2*metab_glucose
-!	elseif (oxygen_growth) then
-!	    metab_O2 = O2_metab(C_O2)
-!		metab = metab_O2
-!	elseif (glucose_growth) then
-!		metab_glucose = glucose_metab(C_glucose)
-!		metab = metab_glucose
-!	endif
 	if (suppress_growth) then	! for checking solvers
 		dVdt = 0
 	endif
 	cp%dVdt = dVdt
-!    if (cp%dVdt == 0) then
-!        write(*,*) 'setinitialgrowthrate: dVdt: = 0: kcell: ',kcell,metab_O2,metab_glucose
-!        stop
-!    endif
 enddo
 end subroutine
 
@@ -938,7 +923,7 @@ else
 	    endif
     endif
 endif
-dVdt = dVdt/cp%fg    ! scale by %fg here rather than in cycle
+!dVdt = dVdt/cp%fg    ! scale by %fg here rather than in cycle  moved to divider
 end function
 
 
@@ -949,7 +934,7 @@ subroutine divider(kcell1, ok)
 integer :: kcell1
 logical :: ok
 integer :: kcell2, ityp, nbrs0, im, imax, ipdd
-real(REAL_KIND) :: r(3), c(3), cfse0, cfse2, V0, Tdiv, gfactor
+real(REAL_KIND) :: r(3), c(3), cfse0, cfse2, V0, Tdiv, gfactor, dVdt
 type(cell_type), pointer :: cp1, cp2
 type(cycle_parameters_type), pointer :: ccp
 
@@ -962,7 +947,6 @@ if (colony_simulation) then
 else
 	cp1 => cell_list(kcell1)
 endif
-!write(nflog,'(a,i6,3f8.0)') 'First cell division: ',kcell1,tnow,cp1%divide_time,cp1%t_divide_last
 !stop
 if (ngaps > 0) then
     kcell2 = gaplist(ngaps)
@@ -981,6 +965,8 @@ if (colony_simulation .and. kcell2 > nColonyMax) then
 	call logger('Error: Maximum number of colony cells nColonyMax has been exceeded.  Increase and rebuild.')
 	return
 endif
+!write(nflog,'(a,2i6,2f8.2,f8.1)') &
+!'Cell division: ',kcell1,kcell2,cp1%divide_time/3600,(tnow-cp1%t_divide_last)/3600,cp1%divide_time-(tnow-cp1%t_divide_last)
     
 ncells = ncells + 1
 !write(*,*) 'divider: ',kcell1,kcell2
@@ -1003,7 +989,10 @@ cp1%birthtime = tnow
 !cp1%divide_time = Tdiv
 !cp1%fg = gfactor
 !call set_divide_volume(kcell1, V0)
+kcell_now = kcell1
 call set_divide_volume(cp1, V0)
+!dVdt = cp1%dVdt
+!cp1%dVdt = dVdt/cp1%fg
 !if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide NOT USED
 !	cp1%metab%I2Divide = get_I2Divide(cp1)
 !	cp1%metab%Itotal = 0
@@ -1045,10 +1034,9 @@ cp1%G2_M = .false.
 !    cp1%G1_time = tnow + (cp1%metab%I_rate_max/cp1%metab%I_rate)*cp1%fg*ccp%T_G1
 !endif
 !cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*cp1%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
-cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
+cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*cp1%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
 cp1%Iphase = .true.
 cp1%phase = G1_phase
-
 !if (max_growthrate(ityp)/cp1%dVdt > 2) then
 !    write(*,*) 'dVdt: ',kcell1,max_growthrate(ityp)/cp1%dVdt
 !endif
@@ -1071,16 +1059,20 @@ cp2%GLN_tag = .false.
 !cp2%divide_time = Tdiv
 !cp2%fg = gfactor
 !call set_divide_volume(kcell2, V0)
+kcell_now = kcell2
 call set_divide_volume(cp2, V0)
-if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
+!cp2%dVdt = dVdt/cp2%fg
+!if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
 !    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*cp2%fg*ccp%T_G1
 !    cp2%G1_time = tnow + (cp2%metab%I_rate_max/cp2%metab%I_rate)*ccp%T_G1
-    cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
-	cp2%ATP_rate_factor = get_ATP_rate_factor()
-else
+!    cp1%G1_time = tnow + (max_growthrate(ityp)/cp1%dVdt)*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
+!	cp2%ATP_rate_factor = get_ATP_rate_factor()
+!else
 !	cp2%G1_time = tnow + (max_growthrate(ityp)/cp2%dVdt)*cp2%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
-	cp2%G1_time = tnow + (max_growthrate(ityp)/cp2%dVdt)*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
-endif
+!	cp2%G1_time = tnow + (max_growthrate(ityp)/cp2%dVdt)*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
+!endif
+cp2%ATP_rate_factor = get_ATP_rate_factor()
+cp2%G1_time = tnow + (max_growthrate(ityp)/cp2%dVdt)*cp2%fg*ccp%T_G1    ! time spend in G1 varies inversely with dV/dt
 cp2%CFSE = cfse2
 if (cp2%radiation_tag) then
 	Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1

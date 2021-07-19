@@ -283,7 +283,7 @@ ityp = cp%celltype
 if (cp%state /= DYING) cp%dVdt = max_growthrate(ityp)
 dt = DELTA_T
 !write(*,*) ccell_list(1)%dVdt,max_growthrate(1),ccell_list(1)%G2_time
-if (cp%ID == 1) write(*,*) 'ID=1: N_PL,N_IRL,N_Ch1,N_Ch2: ',cp%N_PL,cp%N_IRL,cp%N_Ch1,cp%N_Ch2
+!if (cp%ID == 1) write(*,*) 'ID=1: N_PL,N_IRL,N_Ch1,N_Ch2: ',cp%N_PL,cp%N_IRL,cp%N_Ch1,cp%N_Ch2
 nlist = 1
 ncells = 1
 ngaps = 0
@@ -294,7 +294,7 @@ do while (tnow < tend)
     call new_grower(dt,changed,ok)
     call CellDeath(dt,ok)
     if (tnow > t0 + iday*24*3600) then
-        if (cp%ID == 1) write(*,*) 'ID=1: nlist: ',nlist
+!        if (cp%ID == 1) write(*,*) 'ID=1: nlist: ',nlist
         n = countColony()
 !        write(*,*) 'iday, n: ',iday,n,tnow,tend
         ncolony(iday) = n

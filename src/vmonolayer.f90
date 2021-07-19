@@ -72,32 +72,6 @@ call logger(logmsg)
     endif
 #endif
 
-! Set up grid alignment
-!NY = NX
-!NZ = NX
-!x0 = (NX + 1.0)/2.
-!y0 = (NY + 1.0)/2.
-!z0 = (NZ + 1.0)/2.
-!blob_centre = [x0,y0,z0]   ! (units = grids)
-!
-!DXB = 1.0e-4*DXB	! um -> cm
-!ixb0 = (1 + NXB)/2
-!iyb0 = (1 + NYB)/2
-!izb0 = 6
-!xb0 = (ixb0-1)*DXB
-!yb0 = (iyb0-1)*DXB 
-!zb0 = (izb0-1)*DXB
-!centre_b = [xb0, yb0, zb0]
-!dxb3 = dxb*dxb*dxb
-!
-!write(nflog,'(a,3e12.3)') 'x0,y0,z0: ',x0,y0,z0
-!write(nflog,'(a,3e12.3)') 'xb0,yb0,zb0: ',xb0,yb0,zb0
-!grid_offset(1) = (ixb0-1)*DXB - ((NX+1)/2)*DELTA_X
-!grid_offset(2) = (iyb0-1)*DXB - ((NY+1)/2)*DELTA_X
-!grid_offset(3) = (izb0-1)*DXB - ((NZ+1)/2)*DELTA_X
-!write(nflog,'(a,3e12.3)') 'grid_offset: ',grid_offset
-!write(nflog,'(a,3e12.3)') 'blob_centre: ',blob_centre*DELTA_X + grid_offset
-
 call ArrayInitialisation(ok)
 if (.not.ok) return
 call logger('did ArrayInitialisation')
@@ -134,8 +108,12 @@ mp => phase_metabolic(1)
 call SetupMetabolism(mp,ok)
 if (.not.ok) stop
 call PlaceCells(ok)
+
+!write(*,*) 'stopping after PlaceCells'
+!stop
+
 call CreateMastercell
-call setTestCell(kcell_test)
+!call setTestCell(kcell_test)
 !call show_volume_data
 !call SetRadius(Nsites)
 !call getVolume(blob_volume,blob_area)
@@ -898,15 +876,27 @@ type(cycle_parameters_type),pointer :: ccp
 do ityp = 1,2
 	ccp => cc_parameters(ityp)
 	tmean = divide_time_mean(ityp)
-	tsum = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%S_mean_delay + ccp%G2_mean_delay
-	tfactor = tmean/tsum
-	ccp%T_G1 = tfactor*ccp%T_G1
-	ccp%T_S = tfactor*ccp%T_S
-	ccp%T_G2 = tfactor*ccp%T_G2
-	ccp%T_M = tfactor*ccp%T_M
-	ccp%G1_mean_delay = tfactor*ccp%G1_mean_delay
-	ccp%S_mean_delay = tfactor*ccp%S_mean_delay
-	ccp%G2_mean_delay= tfactor*ccp%G2_mean_delay
+	if (use_exponential_cycletime) then
+	    tsum = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%S_mean_delay + ccp%G2_mean_delay
+	    tfactor = tmean/tsum
+	    ccp%T_G1 = tfactor*ccp%T_G1
+	    ccp%T_S = tfactor*ccp%T_S
+	    ccp%T_G2 = tfactor*ccp%T_G2
+	    ccp%T_M = tfactor*ccp%T_M
+	    ccp%G1_mean_delay = tfactor*ccp%G1_mean_delay
+	    ccp%S_mean_delay = tfactor*ccp%S_mean_delay
+	    ccp%G2_mean_delay= tfactor*ccp%G2_mean_delay
+    else    ! no checkpoint delays in log_timestep (unless there is radiation damage)
+	    tsum = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M
+	    tfactor = tmean/tsum
+	    ccp%T_G1 = tfactor*ccp%T_G1
+	    ccp%T_S = tfactor*ccp%T_S
+	    ccp%T_G2 = tfactor*ccp%T_G2
+	    ccp%T_M = tfactor*ccp%T_M
+	    ccp%G1_mean_delay = 0
+	    ccp%S_mean_delay = 0
+	    ccp%G2_mean_delay= 0
+	endif
 !	ccp%Pk_G1 = 1./ccp%G1_mean_delay    ! /sec
 !	ccp%Pk_S = 1./ccp%S_mean_delay    ! /sec
 !	ccp%Pk_G2 = 1./ccp%G2_mean_delay    ! /sec
@@ -1389,7 +1379,7 @@ V0 = Vdivide0/2
 !cp%divide_time = Tdiv
 !cp%fg = gfactor
 !call set_divide_volume(kcell, V0)
-call set_divide_volume(cp, V0)
+call set_divide_volume(cp, V0)  ! sets %divide_volume and %divide_time
 cp%dVdt = max_growthrate(ityp)
 cp%metab = phase_metabolic(1)
 cp%metab%I_rate = r_Iu	! this is just to ensure that initial growth rate is not 0
@@ -1494,126 +1484,96 @@ cp%Cin(GLUTAMINE) = chemo(GLUTAMINE)%bdry_conc
 cp%Cin(OTHERNUTRIENT) = chemo(OTHERNUTRIENT)%bdry_conc
 end subroutine
 
-#if 0
-!--------------------------------------------------------------------------------
-! %divide_time and %fg have been generated
-! Assuming growth rate is max_growthrate
-! Assuming NOT volume_based_transition, need to determine: 
-! for G1:
-!	%G1_time
-! for Checkpoint1:
-!	%G1_flag
-!	%G1S_time
-! for S:
-!	%S_time
-! for G2:
-!	%G2_time
-! for Checkpoint2:
-!	%G2_flag
-!	%G2M_time
-! for M:
-!	%M_time
-! for all phases:
-!	%V
-!	%t_divide_last
-! Note: no cells start in mitosis - set all phase=6 cells at the end of G2 checkpoint 
-!--------------------------------------------------------------------------------
-subroutine SetInitialCellCycleStatus(cp)
+!--------------------------------------------------------------------------------------
+! Steel: 
+! Probability density function of progress through cell cycle: f(t) = 2b exp(-bt) 
+! => cumulative distribution function F(t) = 2(1 - exp(-bt)) = fraction of cells less than t since creation
+! To generate a variate from this CDF, first generate R from U(0,1)
+! R = 2(1 - exp(-bt)), exp(-bt) = 1 - R/2, -bt = ln(1 - R/2)
+! t = -(1/b)ln(1 - R/2)
+! To do:
+! set flags
+!
+! Note: assumes use of log-normal cycle time!
+!--------------------------------------------------------------------------------------
+subroutine SetInitialCellCycleStatus(kcell,cp)
+integer :: kcell
 type(cell_type), pointer :: cp
-type(cycle_parameters_type),pointer :: ccp
-integer :: ityp, iphase
-integer :: kpar = 0
-real(REAL_KIND) :: Tdiv, Tmean, V0, fg, rVmax, fsum, R, x, y, z, phase_fraction(6), phase_time(6)
+type(cycle_parameters_type), pointer :: ccp
+integer :: ityp, kpar = 0
+real(REAL_KIND) :: Tc, b, t, R, tswitch(6), rVmax, V0, fg
+real(REAL_KIND) :: T_G1, T_S, T_G2, G1_delay, S_delay, G2_delay
 
+if (use_exponential_cycletime) then
+    write(*,*) 'SetInitialCellCycleStatus: Must use log-normal cycle time!'
+    stop
+endif
 ityp = cp%celltype
 ccp => cc_parameters(ityp)
-Tdiv = cp%divide_time
-V0 = Vdivide0/2
-Tmean = divide_time_mean(ityp)
-rVmax = max_growthrate(ityp)
+!Tc = divide_time_mean(1)    ! mean cycle time, seconds
+Tc = cp%divide_time     ! uses cp%fg
+Tc = Tc - ccp%T_M           ! subtract mitosis time - no cells can start in mitosis
 fg = cp%fg
+T_G1 = fg*ccp%T_G1
+T_S = fg*ccp%T_S
+T_G2 = fg*ccp%T_G2
+G1_delay = fg*ccp%G1_mean_delay
+S_delay = fg*ccp%S_mean_delay
+G2_delay = fg*ccp%G2_mean_delay
+b = log(2.0)/Tc
 R = par_uni(kpar)
-x = (4 - sqrt(16 - 12*R))/2	
-! This is the level of progress through the cell cycle,  0 -> 1, for prob. density f(x) = 1 - 2(x-0.5)/3
-! Cumulative prob. function F(x) = -x^2/3 + 4x/3, then from R U(0,1): (-x^2 + 4x)/3 = R, x^2 - 4x + 3R = 0
-phase_time(1) = fg*ccp%T_G1
-phase_time(2) = ccp%G1_mean_delay
-phase_time(3) = fg*ccp%T_S
-phase_time(4) = fg*ccp%T_G2
-phase_time(5) = ccp%G2_mean_delay
-phase_time(6) = ccp%T_M
-phase_fraction = phase_time/Tdiv
-! These fractions must sum to 1 because of get_divide_volume (check)
+t = -(1/b)*log(1 - R/2)     ! cycle progression
+tswitch(1) = T_G1 
+tswitch(2) = tswitch(1) + G1_delay
+tswitch(3) = tswitch(2) + T_S
+tswitch(4) = tswitch(3) + S_delay
+tswitch(5) = tswitch(4) + T_G2
+tswitch(6) = tswitch(5) + G2_delay
 
-if (synchronise) then	! all cells are starting M phase
-	cp%V = V0 + (phase_time(1) + phase_time(3) + phase_time(4))*rVmax 
-	cp%phase = Checkpoint2
-	cp%G2M_time = 0
-	cp%G2_flag = .true.
-	cp%t_divide_last = -(phase_time(1) + phase_time(2) + phase_time(3) + phase_time(4) + phase_time(5))
-	return
+V0 = Vdivide0/2
+rVmax = max_growthrate(ityp)/cp%fg
+
+if (t < tswitch(1)) then
+    cp%phase = G1_phase
+    cp%G1_time = tswitch(1) - t     ! time to switch to G1 checkpoint
+    cp%V = V0 + t*rVmax
+elseif (t < tswitch(2)) then
+    cp%phase = G1_checkpoint
+    cp%G1S_time = tswitch(2) - t    ! time to switch G1 to S
+    cp%V = V0 + tswitch(1)*rVmax
+    cp%G1_flag = .true.
+    cp%G1S_time = 0     ! no DSB, no checkpoint delay
+elseif (t < tswitch(3)) then
+    cp%phase = S_phase
+    cp%S_time = t - tswitch(2)      ! time already spent in S!
+    cp%V = V0 + (t - G1_delay)*rVmax
+	cp%S_duration = T_S     ! assume 'normal' growth conditions, average cycle time here
+elseif (t < tswitch(4)) then
+    cp%phase = S_checkpoint
+    cp%SG2_time = tswitch(4) - t    ! time to switch S-chkpt to G2
+    cp%V = V0 + (tswitch(3) - G1_delay)*rVmax
+    cp%S_flag = .true.
+elseif (t < tswitch(5)) then
+    cp%phase = G2_phase
+    cp%G2_time = tswitch(5) - t
+    cp%V = V0 + (t - (G1_delay + S_delay))*rVmax
+elseif (t < tswitch(6)) then
+    cp%phase = G2_checkpoint
+    cp%G2M_time = tswitch(6) - t
+    cp%V = V0 + (tswitch(5) - (G1_delay + S_delay))*rVmax
+else
+    write(*,*) 'SetInitialCellCycleStatus: should not get here!'
+    stop
+    cp%phase = G2_checkpoint
+    cp%G2M_time = 0     ! starting mitosis
 endif
-fsum = 0
-do iphase = 1,6
-	if (fsum + phase_fraction(iphase) > x) then	! this is the phase
-		y = (x - fsum)/phase_fraction(iphase)	! this is fractional progress through the phase
-		z = 1 - y								! this is fraction phase left to complete, => time until phase transition
-		if (iphase == G1_phase) then
-			cp%phase = G1_phase
-			cp%G1_time = z*phase_time(1)
-			cp%V = V0 + y*phase_time(1)*rVmax
-			cp%t_divide_last = -y*phase_time(1)
-		elseif (iphase == Checkpoint1) then
-			cp%phase = Checkpoint1
-			cp%G1S_time = z*phase_time(2)
-			cp%G1_flag = .false.
-			cp%V = V0 + phase_time(1)*rVmax
-			cp%t_divide_last = -(phase_time(1) + y*phase_time(2))
-		elseif (iphase == S_phase) then
-			cp%phase = S_phase
-!			cp%S_start_time = -y*phase_time(3)
-!			cp%S_time = z*phase_time(3)
-			cp%S_time = y*phase_time(3)     ! for S phase this is progress, not end time
-			cp%S_duration = phase_time(3)
-			cp%V = V0 + (phase_time(1) + y*phase_time(3))*rVmax 
-			cp%t_divide_last = -(phase_time(1) + phase_time(2) + y*phase_time(3))
-		elseif (iphase == G2_phase) then
-			cp%phase = G2_phase
-			cp%G2_time = z*phase_time(4)
-			cp%V = V0 + (phase_time(1) + phase_time(3) + y*phase_time(4))*rVmax 
-			cp%t_divide_last = -(phase_time(1) + phase_time(2) + phase_time(3) + y*phase_time(4))
-		elseif (iphase == Checkpoint2) then
-			cp%phase = Checkpoint2
-			cp%G2M_time = z*phase_time(5)
-			cp%G2_flag = .false.
-			cp%V = V0 + (phase_time(1) + phase_time(3) + phase_time(4))*rVmax 
-			cp%t_divide_last = -(phase_time(1) + phase_time(2) + phase_time(3) + phase_time(4) + y*phase_time(5))
-		elseif (iphase == M_phase) then
-!			cp%phase = M_phase
-!			cp%M_time = z*phase_time(6)
-			cp%V = V0 + (phase_time(1) + phase_time(3) + phase_time(4))*rVmax 
-!			cp%t_divide_last = -(phase_time(1) + phase_time(2) + phase_time(3) + phase_time(4) + phase_time(5) + y*phase_time(6))
-			cp%phase = Checkpoint2
-			cp%G2M_time = 0
-			cp%G2_flag = .false.
-			cp%t_divide_last = -(phase_time(1) + phase_time(2) + phase_time(3) + phase_time(4) + phase_time(5))
-		else
-			write(nflog,*) 'Error in SetInitialCellCycleStatus' 
-			stop
-		endif
-		exit
-	endif
-	fsum = fsum + phase_fraction(iphase)
-enddo
-!write(*,*)
-!write(*,'(a,3f8.3)') 'Tdiv, Tmean, fg: ',Tdiv/3600,Tmean/3600,fg
-!write(*,'(a,6f8.3)') 'phase_time: ',phase_time/3600
-!write(*,'(a,6f8.3)') 'phase_fraction: ',phase_fraction
-!write(*,'(a,i2,5f8.3,e12.3)') 'iphase, R,x,y,z,tlast,V: ',iphase,R,x,y,z,cp%t_divide_last/3600,cp%V
-!if (iphase >= 5) write(*,'(a,2e12.3)') 'Vdiv, V: ',cp%divide_volume, cp%V
-!write(*,'(a,2f8.3)') 'Tdiv,sum of phases: ',Tdiv/3600,(phase_time(1) + phase_time(2) + phase_time(3) + phase_time(4) + phase_time(5) + phase_time(6))/3600
+cp%t_divide_last = -t
+write(nflog,'(a,i6,i2,f8.2,2f8.0)') 'kcell,cp%phase,th,t,Tdiv: ',kcell,cp%phase,t/3600,t,cp%divide_time
+!if (kcell == 20) then
+!    write(nflog,'(a,i4,6f8.2)') 'tswitch-t: ',kcell,(tswitch(1:6)-t)/3600
+!    write(nflog,'(a,2f8.2)') 'divide_time, t: ',cp%divide_time/3600, t/3600
+!endif
 end subroutine
-#endif
 
 !--------------------------------------------------------------------------------
 ! Note that this does not allow for cells to be initially in M_phase.  At the latest
@@ -1622,7 +1582,7 @@ end subroutine
 ! initiated, and it would be tricky to account for this having already occurred
 ! some time ago.
 !--------------------------------------------------------------------------------
-subroutine SetInitialCellCycleStatus(kcell,cp)
+subroutine oldSetInitialCellCycleStatus(kcell,cp)
 integer :: kcell
 type(cell_type), pointer :: cp
 type(cycle_parameters_type),pointer :: ccp
@@ -1748,12 +1708,8 @@ else
 			    cp%t_divide_last = -(phase_time(1) + y*phase_time(2))
 		    elseif (iphase == S_phase) then
 			    cp%phase = S_phase
-			    if (use_exponential_cycletime) then
-    			    cp%S_time = z*phase_time(3)
-    		    else
-			        cp%S_time = y*phase_time(3)     ! for S phase this is progress, not end time
-			        cp%S_duration = phase_time(3)
-			    endif
+    	        cp%S_time = y*phase_time(3)     ! for S phase this is progress, not end time
+		        cp%S_duration = phase_time(3)
 			    cp%V = V0 + (phase_time(1) + y*phase_time(3))*rVmax 
 			    cp%t_divide_last = -(phase_time(1) + phase_time(2) + y*phase_time(3))
 		    elseif (iphase == G2_phase) then
@@ -1839,124 +1795,6 @@ write(nflog,*) 'fg: ',cp%fg
 write(nflog,*) 'G1_time: ',cp%G1_time
 end subroutine
 
-!-------------------------------------------------------------------------------- 
-!--------------------------------------------------------------------------------
-subroutine oldAddCell(k,site)
-integer :: k, site(3)
-integer :: ityp, kpar = 0
-real(REAL_KIND) :: V0, Tdiv, R, gfactor
-
-lastID = lastID + 1
-cell_list(k)%ID = lastID
-cell_list(k)%celltype = random_choice(celltype_fraction,Ncelltypes,kpar)
-ityp = cell_list(k)%celltype
-Ncells_type(ityp) = Ncells_type(ityp) + 1
-!cell_list(k)%site = site
-cell_list(k)%state = 1
-cell_list(k)%generation = 1
-!cell_list(k)%drugA_tag = .false.
-!cell_list(k)%drugB_tag = .false.
-cell_list(k)%drug_tag = .false.
-cell_list(k)%radiation_tag = .false.
-cell_list(k)%ATP_tag = .false.
-!cell_list(k)%anoxia_tag = .false.
-!cell_list(k)%aglucosia_tag = .false.
-!cell_list(k)%exists = .true.
-cell_list(k)%active = .true.
-cell_list(k)%growth_delay = .false.
-cell_list(k)%G2_M = .false.
-cell_list(k)%p_rad_death = 0
-!R = par_uni(kpar)
-!cell_list(k)%divide_volume = Vdivide0 + dVdivide*(2*R-1)
-V0 = Vdivide0/2
-cell_list(k)%divide_volume = get_divide_volume(ityp,V0, Tdiv, gfactor)
-cell_list(k)%divide_time = Tdiv
-cell_list(k)%fg = gfactor
-R = par_uni(kpar)
-if (randomise_initial_volume) then
-	cell_list(k)%V = cell_list(k)%divide_volume*0.5*(1 + R)
-else
-	cell_list(k)%V = 1.0*Vcell_cm3
-endif
-!write(nflog,'(a,i6,f6.2)') 'volume: ',k,cell_list(k)%V
-cell_list(k)%t_divide_last = 0		! used in colony growth
-!cell_list(k)%t_anoxia = 0
-cell_list(k)%Cin = 0
-cell_list(k)%Cin(OXYGEN) = chemo(OXYGEN)%bdry_conc
-cell_list(k)%Cin(GLUCOSE) = chemo(GLUCOSE)%bdry_conc
-cell_list(k)%Cin(GLUTAMINE) = chemo(GLUTAMINE)%bdry_conc
-cell_list(k)%Cin(OTHERNUTRIENT) = chemo(OTHERNUTRIENT)%bdry_conc
-cell_list(k)%CFSE = generate_CFSE(1.d0)
-cell_list(k)%M = 0
-!occupancy(site(1),site(2),site(3))%indx(1) = k
-end subroutine
-
-!--------------------------------------------------------------------------------
-! Add cells at the boundary to bring the total count from k up to initial_count
-! (1) Make a list of all boundary sites (sites in contact with an OUTSIDE site)
-! (2) Iteratively traverse the list to select the adjacent OUTSIDE site closest 
-! to the centre.
-!--------------------------------------------------------------------------------
-!subroutine AddBdryCells(klast)
-!integer :: klast
-!integer :: kcell, i, kb, site(3), nbsite(3), nbt, kbmin, imin
-!integer, allocatable :: sitelist(:,:)
-!real(REAL_KIND) :: r2, r2min
-!
-!nbt = 0
-!do kcell = 1,klast
-!	site = cell_list(kcell)%site
-!	do i = 1,27
-!		if (i == 14) cycle
-!		nbsite = site + jumpvec(:,i)
-!		if (occupancy(nbsite(1),nbsite(2),nbsite(3))%indx(1) == OUTSIDE_TAG) then
-!			nbt = nbt+1
-!			exit
-!		endif
-!	enddo
-!enddo
-!
-!allocate(sitelist(3,nbt))
-!
-!nbt = 0
-!do kcell = 1,klast
-!	site = cell_list(kcell)%site
-!	do i = 1,27
-!		if (i == 14) cycle
-!		nbsite = site + jumpvec(:,i)
-!		if (occupancy(nbsite(1),nbsite(2),nbsite(3))%indx(1) == OUTSIDE_TAG) then
-!			nbt = nbt+1
-!			sitelist(:,nbt) = site
-!			exit
-!		endif
-!	enddo
-!enddo
-!	
-!
-!do kcell = klast+1,initial_count
-!	r2min = 1.0e10
-!	do kb = 1,nbt
-!		site = sitelist(:,kb)
-!		do i = 1,27
-!			if (i == 14) cycle
-!			nbsite = site + jumpvec(:,i)
-!			if (occupancy(nbsite(1),nbsite(2),nbsite(3))%indx(1) == OUTSIDE_TAG) then
-!				r2 = (nbsite(1) - blob_centre(1))**2 + (nbsite(2) - blob_centre(2))**2 + (nbsite(3) - blob_centre(3))**2
-!				if (r2 < r2min) then
-!					kbmin = kb
-!					imin = i
-!					r2min = r2
-!				endif
-!			endif
-!		enddo
-!	enddo
-!	site = sitelist(:,kbmin) + jumpvec(:,imin)
-!	call AddCell(kcell,site)
-!enddo
-!
-!deallocate(sitelist)
-!		
-!end subroutine
 
 !----------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------
@@ -2254,6 +2092,8 @@ logical :: dbug
 	
 mp => master_cell%metab
 
+t_simulation = istep*DELTA_T	! seconds
+!write(*,*) 'start simulate_step: t_simulation: ',istep,t_simulation
 !call testmetab2
 dbug = (istep < 0)
 Nmetabolisingcells = Ncells - (Ndying(1) + Ndying(2))
@@ -2343,8 +2183,6 @@ enddo	! end idiv loop
 DELTA_T = DELTA_T_save
 medium_change_step = .false.
 
-t_simulation = (istep-1)*DELTA_T	! seconds
-
 !!write(nflog,*) 'GrowCells'
 !call GrowCells(DELTA_T,t_simulation,ok)
 !!write(nflog,*) 'did GrowCells'
@@ -2415,6 +2253,8 @@ endif
 write(nflog,'(a,i4,7e12.3)') 'step:   ',istep,cell_list(1)%Cin(GLUCOSE),cell_list(1)%Cin(OXYGEN),mp%f_G,mp%f_P, &
 			mp%G_rate,mp%I_rate,mp%C_P
 #endif
+!write(*,*) 'end simulate_step: t_simulation: ',t_simulation
+
 !if (cell_list(1)%Cin(OXYGEN) < 0.1) then
 !	write(nflog,*) 'low O2: ',istep,cell_list(1)%Cin(OXYGEN)
 !	stop

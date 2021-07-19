@@ -148,12 +148,12 @@ type cell_type
 	real(REAL_KIND) :: dCdt(MAX_CHEMO)
 	real(REAL_KIND) :: dMdt(MAX_CHEMO)      ! mumol/s
 	real(REAL_KIND) :: CFSE
-	real(REAL_KIND) :: dVdt
-	real(REAL_KIND) :: V			! actual volume cm3
+	real(REAL_KIND) :: dVdt             ! actual growth rate
+	real(REAL_KIND) :: V			    ! actual volume cm3
 	real(REAL_KIND) :: growth_rate_factor	! to introduce some random variation 
 	real(REAL_KIND) :: ATP_rate_factor	! to introduce some random variation 
-	real(REAL_KIND) :: divide_volume	! fractional divide volume (normalised)
-	real(REAL_KIND) :: divide_time
+	real(REAL_KIND) :: divide_volume	! actual divide volume
+	real(REAL_KIND) :: divide_time      ! cycle time
 	real(REAL_KIND) :: fg				! to make sum(T_G1, T_S, T_G2) consistent with Tdivide
 	real(REAL_KIND) :: t_divide_last	! these two values are used for colony simulation
 	real(REAL_KIND) :: t_divide_next
@@ -677,6 +677,7 @@ end subroutine
 
 !-----------------------------------------------------------------------------------------
 ! Changed from kcell argument to cp, because it can be a colony cell, in ccell_list.
+! Assumes maximum growth rate.
 !-----------------------------------------------------------------------------------------
 !subroutine set_divide_volume(kcell,V0)
 subroutine set_divide_volume(cp,V0)
@@ -713,14 +714,20 @@ if (use_exponential_cycletime) then
     Tdiv = Tgrowth + Tfixed
     fg = 1
 else
-    Tgrowth0 = ccp%T_G1 + ccp%T_S + ccp%T_G2
-    Tfixed = ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
+    Tgrowth = ccp%T_G1 + ccp%T_S + ccp%T_G2
+!    Tfixed = ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
+    Tfixed = ccp%T_M  ! no fixed checkpoint delays with lognormal time step
 	Tdiv = DivideTime(ityp)
-	Tgrowth = Tdiv - Tfixed
-	fg = Tgrowth/Tgrowth0
+	! Try changing this
+	!Tgrowth = Tdiv - Tfixed
+	!fg = Tgrowth/Tgrowth0
+	fg = (Tdiv-Tfixed)/Tgrowth
+	! In get_dVdt(), dVdt is divided by cp%fg
+	! In cycle, need to multiply T_G1, T_S, T_G2 by cp%fg
+!	if (kcell_now == 55) write(*,'(a,i6,2f10.0,f8.4)') 'set_divide_volume: kcell, Tgrowth, Tdiv, fg: ',cp%ID,Tgrowth,Tdiv,fg
 endif
 cp%divide_volume = V0 + Tgrowth*rVmax
-cp%divide_time = Tdiv
+cp%divide_time = Tdiv   ! cycle time
 cp%fg = fg
 !if (kcell == 1) then
 !    write(nflog,'(a,5e12.3)') 'set_divide_volume: V0,Tgrowth,Tdiv,div_vol,rVmax: ',V0,Tgrowth,Tdiv,cp%divide_volume,rVmax
