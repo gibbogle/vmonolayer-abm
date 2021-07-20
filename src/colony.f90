@@ -7,9 +7,10 @@ use cellstate
 implicit none
 
 !integer, parameter :: n_colony_days=10
-integer, parameter :: max_trials = 20000     ! 20000
+integer, parameter :: max_trials = 40000     ! 20000
 !integer, allocatable :: perm_index(:) 
 !logical :: use_permute
+real(REAL_KIND), parameter :: min_log10PE = -4.5    ! -4.0
 
 contains
 
@@ -220,11 +221,12 @@ if (.not.use_PEST) then
     write(nfout,*) 'Total colony population multiplication factor by day:'
     write(nfout,'(10f9.2)') ntcolony(1:ndays)/real(ntrials)
 endif
-if (PE > 0.000001) then
-    log10PE = log10(PE)
-else
-    log10PE = -4
-endif
+!if (PE > 0.000001) then
+!    log10PE = log10(PE)
+!else
+!    log10PE = -4
+!endif
+log10PE = max(log10(PE),min_log10PE)
 write(nfout,'(a,f8.4)') 'log10PE: ',log10PE
 
 

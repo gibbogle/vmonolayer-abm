@@ -1573,7 +1573,7 @@ else
     cp%G2M_time = 0     ! starting mitosis
 endif
 cp%t_divide_last = -t
-write(nflog,'(a,i6,i2,f8.2,2f8.0)') 'kcell,cp%phase,th,t,Tdiv: ',kcell,cp%phase,t/3600,t,cp%divide_time
+!write(nflog,'(a,i6,i2,f8.2,2f8.0)') 'kcell,cp%phase,th,t,Tdiv: ',kcell,cp%phase,t/3600,t,cp%divide_time
 !if (kcell == 20) then
 !    write(nflog,'(a,i4,6f8.2)') 'tswitch-t: ',kcell,(tswitch(1:6)-t)/3600
 !    write(nflog,'(a,2f8.2)') 'divide_time, t: ',cp%divide_time/3600, t/3600
