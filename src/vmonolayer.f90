@@ -724,7 +724,7 @@ write(nflog,*) 'Vdivide0: ',Vdivide0, ' medium_volume0: ',medium_volume0
 !write(logmsg,'(a,4e12.4)') 'Volumes: site, extra, cell (average, base): ',Vsite_cm3, Vextra_cm3, Vsite_cm3-Vextra_cm3, Vcell_cm3
 !call logger(logmsg)
 
-!saveprofile%active = (isaveprofiledata == 1) 
+!saveprofile%active = (isaveprofiledata == 1)
 !saveprofile%it = 1
 !saveprofile%dt = 60*saveprofile%dt		! mins -> seconds
 !saveslice%active = (isaveslicedata == 1)
@@ -739,8 +739,13 @@ saveFACS%tstart = 60*saveFACS%tstart	! mins -> seconds
 
 ! Setup test_case
 test_case = .false.
-if (itestcase /= 0) then
-    test_case(itestcase) = .true.
+!if (itestcase /= 0) then
+!    test_case(itestcase) = .true.
+!endif
+if (itestcase == 1) then
+    use_constant_growthrate = .true.
+    use_metabolism = .false.
+    use_cell_cycle = .true.
 endif
 
 !if (mod(NX,2) /= 0) NX = NX+1					! ensure that NX is even
@@ -1407,11 +1412,11 @@ else	! use cell cycle
     ! Need to assign phase, volume to complete phase, current volume
     call SetInitialCellCycleStatus(kcell,cp)
 endif
-if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
+cp%dVdt = max_growthrate(ityp)
+!if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
 !	cp%metab%I2Divide = get_I2Divide(cp)
 !	cp%metab%Itotal = cp%metab%I2Divide*(cp%V - V0)/(cp%divide_volume - V0)
-	cp%dVdt = max_growthrate(ityp)
-endif
+!endif
 !cp%radius(1) = (3*cp%V/(4*PI))**(1./3.)
 !cp%centre(:,1) = rsite 
 !cp%site = rsite/DELTA_X + 1
@@ -2123,6 +2128,8 @@ if (ngaps > 200) then
 	call squeezer
 endif
 
+if (use_metabolism) then
+
 drug_gt_cthreshold = .false.
 
 if (medium_change_step .or. ((chemo(DRUG_A)%present .or. chemo(DRUG_B)%present) .and..not.DRUG_A_inhibiter)) then
@@ -2179,17 +2186,16 @@ do idiv = 0,ndiv-1
 		return
 	endif
 enddo	! end idiv loop
-
 DELTA_T = DELTA_T_save
 medium_change_step = .false.
 
-!!write(nflog,*) 'GrowCells'
-!call GrowCells(DELTA_T,t_simulation,ok)
-!!write(nflog,*) 'did GrowCells'
-!if (.not.ok) then
-!	res = 3
-!	return
-!endif
+else
+	call GrowCells(DELTA_T,t_simulation,ok)
+	if (.not.ok) then
+		res = 3
+		return
+	endif
+endif
 
 radiation_dose = 0
 if (use_treatment) then     ! now we use events
@@ -2217,15 +2223,15 @@ res = 0
 
 call getNviable
 
-if (saveFACS%active) then
-	if (istep*DELTA_T >= saveFACS%tstart + (saveFACS%it-1)*saveFACS%dt) then
-		call WriteFACSData
-		saveFACS%it = saveFACS%it + 1
-		if (saveFACS%it > saveFACS%nt) then
-			saveFACS%active = .false.
-		endif
-	endif
-endif
+!if (saveFACS%active) then
+!	if (istep*DELTA_T >= saveFACS%tstart + (saveFACS%it-1)*saveFACS%dt) then
+!		call WriteFACSData
+!		saveFACS%it = saveFACS%it + 1
+!		if (saveFACS%it > saveFACS%nt) then
+!			saveFACS%active = .false.
+!		endif
+!	endif
+!endif
 
 if (dbug .or. mod(istep,nthour) == 0) then
 	write(logmsg,'(a,i6,i4,a,i8,a,i8,a,4f8.3,a,e12.3)') 'istep, hour: ',istep,istep/nthour,' Nlive: ',Ncells,'   Nviable: ',sum(Nviable)    !, &
@@ -2254,11 +2260,6 @@ write(nflog,'(a,i4,7e12.3)') 'step:   ',istep,cell_list(1)%Cin(GLUCOSE),cell_lis
 			mp%G_rate,mp%I_rate,mp%C_P
 #endif
 !write(*,*) 'end simulate_step: t_simulation: ',t_simulation
-
-!if (cell_list(1)%Cin(OXYGEN) < 0.1) then
-!	write(nflog,*) 'low O2: ',istep,cell_list(1)%Cin(OXYGEN)
-!	stop
-!endif
 !call averages
 end subroutine
 

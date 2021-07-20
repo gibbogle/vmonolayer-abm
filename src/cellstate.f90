@@ -598,6 +598,7 @@ do kcell = 1,nlist0
 		cycle
 	endif
 	ityp = cp%celltype
+	if (.not.use_metabolism) cp%dVdt = max_growthrate(ityp)
 	ccp => cc_parameters(ityp)
 	divide = .false.
 	mitosis_entry = .false.
@@ -822,7 +823,9 @@ else
 !		metab = min(metab,1.0)      ! SHOULD NOT BE NECESSARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		dVdt = get_dVdt(cp,metab)
 		if (kcell_now == -1) write(nflog,'(a,4e12.3)') 'I_rate,I_rate_max,metab,dVdt: ',cp%metab%I_rate,r_Iu,metab,dVdt
-	else
+	elseif (use_constant_growthrate) then   !to enable metabolism short-cicuit
+        dVdt = max_growthrate(ityp)
+    else
 		oxygen_growth = chemo(OXYGEN)%controls_growth
 		glucose_growth = chemo(GLUCOSE)%controls_growth
 		Cin_0 = cp%Cin
@@ -871,8 +874,13 @@ do kcell = 1,nlist
         cp => cell_list(kcell)
     endif
 	if (cp%state == DEAD) cycle
-	metab = 1
-	dVdt = get_dVdt(cp,metab)
+	ityp = cp%celltype
+	if (use_metabolism) then
+	    metab = 1
+	    dVdt = get_dVdt(cp,metab)
+	else
+	    dVdt = max_growthrate(ityp)
+	endif
 	if (suppress_growth) then	! for checking solvers
 		dVdt = 0
 	endif
