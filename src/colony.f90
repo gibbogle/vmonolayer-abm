@@ -7,7 +7,7 @@ use cellstate
 implicit none
 
 !integer, parameter :: n_colony_days=10
-integer, parameter :: max_trials = 40000     ! 20000
+integer, parameter :: max_trials = 20000     ! 20000 
 !integer, allocatable :: perm_index(:) 
 !logical :: use_permute
 real(REAL_KIND), parameter :: min_log10PE = -4.5    ! -4.0
