@@ -56,7 +56,7 @@ nlist_save = nlist
 tnow_save = tnow
 ncycmax = 24*3600*ndays/divide_time_mean(1) + 1
 nColonyMax = 2**(ncycmax+1)
-write(nflog,*) 'divide_time_mean(1),ncycmax,nColonyMax: ',divide_time_mean(1),ncycmax,nColonyMax
+write(nflog,'(a,e12.3,2i8)') 'divide_time_mean(1),ncycmax,nColonyMax: ',divide_time_mean(1),ncycmax,nColonyMax
 allocate(ccell_list(nColonyMax))
 allocate(survivor(Ncells))
 if (allocated(perm_index)) deallocate(perm_index)
@@ -213,7 +213,7 @@ if (.not.use_PEST) then
 	    write(nfout,'(i6,a,i6,f7.4)') int((idist50-1)*ddist50),'-',int(idist50*ddist50),dist50(idist50)
     enddo
     write(nfout,*)
-    write(nfout,'(a,2i8,f8.1)') 'Colony size distribution:'
+    write(nfout,'(a)') 'Colony size distribution:'
     do idist = 1,ndist
 	    write(nfout,'(i6,a,i6,f7.4)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)
     enddo
@@ -236,7 +236,7 @@ do idist50 = 1,ndist50
     write(logmsg,'(i6,a,i6,f7.4)') int((idist50-1)*ddist50),'-',int(idist50*ddist50),dist50(idist50)
     call logger(logmsg)
 enddo
-write(logmsg,'(a,2i8,f8.1)') 'Colony size distribution: ', nlist_save,ntot,real(ntot)/nlist_save
+write(logmsg,'(a,2i12,f8.1)') 'Colony size distribution: ', nlist_save,ntot,real(ntot)/nlist_save
 call logger(logmsg)
 do idist = 1,ndist
 	write(logmsg,'(i6,a,i6,f7.4)') int((idist-1)*ddist),'-',int(idist*ddist),dist(idist)

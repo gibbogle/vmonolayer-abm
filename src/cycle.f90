@@ -103,7 +103,7 @@ elseif (phase == S_checkpoint) then
 elseif (phase == G2_phase) then
     if (tnow > cp%G2_time .and. cp%V < cp%divide_volume) then
         fV = (cp%divide_volume-cp%V)/cp%divide_volume
-        if (fV > 0.01) write(nflog,'(a,i4,4e12.3)') 'G2 exit: V, divide_volume: ',kcell_now,tnow,cp%V,cp%divide_volume,fV
+        if (fV > 0.012) write(nflog,'(a,i4,4e12.3)') 'G2 exit: V, divide_volume: ',kcell_now,tnow,cp%V,cp%divide_volume,fV
     endif
 	switch = (tnow > cp%G2_time)  ! .and. cp%V > cp%divide_volume) ! try this to prevent volumes decreasing 
     if (switch) then
