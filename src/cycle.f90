@@ -101,14 +101,15 @@ elseif (phase == S_checkpoint) then
         goto 10
     endif
 elseif (phase == G2_phase) then
-    if (tnow > cp%G2_time .and. cp%V < cp%divide_volume) then
-        fV = (cp%divide_volume-cp%V)/cp%divide_volume
-        if (fV > 0.012) write(nflog,'(a,i4,4e12.3)') 'G2 exit: V, divide_volume: ',kcell_now,tnow,cp%V,cp%divide_volume,fV
-    endif
-	switch = (tnow > cp%G2_time)  ! .and. cp%V > cp%divide_volume) ! try this to prevent volumes decreasing 
+!    if (tnow > cp%G2_time .and. cp%V < cp%divide_volume) then
+!        fV = (cp%divide_volume-cp%V)/cp%divide_volume
+!        if (fV > 0.012) write(nflog,'(a,i4,4e12.3)') 'G2 exit: V, divide_volume: ',kcell_now,tnow,cp%V,cp%divide_volume,fV
+!    endif
+	switch = (tnow > cp%G2_time .and. cp%V > cp%divide_volume) ! to prevent volumes decreasing 
     if (switch) then
 !        if (kcell_now == 20) write(nflog,*) 'switch G2 - chkpt: tnow: ',tnow/3600
-        fV = (cp%V - cp%divide_volume)/cp%divide_volume
+!        fV = (cp%V - cp%divide_volume)/cp%divide_volume
+        cp%V = cp%divide_volume     ! correct for slight volume discrepancy here, to maintain correct cell volume
         cp%phase = G2_checkpoint
         cp%G2_flag = .false.
         cp%G2M_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
