@@ -84,46 +84,46 @@ character :: pchar
 ok = .true.
 call logger('Irradiation')
 !tnow = istep*DELTA_T	! seconds
-if (use_volume_method) then
-    do kcell = 1,nlist
-        if (colony_simulation) then
-            cp => ccell_list(kcell)
-        else
-            cp => cell_list(kcell)
-        endif
-	    if (cp%state == DEAD) cycle
-	    if (cp%radiation_tag) cycle	! we do not tag twice (yet)
-	    call getO2conc(cp,C_O2)
-	    ! Compute sensitisation SER
-	    if (Ndrugs_used > 0) then
-	        SER = getSER(cp,C_O2)
-	    else
-    	    SER = 1.0
-    	endif
-	    ityp = cp%celltype
-	    call get_kill_probs(ityp,dose,C_O2,SER,p_recovery,p_death)
-	    kill_prob = 1 - p_recovery
-	    R = par_uni(kpar)
-	    if (R < kill_prob) then
-		    cp%radiation_tag = .true.
-		    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
-		    cp%p_rad_death = p_death
-		    if (LQ(ityp)%growth_delay_N > 0 .and. cp%Iphase) then
-			    cp%growth_delay = .true.
-			    cp%dt_delay = LQ(ityp)%growth_delay_factor*dose
-			    cp%N_delayed_cycles_left = LQ(ityp)%growth_delay_N
-		    else
-			    cp%growth_delay = .false.
-		    endif
-	    elseif (use_radiation_growth_delay_all .and. LQ(ityp)%growth_delay_N > 0) then
-		    cp%growth_delay = .true.
-		    cp%dt_delay = LQ(ityp)%growth_delay_factor*dose
-		    cp%N_delayed_cycles_left = LQ(ityp)%growth_delay_N
-	    else
-		    cp%growth_delay = .false.
-	    endif
-    enddo
-else
+!if (use_volume_method) then
+!    do kcell = 1,nlist
+!        if (colony_simulation) then
+!            cp => ccell_list(kcell)
+!        else
+!            cp => cell_list(kcell)
+!        endif
+!	    if (cp%state == DEAD) cycle
+!	    if (cp%radiation_tag) cycle	! we do not tag twice (yet)
+!	    call getO2conc(cp,C_O2)
+!	    ! Compute sensitisation SER
+!	    if (Ndrugs_used > 0) then
+!	        SER = getSER(cp,C_O2)
+!	    else
+!    	    SER = 1.0
+!    	endif
+!	    ityp = cp%celltype
+!	    call get_kill_probs(ityp,dose,C_O2,SER,p_recovery,p_death)
+!	    kill_prob = 1 - p_recovery
+!	    R = par_uni(kpar)
+!	    if (R < kill_prob) then
+!		    cp%radiation_tag = .true.
+!		    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
+!		    cp%p_rad_death = p_death
+!		    if (LQ(ityp)%growth_delay_N > 0 .and. cp%Iphase) then
+!			    cp%growth_delay = .true.
+!			    cp%dt_delay = LQ(ityp)%growth_delay_factor*dose
+!			    cp%N_delayed_cycles_left = LQ(ityp)%growth_delay_N
+!		    else
+!			    cp%growth_delay = .false.
+!		    endif
+!	    elseif (use_radiation_growth_delay_all .and. LQ(ityp)%growth_delay_N > 0) then
+!		    cp%growth_delay = .true.
+!		    cp%dt_delay = LQ(ityp)%growth_delay_factor*dose
+!		    cp%N_delayed_cycles_left = LQ(ityp)%growth_delay_N
+!	    else
+!		    cp%growth_delay = .false.
+!	    endif
+!    enddo
+!else
     tmin = 1.0      ! for now...
     n = 0
     do kcell = 1,nlist
@@ -172,7 +172,7 @@ else
 !			endif
 !		endif
     enddo
-endif
+!endif
 call check_radiation
 !write(logmsg,'(a,i6)') 'Did irradiation: # of IRL cells: ',n
 !call logger(logmsg)
@@ -250,36 +250,23 @@ end function
 ! LQ formulation, we require p_d(1-p_r) = kill_prob as previously calculated.
 ! If p_d is determined (currently it is fixed), then 1-p_r = kill_prob/p_d,
 ! therefore p_r = 1 - kill_prob/p_d
+! NOT USED
 !-----------------------------------------------------------------------------------------
-subroutine get_kill_probs(ityp,dose,C_O2,SER,p_recovery,p_death)
-integer :: ityp
-real(REAL_KIND) :: dose, C_O2, SER, p_recovery, p_death
-real(REAL_KIND) :: OER_alpha_d, OER_beta_d, expon, kill_prob_orig
-
-OER_alpha_d = dose*(LQ(ityp)%OER_am*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)
-OER_beta_d = dose*(LQ(ityp)%OER_bm*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)
-
-OER_alpha_d = OER_alpha_d*SER
-OER_beta_d = OER_beta_d*SER
-
-expon = LQ(ityp)%alpha_H*OER_alpha_d + LQ(ityp)%beta_H*OER_beta_d**2
-p_recovery = exp(-expon)	! = SF
-p_death = LQ(ityp)%death_prob
-end subroutine
-
-!-----------------------------------------------------------------------------------------
-! This is the probability of death at time of division of cell that received a dose of 
-! radiation and did not recover.
-! In general one would expect this to depend of damage, i.e. on dose and C_O2, but
-! for now it is a constant for a cell type
-!-----------------------------------------------------------------------------------------
-subroutine get_pdeath(ityp,dose,C_O2,p_death)
-integer :: ityp
-real(REAL_KIND) :: dose, C_O2, p_death
-
-p_death = LQ(ityp)%death_prob
-end subroutine
-
+!subroutine get_kill_probs(ityp,dose,C_O2,SER,p_recovery,p_death)
+!integer :: ityp
+!real(REAL_KIND) :: dose, C_O2, SER, p_recovery, p_death
+!real(REAL_KIND) :: OER_alpha_d, OER_beta_d, expon, kill_prob_orig
+!
+!OER_alpha_d = dose*(LQ(ityp)%OER_am*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)
+!OER_beta_d = dose*(LQ(ityp)%OER_bm*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)
+!
+!OER_alpha_d = OER_alpha_d*SER
+!OER_beta_d = OER_beta_d*SER
+!
+!expon = LQ(ityp)%alpha_H*OER_alpha_d + LQ(ityp)%beta_H*OER_beta_d**2
+!p_recovery = exp(-expon)	! = SF
+!p_death = LQ(ityp)%death_prob
+!end subroutine
 
 !-----------------------------------------------------------------------------------------
 ! Cells can be tagged to die, or finally die of anoxia or aglucosia, or they can be tagged 
@@ -321,15 +308,17 @@ do kcell = 1,nlist
 	if (cp%state == DEAD) cycle
 	if (cp%state == DYING) then
 	    t_dying = tnow - cp%tag_time
-	    if (t_dying < ccp%t_apoptosis_hi) then
-	        factor = 1
-		else
-		    factor = ccp%f_apoptosis_rate_lo
-		endif
-		delayed_death_prob = factor*ccp%apoptosis_rate*dt/3600
-		R = par_uni(kpar)
-!        if (colony_simulation) write(*,'(a,4e12.3)') 'colony: R,delayed_death_prob: ',R,factor,ccp%apoptosis_rate,delayed_death_prob
-	    if (R < delayed_death_prob) then
+!	    if (t_dying < ccp%t_apoptosis_hi) then
+!	        factor = 1
+!		else
+!		    factor = ccp%f_apoptosis_rate_lo
+!		endif
+!		delayed_death_prob = factor*ccp%apoptosis_rate*dt/3600
+!		R = par_uni(kpar)
+!	    if (R < delayed_death_prob) then
+        if (t_dying >= cp%apoptosis_delay) then
+!		if (colony_simulation) &
+!		    write(*,'(a,i8,4e12.3)') 'kcell,tnow, delay, R, delayed_death_prob: ',kcell,tnow/3600,(tnow-cp%tag_time)/3600,R,delayed_death_prob
 	        kcell_now = kcell	! just for gaplist
 			call CellDies(cp,.true.)
 		endif
@@ -455,6 +444,7 @@ end subroutine
 
 !-----------------------------------------------------------------------------------------
 ! A cell that dies must be subtracted from any counts it is on.
+! Now the delay between tagging and death is generated as a r.v.
 !-----------------------------------------------------------------------------------------
 subroutine CellDies(cp,now)
 type(cell_type), pointer :: cp
@@ -475,10 +465,12 @@ if (.not.now) then
     else
     	cp%state = DYING
     	cp%tag_time = tnow;
+    	cp%apoptosis_delay = ApoptosisDelay(ityp)
 	    Ndying(ityp) = Ndying(ityp) + 1
 	endif
 	return
 endif
+! The cell dies now
 if (cp%state == DYING) then
 	Ndying(ityp) = Ndying(ityp) - 1
 endif
@@ -502,9 +494,12 @@ enddo
 if (cp%radiation_tag) then
 	Nradiation_tag(ityp) = Nradiation_tag(ityp) - 1
 	Nradiation_dead(ityp) = Nradiation_dead(ityp) + 1
+!	if (colony_simulation) then
+!	    write(*,'(a,i8,i3,2f8.2)') 'Death: ',kcell_now,cp%generation,tnow/3600,(tnow - cp%tag_time)/3600
+!	endif
 endif
 cp%state = DEAD
-!if (colony_simulation) write(*,*) 'colony: dead: ',kcell
+!if (colony_simulation) write(*,*) 'colony: dead: ',kcell 
 
 ngaps = ngaps + 1
 if (ngaps > max_ngaps) then
@@ -514,6 +509,28 @@ if (ngaps > max_ngaps) then
 endif
 gaplist(ngaps) = kcell_now
 end subroutine
+
+!-----------------------------------------------------------------------------------------
+! When Y is normal N(p1,p2) then X = exp(Y) is lognormal with
+!   median = m = exp(p1)
+!   shape  = s = exp(p2)
+! Also median = m = mean/(s^2/2)
+!-----------------------------------------------------------------------------------------
+function ApoptosisDelay(ityp) result(delay)
+integer :: ityp
+real(REAL_KIND) :: delay
+integer :: kpar = 0
+real(REAL_KIND) :: shape, median, p1, p2, R
+type(cycle_parameters_type), pointer :: ccp
+
+ccp => cc_parameters(ityp)
+median = ccp%apoptosis_median
+shape = ccp%apoptosis_shape
+p1 = log(median)
+p2 = log(shape)
+R = rv_lognormal(p1,p2,kpar)
+delay = (18 + R)*3600   ! convert h -> s
+end function
 
 !-----------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------
@@ -604,37 +621,33 @@ do kcell = 1,nlist0
 	mitosis_entry = .false.
 	mitosis_duration = ccp%T_M
 	in_mitosis = .false.
-	if (use_volume_method) then
-!        if (colony_simulation) then
-!            write(*,'(a,i6,L2,2e12.3)') 'kcell: ',kcell,cp%Iphase,cp%V,cp%divide_volume
-!        endif
-	    if (cp%Iphase) then
-		    call growcell(cp,dt)
-		    if (cp%V > cp%divide_volume) then	! time to enter mitosis
-!    	        mitosis_entry = .true.
+!	if (use_volume_method) then
+!!        if (colony_simulation) then
+!!            write(*,'(a,i6,L2,2e12.3)') 'kcell: ',kcell,cp%Iphase,cp%V,cp%divide_volume
+!!        endif
+!	    if (cp%Iphase) then
+!		    call growcell(cp,dt)
+!		    if (cp%V > cp%divide_volume) then	! time to enter mitosis
+!	            in_mitosis = .true.
+!				
 !				cp%Iphase = .false.
-	            in_mitosis = .true.
 !				cp%mitosis = 0
 !				cp%t_start_mitosis = tnow
-				
-				cp%Iphase = .false.
-				cp%mitosis = 0
-				cp%t_start_mitosis = tnow
-				ncells_mphase = ncells_mphase + 1
-				
-! The following are applicable when cell-cell forces are relevant
-!				cp%nspheres = 2
-!				call get_random_vector3(rr)	! set initial axis direction
-!				cp%d = 0.1*small_d
-!				c = cp%centre(:,1)
-!				cp%centre(:,1) = c + (cp%d/2)*rr
-!				cp%centre(:,2) = c - (cp%d/2)*rr
-!				cp%d_divide = 2.0**(2./3)*cp%radius(1)
-	        endif
-	    else
-	        in_mitosis = .true.
-	    endif
-	else
+!				ncells_mphase = ncells_mphase + 1
+!				
+!! The following are applicable when cell-cell forces are relevant
+!!				cp%nspheres = 2
+!!				call get_random_vector3(rr)	! set initial axis direction
+!!				cp%d = 0.1*small_d
+!!				c = cp%centre(:,1)
+!!				cp%centre(:,1) = c + (cp%d/2)*rr
+!!				cp%centre(:,2) = c - (cp%d/2)*rr
+!!				cp%d_divide = 2.0**(2./3)*cp%radius(1)
+!	        endif
+!	    else
+!	        in_mitosis = .true.
+!	    endif
+!	else
 	    prev_phase = cp%phase
 		if (cp%dVdt > 0) then
 	        if (use_exponential_cycletime) then
@@ -698,7 +711,7 @@ do kcell = 1,nlist0
 		elseif (cp%phase == G1_phase .or.cp%phase == S_phase .or. cp%phase == G2_phase) then
 		    call growcell(cp,dt)
 		endif	
-	endif
+!	endif
 	
 !	if (in_mitosis) then
     if (cp%phase == dividing) then
@@ -714,34 +727,34 @@ do kcell = 1,nlist0
 		cp%mitosis = (tnow - cp%t_start_mitosis)/mitosis_duration	
 !		if (kcell == 20) write(nflog,'(a,3f8.0,f8.3)') 'new_grower: ',tnow,cp%t_start_mitosis,mitosis_duration,cp%mitosis
 !    	if (colony_simulation) write(*,*) 'in_mitosis: mitosis: ',cp%mitosis
-		if (use_volume_method) then
-			if (cp%growth_delay) then
-				if (cp%G2_M) then
-					if (tnow > cp%t_growth_delay_end) then
-						cp%G2_M = .false.
-					else
-						cycle
-					endif
-				else
-					cp%t_growth_delay_end = tnow + cp%dt_delay
-					cp%G2_M = .true.
-					cycle
-				endif
-			endif
-			! try moving death prob test to here
-			if (cp%radiation_tag) then
-				R = par_uni(kpar)
-				if (R < cp%p_rad_death) then
-					call celldies(cp,.false.)
-!					changed = .true.
-!					Nradiation_dead(ityp) = Nradiation_dead(ityp) + 1
-					cycle
-				endif
-			endif		
-		else
+!		if (use_volume_method) then
+!			if (cp%growth_delay) then
+!				if (cp%G2_M) then
+!					if (tnow > cp%t_growth_delay_end) then
+!						cp%G2_M = .false.
+!					else
+!						cycle
+!					endif
+!				else
+!					cp%t_growth_delay_end = tnow + cp%dt_delay
+!					cp%G2_M = .true.
+!					cycle
+!				endif
+!			endif
+!			! try moving death prob test to here
+!			if (cp%radiation_tag) then
+!				R = par_uni(kpar)
+!				if (R < cp%p_rad_death) then
+!					call celldies(cp,.false.)
+!!					changed = .true.
+!!					Nradiation_dead(ityp) = Nradiation_dead(ityp) + 1
+!					cycle
+!				endif
+!			endif		
+!		else
 !		    if (colony_simulation) write(*,*) 'radiation_tag: ',cp%radiation_tag
 			if (cp%radiation_tag) cycle
-		endif
+!		endif
 		
         if (cp%mitosis >= 1) then
 !            if (kcell == 20) write(nflog,*) 'new_grower: divide cell: ',kcell
@@ -1033,10 +1046,10 @@ cp1%drug_tag = .false.
 !cp1%aglucosia_tag = .false.
 !cp1%t_aglucosia = 0
 
-if (cp1%growth_delay) then
-	cp1%N_delayed_cycles_left = cp1%N_delayed_cycles_left - 1
-	cp1%growth_delay = (cp1%N_delayed_cycles_left > 0)
-endif
+!if (cp1%growth_delay) then
+!	cp1%N_delayed_cycles_left = cp1%N_delayed_cycles_left - 1
+!	cp1%growth_delay = (cp1%N_delayed_cycles_left > 0)
+!endif
 cp1%G2_M = .false.
 !if (use_metabolism) then
 !    cp1%G1_time = tnow + (cp1%metab%I_rate_max/cp1%metab%I_rate)*cp1%fg*ccp%T_G1

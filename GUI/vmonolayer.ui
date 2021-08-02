@@ -82,7 +82,7 @@ padding: 8px
            <enum>QTabWidget::West</enum>
           </property>
           <property name="currentIndex">
-           <number>6</number>
+           <number>0</number>
           </property>
           <property name="elideMode">
            <enum>Qt::ElideNone</enum>
@@ -297,7 +297,7 @@ padding: 8px
               <x>10</x>
               <y>20</y>
               <width>371</width>
-              <height>261</height>
+              <height>271</height>
              </rect>
             </property>
             <property name="title">
@@ -309,7 +309,7 @@ padding: 8px
                <x>10</x>
                <y>10</y>
                <width>351</width>
-               <height>241</height>
+               <height>255</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout">
@@ -539,14 +539,14 @@ padding: 8px
                </widget>
               </item>
               <item row="8" column="0">
-               <widget class="QMyLabel" name="label_APOPTOSIS_RATE_1">
+               <widget class="QMyLabel" name="label_APOPTOSIS_MEDIAN_1">
                 <property name="text">
-                 <string>Rate of apoptosis</string>
+                 <string>Apoptosis median</string>
                 </property>
                </widget>
               </item>
               <item row="8" column="1">
-               <widget class="QLineEdit" name="line_APOPTOSIS_RATE_1">
+               <widget class="QLineEdit" name="line_APOPTOSIS_MEDIAN_1">
                 <property name="maximumSize">
                  <size>
                   <width>61</width>
@@ -559,7 +559,7 @@ padding: 8px
                </widget>
               </item>
               <item row="8" column="2">
-               <widget class="QLineEdit" name="line_APOPTOSIS_RATE_2">
+               <widget class="QLineEdit" name="line_APOPTOSIS_MEDIAN_2">
                 <property name="maximumSize">
                  <size>
                   <width>61</width>
@@ -572,7 +572,7 @@ padding: 8px
                </widget>
               </item>
               <item row="9" column="1">
-               <widget class="QLineEdit" name="line_ARREST_THRESHOLD_1">
+               <widget class="QLineEdit" name="line_APOPTOSIS_SHAPE_1">
                 <property name="maximumSize">
                  <size>
                   <width>61</width>
@@ -585,7 +585,7 @@ padding: 8px
                </widget>
               </item>
               <item row="9" column="2">
-               <widget class="QLineEdit" name="line_ARREST_THRESHOLD_2">
+               <widget class="QLineEdit" name="line_APOPTOSIS_SHAPE_2">
                 <property name="maximumSize">
                  <size>
                   <width>61</width>
@@ -598,9 +598,9 @@ padding: 8px
                </widget>
               </item>
               <item row="9" column="0">
-               <widget class="QLabel" name="label_ARREST_THRESHOLD_1">
+               <widget class="QLabel" name="label_APOPTOSIS_SHAPE_1">
                 <property name="text">
-                 <string>Arrest threshold</string>
+                 <string>Apoptosis shape</string>
                 </property>
                </widget>
               </item>
@@ -634,6 +634,39 @@ padding: 8px
                <widget class="QMyLabel" name="label_S_MEAN_DELAY_1">
                 <property name="text">
                  <string>Mean S-G2 checkpoint delay (h)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="1">
+               <widget class="QLineEdit" name="line_ARREST_THRESHOLD_1">
+                <property name="maximumSize">
+                 <size>
+                  <width>61</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="2">
+               <widget class="QLineEdit" name="line_ARREST_THRESHOLD_2">
+                <property name="maximumSize">
+                 <size>
+                  <width>61</width>
+                  <height>18</height>
+                 </size>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="0">
+               <widget class="QLabel" name="label_ARREST_THRESHOLD_1">
+                <property name="text">
+                 <string>S-phase arrest threshold</string>
                 </property>
                </widget>
               </item>
@@ -941,6 +974,44 @@ padding: 8px
             </property>
             <property name="text">
              <string>Redraw</string>
+            </property>
+           </widget>
+           <widget class="QwtPlot" name="qwtPlot_APOPTOSIS_DELAY_1">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>400</x>
+              <y>410</y>
+              <width>361</width>
+              <height>231</height>
+             </rect>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+           </widget>
+           <widget class="QwtPlot" name="qwtPlot_APOPTOSIS_DELAY_2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>770</x>
+              <y>410</y>
+              <width>361</width>
+              <height>231</height>
+             </rect>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
             </property>
            </widget>
           </widget>
@@ -3315,6 +3386,9 @@ padding: 8px
               </item>
               <item row="7" column="1">
                <widget class="QLineEdit" name="line_RADIATION_DEATH_PROB_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
@@ -3344,6 +3418,9 @@ padding: 8px
               </item>
               <item row="7" column="0">
                <widget class="QMyLabel" name="label_RADIATION_DEATH_PROB_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>label_RADIATION_DEATH_PROB_1</string>
                 </property>
@@ -3387,6 +3464,9 @@ padding: 8px
               </item>
               <item row="8" column="0">
                <widget class="QMyLabel" name="label_RADIATION_GROWTH_DELAY_FACTOR_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>label_RADIATION_GROWTH_DELAY_FACTOR_1</string>
                 </property>
@@ -3394,6 +3474,9 @@ padding: 8px
               </item>
               <item row="8" column="1">
                <widget class="QLineEdit" name="line_RADIATION_GROWTH_DELAY_FACTOR_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
@@ -3429,6 +3512,9 @@ padding: 8px
               </item>
               <item row="9" column="0">
                <widget class="QMyLabel" name="label_RADIATION_GROWTH_DELAY_N_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>label_RADIATION_GROWTH_DELAY_N_1</string>
                 </property>
@@ -3436,6 +3522,9 @@ padding: 8px
               </item>
               <item row="9" column="1">
                <widget class="QLineEdit" name="line_RADIATION_GROWTH_DELAY_N_1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>50</width>

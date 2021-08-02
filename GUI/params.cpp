@@ -447,17 +447,17 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "Km for radiosensitivity",
 "Oxygen concentration for half maximal radiosensitivity relative to hypoxic cell exposure"},
 
-{"RADIATION_DEATH_PROB_1", 1.0, 0, 0,
-"Death prob",
-"Probability of death at mitosis for a cell tagged for damage by radiation"},
+//{"RADIATION_DEATH_PROB_1", 1.0, 0, 0,
+//"Death prob",
+//"Probability of death at mitosis for a cell tagged for damage by radiation"},
 
-{"RADIATION_GROWTH_DELAY_FACTOR_1", 0.0, 0, 0,
-"Growth delay factor",
-"For a damaged cell, cell cycle is delayed for a number of hours given by this factor x radiation dose"},
+//{"RADIATION_GROWTH_DELAY_FACTOR_1", 0.0, 0, 0,
+//"Growth delay factor",
+//"For a damaged cell, cell cycle is delayed for a number of hours given by this factor x radiation dose"},
 
-{"RADIATION_GROWTH_DELAY_N_1", 0, 0, 0,
-"Growth delay cycles",
-"For a damaged cell, cell cycle delay persists for a number of cell cycles"},
+//{"RADIATION_GROWTH_DELAY_N_1", 0, 0, 0,
+//"Growth delay cycles",
+//"For a damaged cell, cell cycle delay persists for a number of cell cycles"},
 
 {"RADIATION_ALPHA_H_2", 0.0473, 0, 0,
 "Alpha (hypoxia)",
@@ -479,21 +479,21 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
 "Km for radiosensitivity",
 "Oxygen concentration for half maximal radiosensitivity relative to hypoxic cell exposure"},
 
-{"RADIATION_DEATH_PROB_2", 1.0, 0, 0,
-"Death prob",
-"Probability of death at mitosis for a cell tagged for damage by radiation"},
+//{"RADIATION_DEATH_PROB_2", 1.0, 0, 0,
+//"Death prob",
+//"Probability of death at mitosis for a cell tagged for damage by radiation"},
 
-{"RADIATION_GROWTH_DELAY_FACTOR_2", 0.0, 0, 0,
-"Growth delay factor",
-"For a damaged cell, cell cycle is delayed for a number of hours given by this factor x radiation dose"},
+//{"RADIATION_GROWTH_DELAY_FACTOR_2", 0.0, 0, 0,
+//"Growth delay factor",
+//"For a damaged cell, cell cycle is delayed for a number of hours given by this factor x radiation dose"},
 
-{"RADIATION_GROWTH_DELAY_N_2", 0, 0, 0,
-"Growth delay cycles",
-"For a damaged cell, cell cycle delay persists for a number of cell cycles"},
+//{"RADIATION_GROWTH_DELAY_N_2", 0, 0, 0,
+//"Growth delay cycles",
+//"For a damaged cell, cell cycle delay persists for a number of cell cycles"},
 
-{"RADIATION_GROWTH_DELAY_ALL", 0, 0, 0,
-"Delay growth of all cells",
-"Cell cycle delay is also applied to cells that are not fated to die"},
+//{"RADIATION_GROWTH_DELAY_ALL", 0, 0, 0,
+//"Delay growth of all cells",
+//"Cell cycle delay is also applied to cells that are not fated to die"},
 
     {"USE_CELL_CYCLE", 1,0,1,
      "Use cell cycle with G1, S, G2, M phases",
@@ -532,14 +532,17 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "G2 mean delay (h)",
      "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
 
-     {"APOPTOSIS_RATE_1", 0.1, 0, 0,
-     "Apoptosis rate/hr",
-     "The rate of passage from state = DYING to state = DEAD, probability/hour"},
+     {"APOPTOSIS_MEDIAN_1", 4, 0, 0,
+     "Apoptosis median (hr)",
+     "Apoptosis delay = 18 + log-normal variate defined by median, shape"},
+
+     {"APOPTOSIS_SHAPE_1", 1.5, 0, 0,
+     "Apoptosis shape",
+     "Threshold level of fraction of maximum growth rate that causes arrest in S phase"},
 
      {"ARREST_THRESHOLD_1", 0.1, 0, 0,
      "Arrest threshold",
      "Threshold level of fraction of maximum growth rate that causes arrest in S phase"},
-
 
      {"RMR_ETA_PL_1", 5, 0, 0,
      "PL lesion creation rate",
@@ -622,9 +625,13 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "G2 mean delay (h)",
       "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
 
-      {"APOPTOSIS_RATE_2", 0.1, 0, 0,
-      "Apoptosis rate/hr",
-      "The rate of passage from state = DYING to state = DEAD, probability/hour"},
+      {"APOPTOSIS_MEDIAN_2", 4, 0, 0,
+      "Apoptosis median (hr)",
+      "Apoptosis delay = 18 + log-normal variate defined by median, shape"},
+
+      {"APOPTOSIS_SHAPE_2", 1.5, 0, 0,
+      "Apoptosis shape",
+      "Threshold level of fraction of maximum growth rate that causes arrest in S phase"},
 
       {"ARREST_THRESHOLD_2", 0.1, 0, 0,
       "Arrest threshold",

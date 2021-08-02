@@ -7,10 +7,15 @@ use cellstate
 implicit none
 
 !integer, parameter :: n_colony_days=10
-integer, parameter :: max_trials = 20000     ! 20000 
+integer, parameter :: max_trials = 20000     ! 20000
 !integer, allocatable :: perm_index(:) 
 !logical :: use_permute
 real(REAL_KIND), parameter :: min_log10PE = -4.5    ! -4.0
+! For daily colony size distributions
+real(REAL_KIND) :: bin_size
+integer, allocatable :: bin_count(:,:)
+integer :: nbins
+integer :: kcell0
 
 contains
 
@@ -48,7 +53,12 @@ logical :: ok
 integer :: dist_cutoff = 50
 integer, allocatable :: ncolony(:),ntcolony(:)
 integer, allocatable :: survivor(:)
+integer :: iday
 
+nbins = 20
+bin_size = 10
+allocate(bin_count(10,0:nbins+1))
+bin_count = 0
 simulate_colony = .true.
 colony_simulation = .true.
 ndays = int(n_colony_days)
@@ -115,7 +125,7 @@ else
     use_permute = .false.
 endif
 write(nflog,*) 'Ncells,nrepeat,ntrials: ',Ncells,nrepeat,ntrials
-ddist = (nColonyMax/2)/ndist
+ddist = (nColonyMax)/ndist
 dmin = 1.0e10
 do k = 1,ndist
     if (abs(k*100 - ddist) < dmin) then
@@ -165,11 +175,16 @@ do kk = 1,min(max_trials,Ncells)
 	ityp = cp%celltype
 do krep = 1,nrepeat
     k = k+1
-	! Now simulate colony growth from a single cell
+	! Now simulate colony growth from a single cell 
 	tnow = tnow_save
 	ncolony = 0
+	kcell0 = kcell
 	call make_colony(kcell,tend,ncolony)
+	if (ncolony(4) > 10 .and. ncolony(4) < 20) write(nflog,'(a,i8,10i6)') 'kcell0,ncolony: ',kcell0,ncolony(:)
 	n = ncolony(ndays)
+!	write(*,'(a,i6,i3)') 'trial, n: ',krep,n
+!	if (n == 0) stop
+!	if (ncolony(5) > 0 .and. ncolony(5) < 50) write(*,*) 'ncolony(5): ',ncolony(5)	
 	ntcolony = ntcolony + ncolony
 	ntot = ntot + n
 	if (n > dist_cutoff) then
@@ -189,6 +204,8 @@ do krep = 1,nrepeat
 	endif
 enddo
 enddo
+!	write(*,*) 'stopping'
+!	stop
 
 if (nt > 0) then
     ave = sum1/nt
@@ -220,6 +237,11 @@ if (.not.use_PEST) then
     write(nfout,*)
     write(nfout,*) 'Total colony population multiplication factor by day:'
     write(nfout,'(10f9.2)') ntcolony(1:ndays)/real(ntrials)
+    write(nfout,*) 'Daily colony size distributions'
+    do iday = 1,ndays
+        write(nfout,'(a,i3)') 'Day: ',iday
+        write(nfout,'(22i6)') bin_count(iday,:)
+    enddo
 endif
 !if (PE > 0.000001) then
 !    log10PE = log10(PE)
@@ -295,11 +317,13 @@ do while (tnow < tend)
 	tnow = tnow + dt
     call new_grower(dt,changed,ok)
     call CellDeath(dt,ok)
-    if (tnow > t0 + iday*24*3600) then
+    if (tnow >= t0 + iday*24*3600) then
 !        if (cp%ID == 1) write(*,*) 'ID=1: nlist: ',nlist
-        n = countColony()
+        n = countColony()   ! counts cells in the colony
 !        write(*,*) 'iday, n: ',iday,n,tnow,tend
+!        write(*,*) 'ncells, nlist, n: ',ncells, nlist, n
         ncolony(iday) = n
+        call binner(iday,n)
         iday = iday+1
     endif
 enddo
@@ -332,7 +356,7 @@ cnt = 0
 n = 0
 do icell = 1,nlist
     k = ccell_list(icell)%state
-	if (k == ALIVE) then
+	if (k /= DEAD) then
 	    n = n+1
 !	    write(*,*) 'cell state: ',ccell_list(icell)%state
 	endif
@@ -340,5 +364,22 @@ do icell = 1,nlist
 enddo
 !write(*,*) 'cnt: ',cnt
 end function
+
+!---------------------------------------------------------------------------------------------------
+! Increment the bin count for day iday, with colony count n
+!---------------------------------------------------------------------------------------------------
+subroutine binner(iday,n)
+integer :: iday, n
+integer :: ibin
+
+if (n == 0) then
+    bin_count(iday,0) = bin_count(iday,0) + 1
+elseif (n > bin_size*nbins) then
+    bin_count(iday,nbins+1) = bin_count(iday,nbins+1) + 1
+else
+    ibin = int(n/bin_size) + 1
+    bin_count(iday,ibin) = bin_count(iday,ibin) + 1
+endif
+end subroutine
 
 end module

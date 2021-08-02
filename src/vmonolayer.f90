@@ -87,7 +87,7 @@ endif
 call SetupChemo
 
 ! New cell cycle formulation - need a value for max (unconstrained) growth rate
-use_volume_method = .not.use_cell_cycle
+!use_volume_method = .not.use_cell_cycle
 !if (use_cell_cycle .and. .not.use_volume_based_transition) then
 !    use_constant_growthrate = .true.
 !endif
@@ -504,19 +504,19 @@ read(nfcell,*) LQ(1)%beta_H
 read(nfcell,*) LQ(1)%OER_am
 read(nfcell,*) LQ(1)%OER_bm
 read(nfcell,*) LQ(1)%K_ms
-read(nfcell,*) LQ(1)%death_prob
-read(nfcell,*) LQ(1)%growth_delay_factor
-read(nfcell,*) LQ(1)%growth_delay_N
+!read(nfcell,*) LQ(1)%death_prob
+!read(nfcell,*) LQ(1)%growth_delay_factor
+!read(nfcell,*) LQ(1)%growth_delay_N
 read(nfcell,*) LQ(2)%alpha_H
 read(nfcell,*) LQ(2)%beta_H
 read(nfcell,*) LQ(2)%OER_am
 read(nfcell,*) LQ(2)%OER_bm
 read(nfcell,*) LQ(2)%K_ms
-read(nfcell,*) LQ(2)%death_prob
-read(nfcell,*) LQ(2)%growth_delay_factor
-read(nfcell,*) LQ(2)%growth_delay_N
-read(nfcell,*) iuse_gd_all
-use_radiation_growth_delay_all = (iuse_gd_all == 1)
+!read(nfcell,*) LQ(2)%death_prob
+!read(nfcell,*) LQ(2)%growth_delay_factor
+!read(nfcell,*) LQ(2)%growth_delay_N
+!read(nfcell,*) iuse_gd_all
+!use_radiation_growth_delay_all = (iuse_gd_all == 1)
 read(nfcell,*) iusecellcycle
 use_cell_cycle = (iusecellcycle == 1)
 read(nfcell,*) isynchronise
@@ -661,7 +661,7 @@ endif
 
 !mitosis_duration = ccp%T_M  ! seconds 
 
-LQ(:)%growth_delay_factor = 60*60*LQ(:)%growth_delay_factor	! hours -> seconds
+!LQ(:)%growth_delay_factor = 60*60*LQ(:)%growth_delay_factor	! hours -> seconds
 
 if (use_exponential_cycletime) then
     divide_dist(1:2)%class = EXPONENTIAL_DIST
@@ -839,7 +839,8 @@ read(nf,*) ccp%T_M
 read(nf,*) ccp%G1_mean_delay
 read(nf,*) ccp%S_mean_delay
 read(nf,*) ccp%G2_mean_delay
-read(nf,*) ccp%Apoptosis_rate
+read(nf,*) ccp%Apoptosis_median
+read(nf,*) ccp%Apoptosis_shape
 read(nf,*) ccp%arrest_threshold
 read(nf,*) ccp%eta_PL
 read(nf,*) ccp%eta_IRL
@@ -1389,20 +1390,20 @@ cp%dVdt = max_growthrate(ityp)
 cp%metab = phase_metabolic(1)
 cp%metab%I_rate = r_Iu	! this is just to ensure that initial growth rate is not 0
 cp%metab%C_GlnEx_prev = 0
-if (use_volume_method) then
-    !cp%divide_volume = Vdivide0
-    if (initial_count == 1) then
-	    cp%V = 0.9*cp%divide_volume
-    else
-    !	cp%V = (0.5 + 0.49*par_uni(kpar))*cp%divide_volume
-        if (randomise_initial_volume) then
-	        cp%V = cp%divide_volume*0.5*(1 + par_uni(kpar))
-        else
-	        cp%V = cp%divide_volume/1.6
-        endif
-    endif
-    cp%t_divide_last = 0    ! not correct
-else	! use cell cycle
+!if (use_volume_method) then
+!    !cp%divide_volume = Vdivide0
+!    if (initial_count == 1) then
+!	    cp%V = 0.9*cp%divide_volume
+!    else
+!    !	cp%V = (0.5 + 0.49*par_uni(kpar))*cp%divide_volume
+!        if (randomise_initial_volume) then
+!	        cp%V = cp%divide_volume*0.5*(1 + par_uni(kpar))
+!        else
+!	        cp%V = cp%divide_volume/1.6
+!        endif
+!    endif
+!    cp%t_divide_last = 0    ! not correct
+!else	! use cell cycle
     cp%NL1 = 0
     cp%NL2 = 0
     cp%N_PL = 0
@@ -1411,7 +1412,7 @@ else	! use cell cycle
     cp%irrepairable = .false.
     ! Need to assign phase, volume to complete phase, current volume
     call SetInitialCellCycleStatus(kcell,cp)
-endif
+!endif
 cp%dVdt = max_growthrate(ityp)
 !if (use_metabolism) then	! Fraction of I needed to divide = fraction of volume needed to divide
 !	cp%metab%I2Divide = get_I2Divide(cp)
@@ -1433,7 +1434,7 @@ cp%drug_tag = .false.
 cp%radiation_tag = .false.
 !cp%anoxia_tag = .false.
 !cp%aglucosia_tag = .false.
-cp%growth_delay = .false.
+!cp%growth_delay = .false.
 cp%G2_M = .false.
 cp%p_rad_death = 0
 
@@ -1479,7 +1480,7 @@ cp%ATP_tag = .false.
 cp%GLN_tag = .false.
 cp%drug_tag = .false.
 cp%radiation_tag = .false.
-cp%growth_delay = .false.
+!cp%growth_delay = .false.
 cp%G2_M = .false.
 cp%p_rad_death = 0
 cp%Cin(OXYGEN) = chemo(OXYGEN)%bdry_conc

@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
     nDistPts = 200;
 	nTicks = 1000;
 	tickVTK = 100;	// timer tick for VTK in milliseconds
-    ndistplots = 2;
+    ndistplots = 4;
 	paused = false;
 	posdata = false;
     DCmotion = false;
@@ -332,6 +332,10 @@ void MainWindow::createLists()
     distplot_list[0] = qp;
     qp = (QwtPlot *)qFindChild<QObject *>(this, "qwtPlot_DIVIDE_TIME_2");
     distplot_list[1] = qp;
+    qp = (QwtPlot *)qFindChild<QObject *>(this, "qwtPlot_APOPTOSIS_DELAY_1");
+    distplot_list[2] = qp;
+    qp = (QwtPlot *)qFindChild<QObject *>(this, "qwtPlot_APOPTOSIS_DELAY_2");
+    distplot_list[3] = qp;
 }
 
 

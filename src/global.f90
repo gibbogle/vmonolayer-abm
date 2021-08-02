@@ -167,13 +167,14 @@ type cell_type
 	real(REAL_KIND) :: p_drug_death(MAX_DRUGTYPES)
 	real(REAL_KIND) :: t_start_mitosis
 	real(REAL_KIND) :: mitosis
-	logical :: growth_delay
-	real(REAL_KIND) :: dt_delay
-	real(REAL_KIND) :: t_growth_delay_end	! this is for suppression of growth before first division
+!	logical :: growth_delay
+!	real(REAL_KIND) :: dt_delay
+!	real(REAL_KIND) :: t_growth_delay_end	! this is for suppression of growth before first division
 	real(REAL_KIND) :: tag_time             ! time cell is tagged to die metabolically
-	integer :: N_delayed_cycles_left		! decremented by 1 at each cell division
+!	integer :: N_delayed_cycles_left		! decremented by 1 at each cell division
 	logical :: radiation_tag, ATP_tag, GLN_tag
 	logical :: drug_tag(MAX_DRUGTYPES)
+	real(REAL_KIND) :: apoptosis_delay
 	logical :: G2_M
 !	logical :: exists
 !	integer :: cnr(3,8)
@@ -220,6 +221,8 @@ type cycle_parameters_type
     real(REAL_KIND) :: aTCP, bTCP
     ! Apoptosis
     real(REAL_KIND) :: apoptosis_rate
+    real(REAL_KIND) :: apoptosis_median
+    real(REAL_KIND) :: apoptosis_shape
     real(REAL_KIND) :: f_apoptosis_rate_lo  ! multiplying factor for low apoptosis rate
     real(REAL_KIND) :: t_apoptosis_hi       ! duration of high rate of apoptosis
 end type
@@ -317,8 +320,8 @@ type LQ_type
 	real(REAL_KIND) :: alpha_H, beta_H
 	real(REAL_KIND) :: K_ms
 	real(REAL_KIND) :: death_prob
-	real(REAL_KIND) :: growth_delay_factor
-	real(REAL_KIND) :: growth_delay_N
+!	real(REAL_KIND) :: growth_delay_factor
+!	real(REAL_KIND) :: growth_delay_N
 end type
 
 type savedata_type
@@ -352,7 +355,7 @@ integer :: Nradiation_tag(MAX_CELLTYPES), NATP_tag(MAX_CELLTYPES), NGLN_tag(MAX_
 integer :: Ndrug_tag(MAX_DRUGTYPES,MAX_CELLTYPES)
 integer :: Nradiation_dead(MAX_CELLTYPES), NATP_dead(MAX_CELLTYPES), NGLN_dead(MAX_CELLTYPES)
 integer :: Ndrug_dead(MAX_DRUGTYPES,MAX_CELLTYPES)
-logical :: use_radiation_growth_delay_all = .true.
+!logical :: use_radiation_growth_delay_all = .true.
 
 integer :: ndoublings
 real(REAL_KIND) :: doubling_time_sum
@@ -448,7 +451,7 @@ logical :: use_V_dependence
 logical :: use_divide_time_distribution
 logical :: use_exponential_cycletime
 logical :: use_constant_divide_volume
-logical :: use_volume_method
+!logical :: use_volume_method
 logical :: use_cell_cycle
 logical :: use_constant_growthrate = .false. 
 logical :: use_new_drugdata = .true.

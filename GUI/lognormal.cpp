@@ -251,8 +251,16 @@ void MainWindow:: drawDistPlots(bool dummy)
                 expMean[1] = line_S_MEAN_DELAY_2->text().toDouble();
                 expMean[2] = line_G2_MEAN_DELAY_2->text().toDouble();
             }
+        } else if (j == 2) {
+            qp->setTitle("Apoptosis delay time 1 (hrs)");
+            median_qstr = line_APOPTOSIS_MEDIAN_1->text();
+            shape_qstr = line_APOPTOSIS_SHAPE_1->text();
+        } else if (j == 3) {
+            qp->setTitle("Apoptosis delay time 2 (hrs)");
+            median_qstr = line_APOPTOSIS_MEDIAN_2->text();
+            shape_qstr = line_APOPTOSIS_SHAPE_2->text();
         }
-        if (use_lognormal) {
+        if (use_lognormal || j >= 2) {
             median = median_qstr.toDouble();
             shape = shape_qstr.toDouble();
             create_lognorm_dist(median, shape, nDistPts, x, prob);
@@ -261,6 +269,10 @@ void MainWindow:: drawDistPlots(bool dummy)
         }
 
         int n = dist_limit(prob,nDistPts);
+        if (j >= 2) {
+            for (int i=0; i<=n; i++)
+                x[i] += 18;
+        }
         double xmax = x[n];
         qp->setAxisScale(QwtPlot::xBottom, 0.0, xmax, 0.0);
 
