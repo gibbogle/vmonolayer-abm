@@ -318,7 +318,8 @@ do kcell = 1,nlist
 !	    if (R < delayed_death_prob) then
         if (t_dying >= cp%apoptosis_delay) then
 !		if (colony_simulation) &
-!		    write(*,'(a,i8,4e12.3)') 'kcell,tnow, delay, R, delayed_death_prob: ',kcell,tnow/3600,(tnow-cp%tag_time)/3600,R,delayed_death_prob
+!		    write(*,'(a,i8,4f8.2)') 'kcell,tnow, t_dying, delay: ',kcell,tnow/3600,t_dying/3600,cp%apoptosis_delay/3600 
+!		    write(nflog,'(a,i8,4f8.2)') 'kcell,tnow, t_dying, delay: ',kcell,tnow/3600,t_dying/3600,cp%apoptosis_delay/3600
 	        kcell_now = kcell	! just for gaplist
 			call CellDies(cp,.true.)
 		endif
@@ -521,6 +522,7 @@ integer :: ityp
 real(REAL_KIND) :: delay
 integer :: kpar = 0
 real(REAL_KIND) :: shape, median, p1, p2, R
+real(REAL_KIND) :: min_delay = 12
 type(cycle_parameters_type), pointer :: ccp
 
 ccp => cc_parameters(ityp)
@@ -529,7 +531,8 @@ shape = ccp%apoptosis_shape
 p1 = log(median)
 p2 = log(shape)
 R = rv_lognormal(p1,p2,kpar)
-delay = (18 + R)*3600   ! convert h -> s
+delay = (min_delay + R)*3600   ! convert h -> s
+!write(*,'(a,4f8.3)') 'delay: ',median,shape,R,delay/3600
 end function
 
 !-----------------------------------------------------------------------------------------

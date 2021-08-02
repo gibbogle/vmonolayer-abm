@@ -271,7 +271,7 @@ void MainWindow:: drawDistPlots(bool dummy)
         int n = dist_limit(prob,nDistPts);
         if (j >= 2) {
             for (int i=0; i<=n; i++)
-                x[i] += 18;
+                x[i] += 12;
         }
         double xmax = x[n];
         qp->setAxisScale(QwtPlot::xBottom, 0.0, xmax, 0.0);

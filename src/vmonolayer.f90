@@ -822,6 +822,9 @@ end subroutine
 ! The cell cycle parameters include the parameters for radiation damage and repair, 
 ! and for the associated checkpoint duration limits Tcp(:).
 ! Time unit = hour
+! Note: Now with the log-normal phase times there are no checkpoint delays except those
+! created by cell damage (e.g. by radiation.)  Therefore now the mean cycle time is just the
+! sum of G1, S and G2 times.
 !-----------------------------------------------------------------------------------------
 subroutine ReadCellCycleParameters(nf)
 integer :: nf
@@ -859,15 +862,16 @@ read(nf,*) ccp%bTCP
 !read(nf,*) ccp%Kcp
 ccp%HRR_repair_base = 0
 
-total = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
-write(nflog,'(a,7f8.2)') 'T_G1,T_S,T_G2,T_M,G1_delay,G2_delay, total: ',ccp%T_G1,ccp%T_S,ccp%T_G2,ccp%T_M, &
-						ccp%G1_mean_delay,ccp%G2_mean_delay,total
+total = ccp%T_G1 + ccp%T_S + ccp%T_G2 + ccp%T_M + ccp%G1_mean_delay + ccp%S_mean_delay + ccp%G2_mean_delay
+write(nflog,'(a,8f8.2)') 'T_G1,T_S,T_G2,T_M,G1_delay,S_delay,G2_delay, total: ',ccp%T_G1,ccp%T_S,ccp%T_G2,ccp%T_M, &
+						ccp%G1_mean_delay,ccp%S_mean_delay,ccp%G2_mean_delay,total
 write(nflog,'(a,f8.2)') 'arrest_threshold: ',ccp%arrest_threshold						
 ccp%T_G1 = 3600*ccp%T_G1                    ! hours -> seconds
 ccp%T_S = 3600*ccp%T_S
 ccp%T_G2 = 3600*ccp%T_G2
 ccp%T_M = 3600*ccp%T_M
 ccp%G1_mean_delay = 3600*ccp%G1_mean_delay
+ccp%S_mean_delay = 3600*ccp%S_mean_delay
 ccp%G2_mean_delay = 3600*ccp%G2_mean_delay
 enddo
 end subroutine
