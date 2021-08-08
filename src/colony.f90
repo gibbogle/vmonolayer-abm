@@ -57,6 +57,13 @@ integer :: iday
 
 nbins = 20
 bin_size = 10
+if (allocated(bin_count)) deallocate(bin_count)
+if (allocated(ccell_list)) deallocate(ccell_list)
+if (allocated(survivor)) deallocate(survivor)
+if (allocated(perm_index)) deallocate(perm_index)
+if (allocated(ncolony)) deallocate(ncolony)
+if (allocated(ntcolony)) deallocate(ntcolony)
+
 allocate(bin_count(10,0:nbins+1))
 bin_count = 0
 simulate_colony = .true.
@@ -69,7 +76,6 @@ nColonyMax = 2**(ncycmax+1)
 write(nflog,'(a,e12.3,2i8)') 'divide_time_mean(1),ncycmax,nColonyMax: ',divide_time_mean(1),ncycmax,nColonyMax
 allocate(ccell_list(nColonyMax))
 allocate(survivor(Ncells))
-if (allocated(perm_index)) deallocate(perm_index)
 allocate(perm_index(nlist_save))
 !if (Ncells > max_trials) then
 !    use_permute = .true.

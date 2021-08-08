@@ -44,6 +44,7 @@ if (cp%dVdt == 0) then
 	stop
 endif
 nPL = cp%N_PL
+!if (kcell_now == 2 .and. nPL > 0) write(*,*) 'kcell,phase,nPL: ',kcell_now,cp%phase,nPL
 ityp = cp%celltype
 10 continue
 phase = cp%phase
@@ -51,7 +52,6 @@ phase = cp%phase
 if (phase == G1_phase) then
     switch = (tnow > cp%G1_time)
     if (switch) then
-!        if (kcell_now == 20) write(nflog,*) 'switch G1 - chkpt: tnow: ',tnow/3600
         cp%phase = G1_checkpoint
         cp%G1_flag = .true.     ! no fixed checkpoint delay
         cp%G1S_time = tnow + f_TCP(ccp,nPL)
@@ -67,7 +67,6 @@ elseif (phase == G1_checkpoint) then  ! this checkpoint combines the release fro
 		cp%G1S_flag = cp%G1S_flag .and. (cp%metab%A_rate > r_Ag)
 	endif
     if (cp%G1_flag .and. cp%G1S_flag) then  ! switch to S-phase
-!        if (kcell_now == 20) write(nflog,*) 'switch chkpt - S: tnow: ',tnow/3600
         S_switch = .true.
         cp%phase = S_phase
 ! Note: now %I_rate has been converted into equivalent %dVdt, to simplify code 
@@ -273,7 +272,8 @@ N = cp%N_PL + cp%N_IRL
 psurvive_IRL = ccp%psurvive_PL
 psurvive = (ccp%psurvive_PL**cp%N_PL)*(psurvive_IRL**cp%N_IRL)
 if (pchar == 'M') then
-    psurvive = (psurvive/10)*(ccp%psurvive_Ch1**cp%N_Ch1)*(ccp%psurvive_Ch2**cp%N_Ch2)
+!    psurvive = (psurvive/10)*(ccp%psurvive_Ch1**cp%N_Ch1)*(ccp%psurvive_Ch2**cp%N_Ch2) ! why /10?????
+    psurvive = (psurvive)*(ccp%psurvive_Ch1**cp%N_Ch1)*(ccp%psurvive_Ch2**cp%N_Ch2)
 endif
 pdeath = 1 - psurvive
 R = par_uni(kpar)
@@ -569,6 +569,7 @@ type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: TCP
 
 TCP = ccp%bTCP*n/(ccp%aTCP + n)
+!if (n > 0 .and. kcell_now < 1000) write(*,'(a,2i8,f8.3)') 'f_TCP: ',kcell_now,n,TCP
 TCP = 3600*TCP	! hours -> seconds
 end function
 

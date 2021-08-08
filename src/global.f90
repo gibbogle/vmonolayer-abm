@@ -720,7 +720,7 @@ else
     Tgrowth = ccp%T_G1 + ccp%T_S + ccp%T_G2
 !    Tfixed = ccp%T_M + ccp%G1_mean_delay + ccp%G2_mean_delay
     Tfixed = ccp%T_M  ! no fixed checkpoint delays with lognormal time step
-	Tdiv = DivideTime(ityp)
+	Tdiv = DivideTime(ityp)     ! log-normally distributed
 	! Try changing this
 	!Tgrowth = Tdiv - Tfixed
 	!fg = Tgrowth/Tgrowth0
@@ -729,8 +729,8 @@ else
 	! In cycle, need to multiply T_G1, T_S, T_G2 by cp%fg
 !	if (kcell_now == 55) write(*,'(a,i6,2f10.0,f8.4)') 'set_divide_volume: kcell, Tgrowth, Tdiv, fg: ',cp%ID,Tgrowth,Tdiv,fg
 endif
-cp%divide_volume = V0 + Tgrowth*rVmax
-cp%divide_time = Tdiv   ! cycle time
+cp%divide_volume = V0 + Tgrowth*rVmax   ! this uses the average growth time, to generate the divide volume for all cells
+cp%divide_time = Tdiv   ! cycle time, varies with cell
 cp%fg = fg
 !if (kcell == 1) then
 !    write(nflog,'(a,5e12.3)') 'set_divide_volume: V0,Tgrowth,Tdiv,div_vol,rVmax: ',V0,Tgrowth,Tdiv,cp%divide_volume,rVmax
