@@ -48,7 +48,7 @@ nPL = cp%N_PL
 ityp = cp%celltype
 10 continue
 phase = cp%phase
-!write(*,'(a,2i6,f8.0)') 'kcell, phase, phase: ',kcell_now, phase,tnow
+!write(*,'(a,2i6,f8.0)') 'kcell, phase, phase: ',kcell_now, phase,tnow 
 if (phase == G1_phase) then
     switch = (tnow > cp%G1_time)
     if (switch) then
@@ -379,10 +379,11 @@ if (.not.do_repair) then
 	cp%N_IRL = nIRL
 	cp%irrepairable = (nIRL > 0)
 	
-    if (cp%ID == 1) then
+    if (cp%ID == 46) then
         write(nflog,*) 'damage: cell #, nPL0, N_PL, N_IRL: ',cp%ID,nPL0,cp%N_PL,cp%N_IRL
         write(nflog,*) 'eta_PL, dose0, SER_OER, C: ',ccp%eta_PL,dose0,SER_OER,C_inhibiter
     endif
+    if (kcell_now == 46) write(*,*) 'N_PL: ',kcell_now,cp%N_PL
 	
 	return
 endif
@@ -569,7 +570,7 @@ type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: TCP
 
 TCP = ccp%bTCP*n/(ccp%aTCP + n)
-!if (n > 0 .and. kcell_now < 1000) write(*,'(a,2i8,f8.3)') 'f_TCP: ',kcell_now,n,TCP
+!if (n > 0 .and. kcell_now < 100) write(*,'(a,2i8,f8.3)') 'f_TCP: ',kcell_now,n,TCP
 TCP = 3600*TCP	! hours -> seconds
 end function
 

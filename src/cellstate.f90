@@ -127,6 +127,7 @@ call logger('Irradiation')
     tmin = 1.0      ! for now...
     n = 0
     do kcell = 1,nlist
+        kcell_now = kcell
         if (colony_simulation) then
             cp => ccell_list(kcell)
         else
@@ -142,9 +143,12 @@ call logger('Irradiation')
         else
 	        SER = 1.0
 	    endif
-        SER_OER(1) = SER*(LQ(ityp)%OER_am*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_alpha NEEDS ATTENTION
-        SER_OER(2) = SER*(LQ(ityp)%OER_bm*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_beta
-        call radiation_damage(cp, ccp, dose, SER_OER(1), tmin)
+!        SER_OER(1) = SER*(LQ(ityp)%OER_am*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_alpha NEEDS ATTENTION
+!        SER_OER(2) = SER*(LQ(ityp)%OER_bm*C_O2 + LQ(ityp)%K_ms)/(C_O2 + LQ(ityp)%K_ms)      ! OER_beta
+!        call radiation_damage(cp, ccp, dose, SER_OER(1), tmin)
+        ! Not using LQ formalism
+        SER = C_O2/(C_O2 + LQ(ityp)%K_ms)
+        call radiation_damage(cp, ccp, dose, SER, tmin)
         ! Now check for possible death if the cell is in S-phase or M-phase
         dies = .false.  
         if (cp%phase == S_phase .and. (cp%N_PL > 0 .or. cp%N_IRL > 0)) then
