@@ -186,7 +186,7 @@ do krep = 1,nrepeat
 	ncolony = 0
 	kcell0 = kcell
 	call make_colony(kcell,tend,ncolony)
-	if (ncolony(4) > 10 .and. ncolony(4) < 20) write(nflog,'(a,i8,10i6)') 'kcell0,ncolony: ',kcell0,ncolony(:)
+!	if (ncolony(4) > 10 .and. ncolony(4) < 20) write(nflog,'(a,i8,10i6)') 'kcell0,ncolony: ',kcell0,ncolony(:)
 	n = ncolony(ndays)
 !	write(*,'(a,i6,i3)') 'trial, n: ',krep,n
 !	if (n == 0) stop
