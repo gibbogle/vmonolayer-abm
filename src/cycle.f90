@@ -19,6 +19,7 @@ logical :: use_volume_based_transition = .false.
 real(REAL_KIND) :: starvation_arrest_threshold = 5
 real(REAL_KIND) :: max_arrest_time = 6*3600
 logical :: inhibit_misrepair = .false.
+logical :: use_rad_state = .true.   ! irradiation before G2 causes G2 checkpoint delay = dose*1 hours
 
 contains
 
@@ -112,6 +113,9 @@ elseif (phase == G2_phase) then
         cp%phase = G2_checkpoint
         cp%G2_flag = .false.
         cp%G2M_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
+        if (use_rad_state .and. cp%rad_state > 0 .and. cp%rad_state < 3) then
+            cp%G2M_time = tnow + rad_dose*1*3600    ! default 1h/Gy
+        endif
         goto 10
     endif
 elseif (phase == G2_checkpoint) then ! this checkpoint combines the release from G2 delay and the G2M repair check
@@ -125,10 +129,14 @@ elseif (phase == G2_checkpoint) then ! this checkpoint combines the release from
 		cp%G2M_flag = cp%G2M_flag .and. (cp%metab%A_rate > r_Ag)
 	endif
     if (cp%G2_flag .and. cp%G2M_flag) then  ! switch to M-phase
-!        if (kcell_now == 20) write(nflog,*) 'switch chkpt - M: tnow: ',tnow/3600
         M_switch = .true.
         cp%phase = M_phase
         cp%M_time = tnow + ccp%T_M   
+        if (cp%rad_state > 0) then     ! count cells, count DSBs, count Ch2 lesions
+            rad_count(1) = rad_count(1) + 1
+            rad_count(2) = rad_count(2) + cp%N_PL
+            rad_count(3) = rad_count(3) + cp%N_Ch2
+        endif
         goto 10
     endif
 elseif (phase == M_phase) then
@@ -144,6 +152,7 @@ if (S_switch .and. (cp%N_PL > 0 .or. cp%N_IRL > 0)) then
 endif
 if (M_switch .and. (cp%N_PL > 0 .or. cp%N_IRL > 0 .or. cp%N_Ch1 > 0 .or. cp%N_Ch2 > 0)) then
     dies = mortality(cp,ccp,'M')
+    if (dies .and. cp%rad_state > 0) rad_count(6) = rad_count(6) + 1
 endif
 if (dies) return
 !if (nPL > 0 .and. .not.cp%irrepairable) then

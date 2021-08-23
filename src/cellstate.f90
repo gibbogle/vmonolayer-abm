@@ -134,6 +134,13 @@ call logger('Irradiation')
             cp => cell_list(kcell)
         endif
 	    if (cp%state == DEAD .or. cp%state == DYING) cycle
+	    if (cp%phase <= G1_checkpoint) then
+	        cp%rad_state = 1
+	    elseif (cp%phase <= S_checkpoint) then
+	        cp%rad_state = 2
+	    else
+	        cp%rad_state = 3
+	    endif
 	    ityp = cp%celltype
 	    ccp => cc_parameters(ityp)
 	    call getO2conc(cp,C_O2)
@@ -472,10 +479,16 @@ if (.not.now) then
     	cp%tag_time = tnow;
     	cp%apoptosis_delay = ApoptosisDelay(ityp)
 	    Ndying(ityp) = Ndying(ityp) + 1
+	    if (cp%rad_state > 0) then
+            rad_count(4) = rad_count(4) + 1
+        endif
 	endif
 	return
 endif
 ! The cell dies now
+if (cp%rad_state > 0) then
+    rad_count(5) = rad_count(5) + 1
+endif
 if (cp%state == DYING) then
 	Ndying(ityp) = Ndying(ityp) - 1
 endif
@@ -616,6 +629,7 @@ do kcell = 1,nlist0
 	else
     	cp => cell_list(kcell)
     endif
+    
 	if (cp%state == DEAD) cycle
 	if (cp%state == DYING) then		! nothing affects a DYING cell (when does it die?)
 		cp%dVdt = 0
@@ -628,33 +642,6 @@ do kcell = 1,nlist0
 	mitosis_entry = .false.
 	mitosis_duration = ccp%T_M
 	in_mitosis = .false.
-!	if (use_volume_method) then
-!!        if (colony_simulation) then
-!!            write(*,'(a,i6,L2,2e12.3)') 'kcell: ',kcell,cp%Iphase,cp%V,cp%divide_volume
-!!        endif
-!	    if (cp%Iphase) then
-!		    call growcell(cp,dt)
-!		    if (cp%V > cp%divide_volume) then	! time to enter mitosis
-!	            in_mitosis = .true.
-!				
-!				cp%Iphase = .false.
-!				cp%mitosis = 0
-!				cp%t_start_mitosis = tnow
-!				ncells_mphase = ncells_mphase + 1
-!				
-!! The following are applicable when cell-cell forces are relevant
-!!				cp%nspheres = 2
-!!				call get_random_vector3(rr)	! set initial axis direction
-!!				cp%d = 0.1*small_d
-!!				c = cp%centre(:,1)
-!!				cp%centre(:,1) = c + (cp%d/2)*rr
-!!				cp%centre(:,2) = c - (cp%d/2)*rr
-!!				cp%d_divide = 2.0**(2./3)*cp%radius(1)
-!	        endif
-!	    else
-!	        in_mitosis = .true.
-!	    endif
-!	else
 	    prev_phase = cp%phase
 		if (cp%dVdt > 0) then
 	        if (use_exponential_cycletime) then
@@ -671,6 +658,7 @@ do kcell = 1,nlist0
 
 	    endif
         if (cp%phase == M_phase) then
+!            if (cp%rad_state > 0) write(*,*) 'M-phase, rad_state! ',cp%rad_state
 !            if (prev_phase == G2_checkpoint) then		! this is mitosis entry
             if (cp%phase /= dividing) then
 !               Death by lesions on entry to M-phase (and S-phase) is now handled in cell cycle
@@ -681,7 +669,7 @@ do kcell = 1,nlist0
 !					cp%radiation_tag = .true.
 !				    Nradiation_tag(ityp) = Nradiation_tag(ityp) + 1
 !					call celldies(cp,.false.)
-!				endif
+!				endif    
 				
 				cp%Iphase = .false.
 				cp%mitosis = 0
@@ -718,7 +706,6 @@ do kcell = 1,nlist0
 		elseif (cp%phase == G1_phase .or.cp%phase == S_phase .or. cp%phase == G2_phase) then
 		    call growcell(cp,dt)
 		endif	
-!	endif
 	
 !	if (in_mitosis) then
     if (cp%phase == dividing) then
@@ -1010,6 +997,7 @@ endif
 
 cp1%state = ALIVE
 cp1%generation = cp1%generation + 1
+cp1%rad_state = 0
 V0 = cp1%V/2
 cp1%V = V0
 cp1%birthtime = tnow

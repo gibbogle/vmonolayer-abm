@@ -173,6 +173,7 @@ use_permute = .true.
 !else
 !	ccp%tcp = 0
 !endif
+rad_count = 0
 end subroutine
 
 !----------------------------------------------------------------------------------------- 
@@ -1377,6 +1378,7 @@ cp => cell_list(kcell)
 cp%ID = kcell
 cp%state = ALIVE
 cp%generation = 1
+cp%rad_state = 0
 cp%celltype = random_choice(celltype_fraction,Ncelltypes,kpar)
 ityp = cp%celltype
 ccp => cc_parameters(ityp)
@@ -1660,6 +1662,7 @@ do kevent = 1,Nevents
 		write(nflog,'(a,i3,2f8.0,i3,2f10.4)') 'Event: ',E%etype,t_simulation,E%time,E%ichemo,E%volume,E%conc
 		if (E%etype == RADIATION_EVENT) then
 			radiation_dose = E%dose
+			rad_dose = radiation_dose
 			write(logmsg,'(a,f8.0,f8.3)') 'RADIATION_EVENT: time, dose: ',t_simulation,E%dose
 			call logger(logmsg)
 		elseif (E%etype == MEDIUM_EVENT) then
@@ -2444,7 +2447,7 @@ if (allocated(gaplist)) deallocate(gaplist,stat=ierr)
 !if (allocated(ODEdiff%varsite)) deallocate(ODEdiff%varsite)
 !if (allocated(ODEdiff%icoef)) deallocate(ODEdiff%icoef)
 if (allocated(protocol)) then
-	do idrug = 0,2	!<------  change this to a variable
+	do idrug = 0,2	!<------  change this to a variable 
 		if (allocated(protocol(idrug)%tstart)) deallocate(protocol(idrug)%tstart)
 		if (allocated(protocol(idrug)%tend)) deallocate(protocol(idrug)%tend)
 		if (allocated(protocol(idrug)%conc)) deallocate(protocol(idrug)%conc)
@@ -2455,6 +2458,9 @@ if (allocated(protocol)) then
 	deallocate(protocol)
 endif
 call logger('deallocated all arrays')
+
+write(logmsg,'(a,8i8)') 'rad_count: ',rad_count
+call logger(logmsg)
 
 ! Close all open files
 inquire(unit=nfout,OPENED=isopen)

@@ -175,6 +175,7 @@ type cell_type
 	logical :: radiation_tag, ATP_tag, GLN_tag
 	logical :: drug_tag(MAX_DRUGTYPES)
 	real(REAL_KIND) :: apoptosis_delay
+	integer :: rad_state    ! 0 = pre-radiation or post-mitosis, I > 0 = radiated in phase I: G1 = 1, S = 2, G2 = 3
 	logical :: G2_M
 !	logical :: exists
 !	integer :: cnr(3,8)
@@ -498,6 +499,9 @@ logical :: DRUG_A_inhibiter = .false.   ! set true if drug is in the input file
 logical :: use_inhibiter = .false.
 real(REAL_KIND) :: C_inhibiter
 real(REAL_KIND) :: a_inhibit = 0.83, b_inhibit = 0.5
+
+real(REAL_KIND) :: rad_dose
+integer :: rad_count(6)
 
 !integer :: icentral !extracellular variable index corresponding to a central site (NX/2,NY/2,NZ/2)
 
