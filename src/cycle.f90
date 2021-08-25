@@ -113,8 +113,8 @@ elseif (phase == G2_phase) then
         cp%phase = G2_checkpoint
         cp%G2_flag = .false.
         cp%G2M_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
-        if (use_rad_state .and. cp%rad_state > 0 .and. cp%rad_state < 3) then
-            cp%G2M_time = tnow + rad_dose*ccp%G2_delay_factor*3600    ! default 1h/Gy
+        if (use_rad_state .and. cp%rad_state > 0 .and. cp%rad_state <= S_checkpoint) then
+            cp%G2M_time = tnow + rad_dose*ccp%G2_delay_factor*3600
         endif
         goto 10
     endif
