@@ -210,6 +210,7 @@ end type
 type cycle_parameters_type
     real(REAL_KIND) :: T_G1, T_S, T_G2, T_M
     real(REAL_KIND) :: G1_mean_delay, S_mean_delay, G2_mean_delay
+    real(REAL_KIND) :: G2_delay_factor
     real(REAL_KIND) :: Pk_G1, Pk_S, Pk_G2
     real(REAL_KIND) :: arrest_threshold
     ! Radiation damage/repair
@@ -502,6 +503,10 @@ real(REAL_KIND) :: a_inhibit = 0.83, b_inhibit = 0.5
 
 real(REAL_KIND) :: rad_dose
 integer :: rad_count(6)
+
+logical :: use_synchronise = .true.
+integer :: synch_phase
+real(REAL_KIND) :: synch_fraction
 
 !integer :: icentral !extracellular variable index corresponding to a central site (NX/2,NY/2,NZ/2)
 

@@ -238,7 +238,8 @@ void MainWindow:: drawDistPlots(bool dummy)
                 expTbase = line_T_G1_1->text().toDouble() + line_T_S_1->text().toDouble() + line_T_G2_1->text().toDouble();
                 expMean[0] = line_G1_MEAN_DELAY_1->text().toDouble();
                 expMean[1] = line_S_MEAN_DELAY_1->text().toDouble();
-                expMean[2] = line_G2_MEAN_DELAY_1->text().toDouble();
+//                expMean[2] = line_G2_MEAN_DELAY_1->text().toDouble();
+                expMean[2] = line_G2_DELAY_FACTOR_1->text().toDouble();
             }
         } else if (j == 1) {
             qp->setTitle("Type 2 division time (hrs)");
@@ -249,7 +250,8 @@ void MainWindow:: drawDistPlots(bool dummy)
                 expTbase = line_T_G1_2->text().toDouble() + line_T_S_2->text().toDouble() + line_T_G2_2->text().toDouble();
                 expMean[0] = line_G1_MEAN_DELAY_2->text().toDouble();
                 expMean[1] = line_S_MEAN_DELAY_2->text().toDouble();
-                expMean[2] = line_G2_MEAN_DELAY_2->text().toDouble();
+//                expMean[2] = line_G2_MEAN_DELAY_2->text().toDouble();
+                expMean[2] = line_G2_DELAY_FACTOR_2->text().toDouble();
             }
         } else if (j == 2) {
             qp->setTitle("Apoptosis delay time 1 (hrs)");

@@ -114,7 +114,7 @@ elseif (phase == G2_phase) then
         cp%G2_flag = .false.
         cp%G2M_time = tnow + f_TCP(ccp,nPL)		!ccp%Tcp(nPL)
         if (use_rad_state .and. cp%rad_state > 0 .and. cp%rad_state < 3) then
-            cp%G2M_time = tnow + rad_dose*1*3600    ! default 1h/Gy
+            cp%G2M_time = tnow + rad_dose*ccp%G2_delay_factor*3600    ! default 1h/Gy
         endif
         goto 10
     endif
@@ -341,18 +341,30 @@ end function
 ! assumption is that tmin < DELTA_T.
 ! Since repair is simulated in the following call to timestep() we can
 ! ignore repair in the (assumed short) dose period.
+! Now eta_PL doubles during S-phase
 !--------------------------------------------------------------------------
 subroutine radiation_damage(cp, ccp, dose0, SER_OER, tmin)
 type(cell_type), pointer :: cp
 type(cycle_parameters_type), pointer :: ccp
 real(REAL_KIND) :: dose0, SER_OER, tmin
 real(REAL_KIND) :: dose, dDdt, dtmin, dthour, R
-real(REAL_KIND) :: p_PL, p_IRL, Krepair, Kmisrepair, misrepair_factor, fraction, inhibition
+real(REAL_KIND) :: p_PL, p_IRL, Krepair, Kmisrepair, misrepair_factor, fraction, inhibition, eta_PL
 integer :: nt, it, nPL, nPL0, nIRL, ityp, kpar=0
 logical :: do_repair = .false.
 
+if (cp%phase < S_phase) then
+    eta_PL = ccp%eta_PL
+elseif (cp%phase > S_phase) then
+    eta_PL = 2*ccp%eta_PL
+else
+    fraction = cp%S_time/cp%S_duration
+	fraction = max(0.0, fraction)
+	fraction = min(1.0, fraction)
+    eta_PL = (1 + fraction)*ccp%eta_PL
+endif
+
 dose = dose0*SER_OER
-nt = dose*ccp%eta_PL/0.01
+nt = dose*eta_PL/0.01
 dtmin = tmin/nt
 !write(*,*) 'from dose: nt, dtmin: ',dose,nt,dtmin 
 !dtmin = 0.0001
@@ -371,8 +383,8 @@ if (do_repair) then
 endif
 
 if (.not.do_repair) then
-	nPL = dose*ccp%eta_PL
-	p_PL =  dose*ccp%eta_PL - nPL
+	nPL = dose*eta_PL
+	p_PL =  dose*eta_PL - nPL
 	R = par_uni(kpar)
 	if (R < p_PL) then
 		nPL = nPL + 1
@@ -387,13 +399,7 @@ if (.not.do_repair) then
 	cp%N_PL = nPL0 + nPL
 	cp%N_IRL = nIRL
 	cp%irrepairable = (nIRL > 0)
-	
-    if (cp%ID == 46) then
-        write(nflog,*) 'damage: cell #, nPL0, N_PL, N_IRL: ',cp%ID,nPL0,cp%N_PL,cp%N_IRL
-        write(nflog,*) 'eta_PL, dose0, SER_OER, C: ',ccp%eta_PL,dose0,SER_OER,C_inhibiter
-    endif
-    if (kcell_now == 46) write(*,*) 'N_PL: ',kcell_now,cp%N_PL
-	
+		
 	return
 endif
 
@@ -407,7 +413,7 @@ if (inhibit_misrepair) then
     Kmisrepair = (1 - inhibition)*Kmisrepair
 endif
 
-p_PL = ccp%eta_PL*dose/nt
+p_PL = eta_PL*dose/nt
 p_IRL = ccp%eta_IRL*dose/nt
 do it = 1,nt
 	R = par_uni(kpar)

@@ -528,9 +528,10 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
      "S mean delay (h)",
      "Mean of the random component of time spent in phase S (exponentially distributed)"},
 
-     {"G2_MEAN_DELAY_1", 1, 0, 0,
-     "G2 mean delay (h)",
-     "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
+     {"G2_DELAY_FACTOR_1", 1, 0, 0,
+     "G2 delay factor (h/Gy)",
+     "G2/M checkpoint delay on first mitosis = factor*dose"},
+//     "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
 
      {"APOPTOSIS_MEDIAN_1", 4, 0, 0,
      "Apoptosis median (hr)",
@@ -621,9 +622,12 @@ metabolism rate = dMdt = Cdrug.(1 - C2 + C2.KO2^n_O2/(KO2^n_O2 + C_O2^n_O2)).Kme
       "S mean delay (h)",
       "Mean of the random component of time spent in phase S (exponentially distributed)"},
 
-      {"G2_MEAN_DELAY_2", 1, 0, 0,
-      "G2 mean delay (h)",
-      "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
+      {"G2_DELAY_FACTOR_2", 1, 0, 0,
+      "G2 delay factor (h/Gy)",
+      "G2/M checkpoint delay on first mitosis = factor*dose"},
+//      {"G2_MEAN_DELAY_2", 1, 0, 0,
+//      "G2 mean delay (h)",
+//      "Mean of the random component of time spent in phase G2 (exponentially distributed)"},
 
       {"APOPTOSIS_MEDIAN_2", 4, 0, 0,
       "Apoptosis median (hr)",

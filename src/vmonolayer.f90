@@ -107,6 +107,12 @@ enddo
 mp => phase_metabolic(1)
 call SetupMetabolism(mp,ok)
 if (.not.ok) stop
+
+! Cell synchronisation
+use_synchronise = .false.
+synch_phase = G2_phase
+synch_fraction = 0.0
+
 call PlaceCells(ok)
 
 !write(*,*) 'stopping after PlaceCells'
@@ -842,7 +848,8 @@ read(nf,*) ccp%T_G2
 read(nf,*) ccp%T_M
 read(nf,*) ccp%G1_mean_delay
 read(nf,*) ccp%S_mean_delay
-read(nf,*) ccp%G2_mean_delay
+read(nf,*) ccp%G2_delay_factor
+ccp%G2_mean_delay = 0
 read(nf,*) ccp%Apoptosis_median
 read(nf,*) ccp%Apoptosis_shape
 read(nf,*) ccp%arrest_threshold
@@ -1181,6 +1188,9 @@ do itime = 1,ntimes
 		kevent = kevent + 1
 		event(kevent)%etype = RADIATION_EVENT
 		read(nf,*) t
+		if (use_synchronise) then
+		    t = 0   ! might need to be > 0
+		endif
 		read(nf,*) dose
 		event(kevent)%time = t
 		event(kevent)%dose = dose	
@@ -1507,6 +1517,12 @@ end subroutine
 ! set flags
 !
 ! Note: assumes use of log-normal cycle time!
+!
+! Calculates synch_time for each cell.  This is the initial time point in the cell cycle 
+! that all cells share, i.e. at time = 0 all cells are in the same phase and at the same 
+! fractional point in the phase.
+! For the radiation dose to occur while the cells are synchronised requires the dose time
+! to be very close to the start, i.e. close to 0.
 !--------------------------------------------------------------------------------------
 subroutine SetInitialCellCycleStatus(kcell,cp)
 integer :: kcell
@@ -1532,9 +1548,23 @@ T_G2 = fg*ccp%T_G2
 G1_delay = fg*ccp%G1_mean_delay
 S_delay = fg*ccp%S_mean_delay
 G2_delay = fg*ccp%G2_mean_delay
-b = log(2.0)/Tc
-R = par_uni(kpar)
-t = -(1/b)*log(1 - R/2)     ! cycle progression
+if (use_synchronise) then
+    if (synch_phase == G1_phase) then
+        t = synch_fraction*T_G1
+    elseif (synch_phase == S_phase) then
+        t = (T_G1 + synch_fraction*T_S)
+    elseif (synch_phase == G2_phase) then
+        t = (T_G1 + T_S + synch_fraction*T_G2)
+    else
+        write(*,*) 'Error: SetInitialCellCycleStatus: bad synch_phase: ',synch_phase
+        write(nflog,*) 'Error: SetInitialCellCycleStatus: bad synch_phase: ',synch_phase
+        stop
+    endif
+else
+    b = log(2.0)/Tc
+    R = par_uni(kpar)
+    t = -(1/b)*log(1 - R/2)     ! cycle progression
+endif
 tswitch(1) = T_G1 
 tswitch(2) = tswitch(1) + G1_delay
 tswitch(3) = tswitch(2) + T_S

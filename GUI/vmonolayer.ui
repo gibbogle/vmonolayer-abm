@@ -506,14 +506,14 @@ padding: 8px
                </widget>
               </item>
               <item row="7" column="0">
-               <widget class="QMyLabel" name="label_G2_MEAN_DELAY_1">
+               <widget class="QMyLabel" name="label_G2_DELAY_FACTOR_1">
                 <property name="text">
-                 <string>Mean G2-M checkpoint delay (h)</string>
+                 <string>G2-M delay factor (h/Gy)</string>
                 </property>
                </widget>
               </item>
               <item row="7" column="1">
-               <widget class="QLineEdit" name="line_G2_MEAN_DELAY_1">
+               <widget class="QLineEdit" name="line_G2_DELAY_FACTOR_1">
                 <property name="maximumSize">
                  <size>
                   <width>61</width>
@@ -526,7 +526,7 @@ padding: 8px
                </widget>
               </item>
               <item row="7" column="2">
-               <widget class="QLineEdit" name="line_G2_MEAN_DELAY_2">
+               <widget class="QLineEdit" name="line_G2_DELAY_FACTOR_2">
                 <property name="maximumSize">
                  <size>
                   <width>61</width>
